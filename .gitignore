@@ -1,7 +1,12 @@
+# cache files
 __pycache__
 
+# inputs & outputs
 processed_cards/*
-spreadsheets/*
-
 !processed_cards/.gitkeep
+
+spreadsheets/*
 !spreadsheets/.gitkeep
+
+# debug scripts
+images/svg_to_png.py
