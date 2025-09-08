@@ -1,3 +1,20 @@
+import regex
+
+
+def replace_ticks(word: str) -> str:
+    """
+    Replace ticks `'` and double ticks `"` with correctly facing apostrophes and quotation marks.
+    """
+
+    if word.endswith('"'):
+        word = word[:-1] + '”'
+    word = word.replace('"', '“')
+    if word.startswith("'"):
+        word = "‘" + word[1:]
+    word = word.replace("'", '’')
+
+    return word
+
 # def get_token_full_name(token: dict[str, str]) -> str:
 #     color = token[CARD_COLOR]
 #     token_color = ""

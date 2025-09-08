@@ -30,6 +30,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
+from utils import replace_ticks
 
 
 class Card:
@@ -389,17 +390,18 @@ class Card:
 
                     else:
                         for word in re.findall(r"\S+|\s+", value):
+                            word = replace_ticks(word)
+                            width = text_font.getlength(word)
+                            
                             if word.isspace():
                                 if not curr_fragment:  # get rid of leading spaces
                                     continue
-                                width = text_font.getlength(word)
                                 if curr_width + width > max_line_width:
                                     go_to_newline()
                                     continue
                                 curr_fragment.append(("text", word))
                                 curr_width += width
                             else:
-                                width = text_font.getlength(word)
                                 if curr_fragment and curr_width + width > max_line_width:
                                     go_to_newline()
 
@@ -434,7 +436,7 @@ class Card:
                 for line in raw_flavor_text.splitlines():
                     flavor_fragments = parse_fragments(line)
                     flavor_lines[-1] += (
-                        wrap_text_fragments(flavor_fragments, flavor_font) if flavor_fragments else [["text", ""]]
+                        wrap_text_fragments(flavor_fragments, flavor_font) if flavor_fragments else [[("text", "")]]
                     )
                     flavor_lines[-1].append([("newline", None)])
                 flavor_lines[-1].pop()  # remove the ending newline
