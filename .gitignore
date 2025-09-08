@@ -8,5 +8,6 @@ processed_cards/*
 spreadsheets/*
 !spreadsheets/.gitkeep
 
-# debug scripts
+# log/debug
+log.txt
 images/svg_to_png.py

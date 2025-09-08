@@ -1,21 +1,11 @@
 import re
 from PIL import Image
 
-# card dimensons
-CARD_WIDTH = 1500
-CARD_HEIGHT = 2100
-BATTLE_CARD_MULT = 1.34
+from model.Symbol import Symbol
 
-RULES_BOX_WIDTH = 1278
-RULES_BOX_HEIGHT = 623
-RULES_BOX_X = 112
-RULES_BOX_Y = 1315
-RULES_BOX_MAX_FONT_SIZE = 78
-RULES_BOX_MIN_FONT_SIZE = 6
-
-LINE_HEIGHT_TO_GAP_RATIO = 4
-
-MANA_SYMBOL_RULES_TEXT_SCALE = 0.8
+##########################
+# CSV / SPREADSHEET INFO #
+##########################
 
 # the name of the .csv file that hold all the card information
 CARDS_SPREADSHEET = "spreadsheets/the_one_set - Cards.csv"
@@ -29,6 +19,42 @@ CARD_FRAME = "Frame(s)"
 CARD_TYPE = "Type(s)"
 CARD_SUBTYPE = "Subtype(s)"
 
+
+
+#######################
+# SIZING & DIMENSIONS #
+#######################
+
+CARD_WIDTH = 1500
+CARD_HEIGHT = 2100
+BATTLE_CARD_MULT = 1.34
+
+RULES_BOX_WIDTH = 1278
+RULES_BOX_HEIGHT = 623
+RULES_BOX_X = 112
+RULES_BOX_Y = 1315
+RULES_BOX_MAX_FONT_SIZE = 78
+RULES_BOX_MIN_FONT_SIZE = 6
+
+MANA_COST_HEADER_WIDTH = 1280
+MANA_COST_HEADER_HEIGHT = 114
+MANA_COST_HEADER_X = 110
+MANA_COST_HEADER_Y = 105
+MANA_COST_SYMBOL_SIZE = 70
+MANA_COST_SYMBOL_SPACING = 6
+MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
+
+LINE_HEIGHT_TO_GAP_RATIO = 4
+
+MANA_SYMBOL_RULES_TEXT_SCALE = 0.8
+
+
+
+##################
+# FILE LOCATIONS #
+##################
+
 # image locations
 REGULAR_MANA_SYMBOLS_PATH = "images/mana_symbols/regular"
 DROP_SHADOW_MANA_SYMBOLS_PATH = "images/mana_symbols/regular"
@@ -36,40 +62,91 @@ DROP_SHADOW_MANA_SYMBOLS_PATH = "images/mana_symbols/regular"
 # fonts
 RULES_TEXT_FONT = "fonts/mplantin.ttf"
 FLAVOR_TEXT_FONT = "fonts/mplantinit.ttf"
-MANA_SYMBOL_FONT = "fonts/mana/mana.ttf"
 
-# conversions for characters in card names that can't appear in filenames
-CHAR_TO_TITLE_CHAR = {
-    "<": "{BC}",
-    ">": "{FC}",
-    ":": "{C}",
-    '"': "{QT}",
-    "/": "{FS}",
-    "\\": "{BS}",
-    "|": "{B}",
-    "?": "{QS}",
-    "*": "{A}",
-}
 
-# mana symbol & text code placeholders
+
+##########
+# IMAGES #
+##########
+
+# Standard Mana
+WHITE_MANA = Image.open("images/mana_symbols/white.png").convert("RGBA")
+BLUE_MANA = Image.open("images/mana_symbols/blue.png").convert("RGBA")
+BLACK_MANA = Image.open("images/mana_symbols/black.png").convert("RGBA")
+RED_MANA = Image.open("images/mana_symbols/red.png").convert("RGBA")
+GREEN_MANA = Image.open("images/mana_symbols/green.png").convert("RGBA")
+COLORLESS_MANA = Image.open("images/mana_symbols/colorless.png").convert("RGBA")
+
+# Standard Numbered Mana
+ONE_MANA = Image.open("images/mana_symbols/1.png").convert("RGBA")
+TWO_MANA = Image.open("images/mana_symbols/2.png").convert("RGBA")
+THREE_MANA = Image.open("images/mana_symbols/3.png").convert("RGBA")
+
+# Standard Hybrid Mana
+WHITE_BLUE_MANA = Image.open("images/mana_symbols/white_blue.png").convert("RGBA")
+WHITE_BLACK_MANA = Image.open("images/mana_symbols/white_black.png").convert("RGBA")
+BLUE_BLACK_MANA = Image.open("images/mana_symbols/blue_black.png").convert("RGBA")
+BLUE_RED_MANA = Image.open("images/mana_symbols/blue_red.png").convert("RGBA")
+BLACK_RED_MANA = Image.open("images/mana_symbols/black_red.png").convert("RGBA")
+BLACK_GREEN_MANA = Image.open("images/mana_symbols/black_green.png").convert("RGBA")
+RED_GREEN_MANA = Image.open("images/mana_symbols/red_green.png").convert("RGBA")
+RED_WHITE_MANA = Image.open("images/mana_symbols/red_white.png").convert("RGBA")
+GREEN_WHITE_MANA = Image.open("images/mana_symbols/green_white.png").convert("RGBA")
+GREEN_BLUE_MANA = Image.open("images/mana_symbols/green_blue.png").convert("RGBA")
+
+# Text Formatting
+FLAVOR_DIVIDING_LINE = Image.open("images/flavor_divider.png").convert("RGBA")
+
+
+
+################
+# PLACEHOLDERS #
+################
+
 PLACEHOLDER_REGEX = re.compile(r"\{([^}]+)\}")
-PLACEHOLDER_KEY = {
-    # colored mana
-    "W": Image.open("images/mana_symbols/regular/white.png").convert("RGBA"),
-    "U": Image.open("images/mana_symbols/regular/blue.png").convert("RGBA"),
-    "B": Image.open("images/mana_symbols/regular/black.png").convert("RGBA"),
-    "R": Image.open("images/mana_symbols/regular/red.png").convert("RGBA"),
-    "G": Image.open("images/mana_symbols/regular/green.png").convert("RGBA"),
-    "C": Image.open("images/mana_symbols/regular/colorless.png").convert("RGBA"),
 
-    # numbered mana
-    "1": Image.open("images/mana_symbols/regular/1.png").convert("RGBA"),
-    "2": Image.open("images/mana_symbols/regular/2.png").convert("RGBA"),
-    "3": Image.open("images/mana_symbols/regular/3.png").convert("RGBA"),
-
-    # text formatting
-    "flavor": Image.open("images/flavor_divider.png").convert("RGBA"),
+SYMBOL_PLACEHOLDER_KEY = {
+    # Standard Mana
+    "w": Symbol(WHITE_MANA),
+    "u": Symbol(BLUE_MANA),
+    "b": Symbol(BLACK_MANA),
+    "r": Symbol(RED_MANA),
+    "g": Symbol(GREEN_MANA),
+    "c": Symbol(COLORLESS_MANA),
+    # Standard Numbered Mana
+    "1": Symbol(ONE_MANA),
+    "2": Symbol(TWO_MANA),
+    "3": Symbol(THREE_MANA),
+    # Standard Hybrid Mana
+    "w/u": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/w": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/b": Symbol(WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/w": Symbol(WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/b": Symbol(BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/u": Symbol(BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/r": Symbol(BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/u": Symbol(BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/r": Symbol(BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/b": Symbol(BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/g": Symbol(BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/b": Symbol(BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/g": Symbol(RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/r": Symbol(RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/w": Symbol(RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/r": Symbol(RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/w": Symbol(GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/g": Symbol(GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/u": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Text Formatting
+    "flavor": Symbol(FLAVOR_DIVIDING_LINE),
 }
+
+
+
+#####################
+# FORMATTING GUIDES #
+#####################
 
 # the widths of numbers in the collector info
 NUMBER_WIDTHS = {
@@ -83,6 +160,19 @@ NUMBER_WIDTHS = {
     "7": 21,
     "8": 23,
     "9": 25,
+}
+
+# conversions for characters in card names that can't appear in filenames
+CHAR_TO_TITLE_CHAR = {
+    "<": "{BC}",
+    ">": "{FC}",
+    ":": "{C}",
+    '"': "{QT}",
+    "/": "{FS}",
+    "\\": "{BS}",
+    "|": "{B}",
+    "?": "{QS}",
+    "*": "{A}",
 }
 
 # color to poker borders conversion
