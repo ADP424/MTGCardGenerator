@@ -1,0 +1,7 @@
+__pycache__
+
+processed_cards/*
+spreadsheets/*
+
+!processed_cards/.gitkeep
+!spreadsheets/.gitkeep
