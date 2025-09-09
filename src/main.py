@@ -1,7 +1,7 @@
 import argparse
 import csv
 from constants import CARD_CATEGORY, CARD_TITLE, CARDS_SPREADSHEET, CHAR_TO_TITLE_CHAR
-from log import reset_log
+from log import log, reset_log
 from model.Card import Card
 
 
@@ -62,6 +62,7 @@ def main():
     reset_log()
     cards = process_spreadsheet()
     for card in cards.values():
+        log(f"Processing {card.metadata[CARD_TITLE]}...")
         card.create_frame_layers()
         card.create_text_layers()
         final_card = card.render_card()

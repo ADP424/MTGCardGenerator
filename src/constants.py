@@ -7,10 +7,10 @@ from model.Symbol import Symbol
 # CSV / SPREADSHEET INFO #
 ##########################
 
-# the name of the .csv file that hold all the card information
+# The name of the .csv file that hold all the card information
 CARDS_SPREADSHEET = "spreadsheets/the_one_set - Cards.csv"
 
-# which columns in the spreadsheet correspond to which attribute
+# Which columns in the spreadsheet correspond to which attribute
 CARD_CATEGORY = "Category"
 CARD_TITLE = "Title"
 CARD_MANA_COST = "Mana Cost"
@@ -19,16 +19,44 @@ CARD_FRAMES = "Frame(s)"
 CARD_SUPERTYPES = "Supertype(s)"
 CARD_TYPES = "Type(s)"
 CARD_SUBTYPES = "Subtype(s)"
+CARD_POWER_TOUGHNESS = "Power/Toughness"
 
 
 #######################
 # SIZING & DIMENSIONS #
 #######################
 
+# Card Dimensions
 CARD_WIDTH = 1500
 CARD_HEIGHT = 2100
 BATTLE_CARD_MULT = 1.34
 
+# Title Header Box Sizing
+TITLE_BOX_WIDTH = 1280
+TITLE_BOX_HEIGHT = 114
+TITLE_BOX_X = 110
+TITLE_BOX_Y = 105
+
+# Mana Cost Symbol Sizing
+MANA_COST_SYMBOL_SIZE = 70
+MANA_COST_SYMBOL_SPACING = 6
+MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
+
+# Title Text Sizing
+TITLE_X = 128
+TITLE_Y = 105
+TITLE_MAX_WIDTH = 1244
+BELEREN_BOLD_SIZE = 79
+
+# Type Text Sizing
+TYPE_X = 128
+TYPE_Y = 1186
+TYPE_MAX_WIDTH = 1244
+TYPE_BOX_HEIGHT = 114
+TYPE_FONT_SIZE = 67
+
+# Rules Text Box Sizing
 RULES_BOX_WIDTH = 1278
 RULES_BOX_HEIGHT = 623
 RULES_BOX_X = 112
@@ -36,45 +64,32 @@ RULES_BOX_Y = 1315
 RULES_BOX_MAX_FONT_SIZE = 78
 RULES_BOX_MIN_FONT_SIZE = 6
 
-TITLE_BOX_WIDTH = 1280
-TITLE_BOX_HEIGHT = 114
-TITLE_BOX_X = 110
-TITLE_BOX_Y = 105
-
-TITLE_X = 128
-TITLE_Y = 105
-TITLE_MAX_WIDTH = 1244
-TITLE_FONT_SIZE = 79
-
-TYPE_X = 128
-TYPE_Y = 1186
-TYPE_MAX_WIDTH = 1244
-TYPE_BOX_HEIGHT = 114
-TYPE_FONT_SIZE = 67
-
-MANA_COST_SYMBOL_SIZE = 70
-MANA_COST_SYMBOL_SPACING = 6
-MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
-HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
-
-LINE_HEIGHT_TO_GAP_RATIO = 4
-
+# Rules Text Sizing
 MANA_SYMBOL_RULES_TEXT_SCALE = 0.78
 MANA_SYMBOL_RULES_TEXT_MARGIN = 5
+LINE_HEIGHT_TO_GAP_RATIO = 4
+
+# Power & Toughness Sizing
+POWER_TOUGHNESS_WIDTH = 252
+POWER_TOUGHNESS_HEIGHT = 124
+POWER_TOUGHNESS_X = 1166
+POWER_TOUGHNESS_Y = 1866
+POWER_TOUGHNESS_FONT_SIZE = 80
 
 
 ##################
 # FILE LOCATIONS #
 ##################
 
-# image locations
+# Image Locations
 FRAMES_PATH = "images/frames"
 MANA_SYMBOLS_PATH = "images/mana_symbols"
 
-# fonts
-RULES_TEXT_FONT = "fonts/mplantin.ttf"
-FLAVOR_TEXT_FONT = "fonts/mplantinit.ttf"
-TITLE_FONT = "fonts/beleren-bold.ttf"
+# Fonts
+MPLANTIN = "fonts/mplantin.ttf"
+MPLANTIN_ITALICS = "fonts/mplantinit.ttf"
+BELEREN_BOLD = "fonts/beleren-bold.ttf"
+BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
 
 
 ##########
@@ -158,7 +173,7 @@ SYMBOL_PLACEHOLDER_KEY = {
 # FORMATTING GUIDES #
 #####################
 
-# the widths of numbers in the collector info
+# Collector Info Number Widths
 NUMBER_WIDTHS = {
     "0": 26,
     "1": 14,
@@ -172,7 +187,7 @@ NUMBER_WIDTHS = {
     "9": 25,
 }
 
-# conversions for characters in card names that can't appear in filenames
+# Illegal Filename Character Conversion
 CHAR_TO_TITLE_CHAR = {
     "<": "{BC}",
     ">": "{FC}",
@@ -185,7 +200,7 @@ CHAR_TO_TITLE_CHAR = {
     "*": "{A}",
 }
 
-# color to poker borders conversion
+# Color to Poker Border Conversion
 POKER_BORDERS = {
     "W": "fold",
     "U": "echo",

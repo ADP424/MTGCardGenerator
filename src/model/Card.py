@@ -3,19 +3,26 @@ import re
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from constants import (
+    BELEREN_BOLD_SMALL_CAPS,
     CARD_FRAMES,
     CARD_TITLE,
     CARD_SUPERTYPES,
     CARD_TYPES,
     CARD_SUBTYPES,
+    CARD_POWER_TOUGHNESS,
     CARD_MANA_COST,
     CARD_WIDTH,
     CARD_HEIGHT,
     CARD_RULES_TEXT,
-    FLAVOR_TEXT_FONT,
+    MPLANTIN_ITALICS,
     FRAMES_PATH,
     LINE_HEIGHT_TO_GAP_RATIO,
     MANA_SYMBOL_RULES_TEXT_MARGIN,
+    POWER_TOUGHNESS_FONT_SIZE,
+    POWER_TOUGHNESS_HEIGHT,
+    POWER_TOUGHNESS_WIDTH,
+    POWER_TOUGHNESS_X,
+    POWER_TOUGHNESS_Y,
     TITLE_BOX_HEIGHT,
     TITLE_BOX_WIDTH,
     TITLE_BOX_X,
@@ -31,10 +38,10 @@ from constants import (
     RULES_BOX_WIDTH,
     RULES_BOX_X,
     RULES_BOX_Y,
-    RULES_TEXT_FONT,
+    MPLANTIN,
     PLACEHOLDER_REGEX,
-    TITLE_FONT,
-    TITLE_FONT_SIZE,
+    BELEREN_BOLD,
+    BELEREN_BOLD_SIZE,
     TITLE_MAX_WIDTH,
     TITLE_X,
     TITLE_Y,
@@ -229,6 +236,7 @@ class Card:
         self._create_title_layer()
         self._create_type_layer()
         self._create_rules_text_layer()
+        self._create_power_toughness_layer()
 
     def _create_mana_cost_layer(
         self,
@@ -262,6 +270,9 @@ class Card:
 
         if text is None:
             text = self.metadata.get(CARD_MANA_COST, "")
+        if len(text) == 0:
+            return
+        
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -369,8 +380,10 @@ class Card:
 
         if text is None:
             text = self.metadata.get(CARD_TITLE, "")
+        if len(text) == 0:
+            return
 
-        title_font = ImageFont.truetype(TITLE_FONT, TITLE_FONT_SIZE)
+        title_font = ImageFont.truetype(BELEREN_BOLD, BELEREN_BOLD_SIZE)
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
         bounding_box = title_font.getbbox(text)
@@ -417,8 +430,10 @@ class Card:
                 text = " — ".join((first_part, second_part))
             else:
                 text = first_part
+        if len(text) == 0:
+            return
 
-        type_font = ImageFont.truetype(TITLE_FONT, TYPE_FONT_SIZE)
+        type_font = ImageFont.truetype(BELEREN_BOLD, TYPE_FONT_SIZE)
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
         bounding_box = type_font.getbbox(text)
@@ -432,8 +447,9 @@ class Card:
         Replace standard placeholders in the format `{PLACEHOLDER}` with what they represent.
         """
 
-        new_text = re.sub("{cardname}", self.metadata.get(CARD_TITLE, ""), text, flags=re.IGNORECASE)
-        new_text = re.sub("{-}", "—", text)
+        new_text = text
+        new_text = re.sub("{cardname}", self.metadata.get(CARD_TITLE, ""), new_text, flags=re.IGNORECASE)
+        new_text = re.sub("{-}", "—", new_text)
         return new_text
 
     def _create_rules_text_layer(
@@ -468,6 +484,8 @@ class Card:
 
         if text is None:
             text = self.metadata.get(CARD_RULES_TEXT, "")
+        if len(text) == 0:
+            return
 
         text = self._replace_text_placeholders(text)
 
@@ -476,8 +494,8 @@ class Card:
         raw_flavor_texts = flavor_split[1:] if len(flavor_split) > 1 else []
 
         for font_size in range(RULES_BOX_MAX_FONT_SIZE, RULES_BOX_MIN_FONT_SIZE - 1, -1):
-            rules_font = ImageFont.truetype(RULES_TEXT_FONT, font_size)
-            flavor_font = ImageFont.truetype(FLAVOR_TEXT_FONT, font_size)
+            rules_font = ImageFont.truetype(MPLANTIN, font_size)
+            flavor_font = ImageFont.truetype(MPLANTIN_ITALICS, font_size)
 
             line_height = font_size
             margin = int(font_size * 0.25)
@@ -672,6 +690,51 @@ class Card:
             return
 
         raise ValueError("Text is too long to fit in box even at minimum font size.")
+    
+    def _create_power_toughness_layer(
+        self,
+        text: str = None,
+        power_toughness_x: int = POWER_TOUGHNESS_X,
+        power_toughness_y: int = POWER_TOUGHNESS_Y,
+        power_toughness_width: int = POWER_TOUGHNESS_WIDTH,
+        power_toughness_height: int = POWER_TOUGHNESS_HEIGHT,
+    ):
+        """
+        Process power & toughness text into the power & toughness area and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        text: str, optional
+            The power & toughness text to process. Uses the power & toughness in the card's metadata if not given.
+
+        power_toughness_x: int, default : `TYPE_BOX_X`
+            The leftmost x position of the type header.
+
+        power_toughness_y: int, default : `TYPE_BOX_Y`
+            The topmost y position of the type header.
+
+        power_toughness_width: int, default : `TYPE_BOX_WIDTH`
+            The width of the frame's power & toughness area.
+
+        power_toughness_height: int, default : `TYPE_BOX_HEIGHT`
+            The height of the frame's type power & toughness area.
+        """
+
+        if text is None:
+            text = self.metadata.get(CARD_POWER_TOUGHNESS, "").strip()
+        if len(text) == 0:
+            return
+
+        power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, POWER_TOUGHNESS_FONT_SIZE)
+        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        text_width = power_toughness_font.getlength(text)
+        bounding_box = power_toughness_font.getbbox(text)
+        text_height = int(bounding_box[3] - bounding_box[1])
+        draw.text(((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4), text, font=power_toughness_font, fill="black")
+
+        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
 
     def add_metadata(self, key: str, value: str, append: bool = False):
         """
