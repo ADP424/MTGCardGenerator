@@ -1,19 +1,25 @@
 import io
 import re
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from constants import (
+    CARD_FRAMES,
     CARD_TITLE,
+    CARD_SUPERTYPES,
+    CARD_TYPES,
+    CARD_SUBTYPES,
     CARD_MANA_COST,
     CARD_WIDTH,
     CARD_HEIGHT,
     CARD_RULES_TEXT,
     FLAVOR_TEXT_FONT,
+    FRAMES_PATH,
     LINE_HEIGHT_TO_GAP_RATIO,
-    MANA_COST_HEADER_HEIGHT,
-    MANA_COST_HEADER_WIDTH,
-    MANA_COST_HEADER_X,
-    MANA_COST_HEADER_Y,
+    MANA_SYMBOL_RULES_TEXT_MARGIN,
+    TITLE_BOX_HEIGHT,
+    TITLE_BOX_WIDTH,
+    TITLE_BOX_X,
+    TITLE_BOX_Y,
     MANA_COST_SYMBOL_SHADOW_OFFSET,
     MANA_COST_SYMBOL_SIZE,
     MANA_COST_SYMBOL_SPACING,
@@ -27,6 +33,16 @@ from constants import (
     RULES_BOX_Y,
     RULES_TEXT_FONT,
     PLACEHOLDER_REGEX,
+    TITLE_FONT,
+    TITLE_FONT_SIZE,
+    TITLE_MAX_WIDTH,
+    TITLE_X,
+    TITLE_Y,
+    TYPE_BOX_HEIGHT,
+    TYPE_FONT_SIZE,
+    TYPE_MAX_WIDTH,
+    TYPE_X,
+    TYPE_Y,
 )
 from log import log
 from model.Layer import Layer
@@ -69,7 +85,21 @@ class Card:
         self.frame_layers = frame_layers if frame_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
 
-    def _image_is_valid(self, image: Image.Image):
+    def _image_is_valid(self, image: Image.Image) -> bool:
+        """
+        Check if the provided image is a correctly formatted PNG.
+
+        Parameters
+        ----------
+        image: Image
+            The image to check.
+
+        Returns
+        -------
+        bool
+            Whether the image is valid or not.
+        """
+
         try:
             with io.BytesIO() as buffer:
                 image.save(buffer, format="PNG")
@@ -81,14 +111,14 @@ class Card:
             log(f"Image invalid: {e}")
             return False
 
-    def add_frame_layer(
+    def _add_frame_layer(
         self,
         image: Image.Image | str,
         index: int = None,
         position: tuple[int, int] = (0, 0),
     ):
         """
-        Add a layer with the image at the given path before the given index.
+        Add a layer of the image at the given path before the given index.
 
         Parameters
         ----------
@@ -99,7 +129,7 @@ class Card:
             The index to add the layer before. Adds to the top if not given.
 
         position: tuple[int, int], default : (0, 0)
-            The position of the layer relative to the top left corner of the image.
+            The position of the layer relative to the top left corner of the main image.
         """
 
         if isinstance(image, str):
@@ -113,30 +143,15 @@ class Card:
         else:
             self.frame_layers.insert(index, Layer(image, position))
 
-    def remove_frame_layer(self, index: int):
-        """
-        Remove the layer at the given index.
-
-        Parameters
-        ----------
-        index: int
-            The index of the layer to remove.
-        """
-
-        self.frame_layers.pop(index)
-
-    def merge_layers(self) -> Image.Image:
+    def render_card(self) -> Image.Image:
         """
         Merge all layers into one image.
 
         Returns
         -------
         Image
-            The merged image. Returns None if the Card has no layers.
+            The merged image.
         """
-
-        if len(self.frame_layers) == 0:
-            return None
 
         base_image = Image.new("RGBA", (self.base_width, self.base_height), (0, 0, 0, 0))
         composite_image = base_image.copy()
@@ -147,49 +162,108 @@ class Card:
             composite_image.paste(layer.image, layer.position, mask=layer.image)
 
         return composite_image
-    
-    def render_text(self):
+
+    def create_frame_layers(self):
+        """
+        Append every frame layer to the card based on `self.metadata`.
+        """
+
+        card_frames = self.metadata.get(CARD_FRAMES, "")
+        if len(card_frames) == 0:
+            return
+
+        pending_masks: list[Image.Image] = []
+
+        for frame_path in card_frames.split("\n"):
+            frame_path = frame_path.lower().strip()
+            if len(frame_path) == 0:
+                continue
+
+            try:
+                frame = Image.open(f"{FRAMES_PATH}/{frame_path}.png").convert("RGBA")
+            except Exception:
+                log(f"Invalid frame path '{frame_path}' in '{self.metadata.get(CARD_TITLE, 'Unknown Card')}'")
+                continue
+
+            if "mask/" in frame_path.lower():
+                pending_masks.append(frame)
+                continue
+
+            frame = frame.convert("RGBA")
+
+            if len(pending_masks) > 0:
+                combined_mask = Image.new("L", frame.size, 255)
+                for mask in pending_masks:
+                    if "A" in mask.getbands():
+                        base = mask.getchannel("A").resize(frame.size)
+                    else:
+                        base = mask.convert("L").resize(frame.size)
+
+                    if base.getbbox() is None:
+                        log(f"Warning: mask '{frame_path}' appears empty. Skipping one mask...")
+                        continue
+
+                    # combine masks multiplicatively so multiple masks narrow the kept area
+                    combined_mask = ImageChops.multiply(combined_mask, base)
+
+                new_frame = frame.copy()
+                new_frame.putalpha(combined_mask)
+                frame = new_frame
+
+                pending_masks.clear()
+
+            self.frame_layers.append(Layer(frame))
+
+        if pending_masks:
+            log(
+                f"Warning: {len(pending_masks)} mask layer(s) at end of frame list with no following frame."
+                "They were ignored."
+            )
+
+    def create_text_layers(self):
         """
         Append every layer of text of the card (rules text, mana cost, etc.) to `self.text_layers`.
         """
 
-        self.render_mana_cost()
-        self.render_rules_text()
+        self._create_mana_cost_layer()
+        self._create_title_layer()
+        self._create_type_layer()
+        self._create_rules_text_layer()
 
-    def render_mana_cost(
+    def _create_mana_cost_layer(
         self,
         text: str = None,
-        header_x: int = MANA_COST_HEADER_X,
-        header_y: int = MANA_COST_HEADER_Y,
-        header_width: int = MANA_COST_HEADER_WIDTH,
-        header_height: int = MANA_COST_HEADER_HEIGHT,
+        header_x: int = TITLE_BOX_X,
+        header_y: int = TITLE_BOX_Y,
+        header_width: int = TITLE_BOX_WIDTH,
+        header_height: int = TITLE_BOX_HEIGHT,
     ):
         """
-        Render MTG mana cost in the mana cost header, exchanging mana placeholders for symbols,
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
         and append it to `self.text_layers`.
 
         Parameters
         ----------
         text: str, optional
-            The mana cost text to render. Uses the mana cost text in the card's metadata if not given.
+            The mana cost text to process. Uses the mana cost text in the card's metadata if not given.
 
-        header_x: int, default : `MANA_COST_HEADER_X`
+        header_x: int, default : `TITLE_BOX_X`
             The leftmost x position of the mana cost header.
 
-        header_y: int, default : `MANA_COST_HEADER_Y`
+        header_y: int, default : `TITLE_BOX_Y`
             The topmost y position of the mana cost header.
 
-        header_width: int, default : `MANA_COST_HEADER_WIDTH`
+        header_width: int, default : `TITLE_BOX_WIDTH`
             The width of the frame's mana cost header.
 
-        header_height: int, default : `MANA_COST_HEADER_HEIGHT`
+        header_height: int, default : `TITLE_BOX_HEIGHT`
             The height of the frame's mana cost header.
         """
 
         if text is None:
             text = self.metadata.get(CARD_MANA_COST, "")
-        text = re.sub(r"{+|}+", " ", text) # remove braces
-        text = re.sub(r"\s+", " ", text) # remove strings of whitespace longer than 1
+        text = re.sub(r"{+|}+", " ", text)
+        text = re.sub(r"\s+", " ", text)
         text = text.strip()
 
         def add_drop_shadow(
@@ -212,7 +286,6 @@ class Card:
                 The mana symbol image provided, now with a drop shadow.
             """
 
-            # Create shadow by using the alpha channel
             alpha = symbol_image.getchannel("A")
             shadow = Image.new("RGBA", symbol_image.size, (0, 0, 0, 0))
             black = Image.new("L", symbol_image.size)
@@ -256,14 +329,101 @@ class Card:
             height = int(symbol.image.height * scale)
             symbol_image = add_drop_shadow(symbol.image.resize((width, height), Image.LANCZOS))
 
-            curr_x -= (symbol_image.width + MANA_COST_SYMBOL_SPACING)
+            curr_x -= symbol_image.width + MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
-                image.alpha_composite(
-                    symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2)
-                )
+                image.alpha_composite(symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2))
             else:
                 log(f"The mana cost is too long on '{self.metadata.get(CARD_TITLE, "Unknown Card")}'.")
                 break
+
+        self.text_layers.append(Layer(image, (header_x, header_y)))
+
+    def _create_title_layer(
+        self,
+        text: str = None,
+        header_x: int = TITLE_X,
+        header_y: int = TITLE_Y,
+        header_width: int = TITLE_MAX_WIDTH,
+        header_height: int = TITLE_BOX_HEIGHT,
+    ):
+        """
+        Process title text into the title and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        text: str, optional
+            The title text to process. Uses the title in the card's metadata if not given.
+
+        header_x: int, default : `TITLE_BOX_X`
+            The leftmost x position of the title header.
+
+        header_y: int, default : `TITLE_BOX_Y`
+            The topmost y position of the title header.
+
+        header_width: int, default : `TITLE_BOX_WIDTH`
+            The width of the frame's title header.
+
+        header_height: int, default : `TITLE_BOX_HEIGHT`
+            The height of the frame's title header box.
+        """
+
+        if text is None:
+            text = self.metadata.get(CARD_TITLE, "")
+
+        title_font = ImageFont.truetype(TITLE_FONT, TITLE_FONT_SIZE)
+        image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        bounding_box = title_font.getbbox(text)
+        text_height = int(bounding_box[3] - bounding_box[1])
+        draw.text((0, (header_height - text_height) // 4), text, font=title_font, fill="black")
+
+        self.text_layers.append(Layer(image, (header_x, header_y)))
+
+    def _create_type_layer(
+        self,
+        text: str = None,
+        header_x: int = TYPE_X,
+        header_y: int = TYPE_Y,
+        header_width: int = TYPE_MAX_WIDTH,
+        header_height: int = TYPE_BOX_HEIGHT,
+    ):
+        """
+        Process type text into the type box and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        text: str, optional
+            The type text to process. Uses the type in the card's metadata if not given.
+
+        header_x: int, default : `TYPE_BOX_X`
+            The leftmost x position of the type header.
+
+        header_y: int, default : `TYPE_BOX_Y`
+            The topmost y position of the type header.
+
+        header_width: int, default : `TYPE_BOX_WIDTH`
+            The width of the frame's type header.
+
+        header_height: int, default : `TYPE_BOX_HEIGHT`
+            The height of the frame's type header box.
+        """
+
+        if text is None:
+            first_part = (
+                f"{self.metadata.get(CARD_SUPERTYPES, "").strip()} {self.metadata.get(CARD_TYPES, "").strip()}".strip()
+            )
+            second_part = self.metadata.get(CARD_SUBTYPES, "").strip()
+            if len(second_part) > 0:
+                text = " — ".join((first_part, second_part))
+            else:
+                text = first_part
+
+        type_font = ImageFont.truetype(TITLE_FONT, TYPE_FONT_SIZE)
+        image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        bounding_box = type_font.getbbox(text)
+        text_height = int(bounding_box[3] - bounding_box[1])
+        draw.text((0, (header_height - text_height) // 4), text, font=type_font, fill="black")
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
 
@@ -273,9 +433,10 @@ class Card:
         """
 
         new_text = re.sub("{cardname}", self.metadata.get(CARD_TITLE, ""), text, flags=re.IGNORECASE)
+        new_text = re.sub("{-}", "—", text)
         return new_text
 
-    def render_rules_text(
+    def _create_rules_text_layer(
         self,
         text: str = None,
         box_x: int = RULES_BOX_X,
@@ -284,13 +445,13 @@ class Card:
         box_height: int = RULES_BOX_HEIGHT,
     ):
         """
-        Render MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,
+        Process MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,
         and append it to `self.text_layers`.
 
         Parameters
         ----------
         text: str, optional
-            The rules text to render. Uses the rules text in the card's metadata if not given.
+            The rules text to process. Uses the rules text in the card's metadata if not given.
 
         box_x: int, default : `RULES_BOX_X`
             The leftmost x position of the rules box.
@@ -386,13 +547,13 @@ class Card:
                         if curr_fragment and curr_width + width > max_line_width:
                             go_to_newline()
                         curr_fragment.append(("symbol", value))
-                        curr_width += width
+                        curr_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN
 
                     else:
                         for word in re.findall(r"\S+|\s+", value):
                             word = replace_ticks(word)
                             width = text_font.getlength(word)
-                            
+
                             if word.isspace():
                                 if not curr_fragment:  # get rid of leading spaces
                                     continue
@@ -486,11 +647,13 @@ class Card:
                         else:
                             width, _, symbol_image = get_symbol_metrics(value)
                             if symbol_image is not None:
-                                image.alpha_composite(symbol_image, (int(curr_x), int(curr_y)))
+                                image.alpha_composite(
+                                    symbol_image, (int(curr_x), int(curr_y + MANA_SYMBOL_RULES_TEXT_MARGIN))
+                                )
                             else:
                                 placeholder = f"[{value}]"
                                 draw.text((curr_x, curr_y), placeholder, font=text_font, fill="red")
-                            curr_x += width
+                            curr_x += width + MANA_SYMBOL_RULES_TEXT_MARGIN
                     curr_y += line_height
 
             draw_lines(rules_lines, rules_font)

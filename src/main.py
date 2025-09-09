@@ -62,9 +62,9 @@ def main():
     reset_log()
     cards = process_spreadsheet()
     for card in cards.values():
-        card.add_frame_layer("images/frames/regular/artifact.png")
-        card.render_text()
-        final_card = card.merge_layers()
+        card.create_frame_layers()
+        card.create_text_layers()
+        final_card = card.render_card()
         final_card.save(f"processed_cards/{cardname_to_filename(card.metadata[CARD_TITLE])}.png")
 
 

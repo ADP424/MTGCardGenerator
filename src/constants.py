@@ -15,10 +15,10 @@ CARD_CATEGORY = "Category"
 CARD_TITLE = "Title"
 CARD_MANA_COST = "Mana Cost"
 CARD_RULES_TEXT = "Rules Text"
-CARD_FRAME = "Frame(s)"
-CARD_TYPE = "Type(s)"
-CARD_SUBTYPE = "Subtype(s)"
-
+CARD_FRAMES = "Frame(s)"
+CARD_SUPERTYPES = "Supertype(s)"
+CARD_TYPES = "Type(s)"
+CARD_SUBTYPES = "Subtype(s)"
 
 
 #######################
@@ -36,10 +36,22 @@ RULES_BOX_Y = 1315
 RULES_BOX_MAX_FONT_SIZE = 78
 RULES_BOX_MIN_FONT_SIZE = 6
 
-MANA_COST_HEADER_WIDTH = 1280
-MANA_COST_HEADER_HEIGHT = 114
-MANA_COST_HEADER_X = 110
-MANA_COST_HEADER_Y = 105
+TITLE_BOX_WIDTH = 1280
+TITLE_BOX_HEIGHT = 114
+TITLE_BOX_X = 110
+TITLE_BOX_Y = 105
+
+TITLE_X = 128
+TITLE_Y = 105
+TITLE_MAX_WIDTH = 1244
+TITLE_FONT_SIZE = 79
+
+TYPE_X = 128
+TYPE_Y = 1186
+TYPE_MAX_WIDTH = 1244
+TYPE_BOX_HEIGHT = 114
+TYPE_FONT_SIZE = 67
+
 MANA_COST_SYMBOL_SIZE = 70
 MANA_COST_SYMBOL_SPACING = 6
 MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
@@ -47,8 +59,8 @@ HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
 
 LINE_HEIGHT_TO_GAP_RATIO = 4
 
-MANA_SYMBOL_RULES_TEXT_SCALE = 0.8
-
+MANA_SYMBOL_RULES_TEXT_SCALE = 0.78
+MANA_SYMBOL_RULES_TEXT_MARGIN = 5
 
 
 ##################
@@ -56,13 +68,13 @@ MANA_SYMBOL_RULES_TEXT_SCALE = 0.8
 ##################
 
 # image locations
-REGULAR_MANA_SYMBOLS_PATH = "images/mana_symbols/regular"
-DROP_SHADOW_MANA_SYMBOLS_PATH = "images/mana_symbols/regular"
+FRAMES_PATH = "images/frames"
+MANA_SYMBOLS_PATH = "images/mana_symbols"
 
 # fonts
 RULES_TEXT_FONT = "fonts/mplantin.ttf"
 FLAVOR_TEXT_FONT = "fonts/mplantinit.ttf"
-
+TITLE_FONT = "fonts/beleren-bold.ttf"
 
 
 ##########
@@ -70,33 +82,32 @@ FLAVOR_TEXT_FONT = "fonts/mplantinit.ttf"
 ##########
 
 # Standard Mana
-WHITE_MANA = Image.open("images/mana_symbols/white.png").convert("RGBA")
-BLUE_MANA = Image.open("images/mana_symbols/blue.png").convert("RGBA")
-BLACK_MANA = Image.open("images/mana_symbols/black.png").convert("RGBA")
-RED_MANA = Image.open("images/mana_symbols/red.png").convert("RGBA")
-GREEN_MANA = Image.open("images/mana_symbols/green.png").convert("RGBA")
-COLORLESS_MANA = Image.open("images/mana_symbols/colorless.png").convert("RGBA")
+WHITE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/white.png").convert("RGBA")
+BLUE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/blue.png").convert("RGBA")
+BLACK_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/black.png").convert("RGBA")
+RED_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/red.png").convert("RGBA")
+GREEN_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/green.png").convert("RGBA")
+COLORLESS_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/colorless.png").convert("RGBA")
 
 # Standard Numbered Mana
-ONE_MANA = Image.open("images/mana_symbols/1.png").convert("RGBA")
-TWO_MANA = Image.open("images/mana_symbols/2.png").convert("RGBA")
-THREE_MANA = Image.open("images/mana_symbols/3.png").convert("RGBA")
+ONE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/1.png").convert("RGBA")
+TWO_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/2.png").convert("RGBA")
+THREE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/3.png").convert("RGBA")
 
 # Standard Hybrid Mana
-WHITE_BLUE_MANA = Image.open("images/mana_symbols/white_blue.png").convert("RGBA")
-WHITE_BLACK_MANA = Image.open("images/mana_symbols/white_black.png").convert("RGBA")
-BLUE_BLACK_MANA = Image.open("images/mana_symbols/blue_black.png").convert("RGBA")
-BLUE_RED_MANA = Image.open("images/mana_symbols/blue_red.png").convert("RGBA")
-BLACK_RED_MANA = Image.open("images/mana_symbols/black_red.png").convert("RGBA")
-BLACK_GREEN_MANA = Image.open("images/mana_symbols/black_green.png").convert("RGBA")
-RED_GREEN_MANA = Image.open("images/mana_symbols/red_green.png").convert("RGBA")
-RED_WHITE_MANA = Image.open("images/mana_symbols/red_white.png").convert("RGBA")
-GREEN_WHITE_MANA = Image.open("images/mana_symbols/green_white.png").convert("RGBA")
-GREEN_BLUE_MANA = Image.open("images/mana_symbols/green_blue.png").convert("RGBA")
+WHITE_BLUE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/white_blue.png").convert("RGBA")
+WHITE_BLACK_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/white_black.png").convert("RGBA")
+BLUE_BLACK_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/blue_black.png").convert("RGBA")
+BLUE_RED_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/blue_red.png").convert("RGBA")
+BLACK_RED_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/black_red.png").convert("RGBA")
+BLACK_GREEN_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/black_green.png").convert("RGBA")
+RED_GREEN_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/red_green.png").convert("RGBA")
+RED_WHITE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/red_white.png").convert("RGBA")
+GREEN_WHITE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/green_white.png").convert("RGBA")
+GREEN_BLUE_MANA = Image.open(f"{MANA_SYMBOLS_PATH}/green_blue.png").convert("RGBA")
 
 # Text Formatting
 FLAVOR_DIVIDING_LINE = Image.open("images/flavor_divider.png").convert("RGBA")
-
 
 
 ################
@@ -141,7 +152,6 @@ SYMBOL_PLACEHOLDER_KEY = {
     # Text Formatting
     "flavor": Symbol(FLAVOR_DIVIDING_LINE),
 }
-
 
 
 #####################
