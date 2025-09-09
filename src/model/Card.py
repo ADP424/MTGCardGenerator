@@ -272,7 +272,7 @@ class Card:
             text = self.metadata.get(CARD_MANA_COST, "")
         if len(text) == 0:
             return
-        
+
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -690,7 +690,7 @@ class Card:
             return
 
         raise ValueError("Text is too long to fit in box even at minimum font size.")
-    
+
     def _create_power_toughness_layer(
         self,
         text: str = None,
@@ -732,7 +732,12 @@ class Card:
         text_width = power_toughness_font.getlength(text)
         bounding_box = power_toughness_font.getbbox(text)
         text_height = int(bounding_box[3] - bounding_box[1])
-        draw.text(((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4), text, font=power_toughness_font, fill="black")
+        draw.text(
+            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4),
+            text,
+            font=power_toughness_font,
+            fill="black",
+        )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
 

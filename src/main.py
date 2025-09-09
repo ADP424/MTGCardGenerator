@@ -1,40 +1,38 @@
 import argparse
 import csv
-from constants import CARD_CATEGORY, CARD_TITLE, CARDS_SPREADSHEET, CHAR_TO_TITLE_CHAR
+import glob
+import os
+from constants import CARD_TITLE, CHAR_TO_TITLE_CHAR, INPUT_SPREADSHEETS_PATH, OUTPUT_CARDS_PATH
 from log import log, reset_log
 from model.Card import Card
 
 
-def process_spreadsheet() -> dict[str, Card]:
+def process_spreadsheets() -> dict[str, dict[str, Card]]:
     """
-    Convert the card info on the input spreadsheet into a dictionary.
+    Convert the card info on the input spreadsheets into dictionaries.
 
     Returns
     -------
-    dict[str, Card]
-        The dictionary of card info, in the form `{card_name: Card}`
+    dict[str, dict[str, Card]]
+        A dictionary of spreadsheets in the form { output_directory: spreadsheet }.
+        Each spreadsheet is in the form { card_title: card }.
     """
 
-    cards: dict[str, Card] = {}
-    transform_backsides: dict[str, Card] = {}
-    with open(CARDS_SPREADSHEET, "r", encoding="utf8") as cards_sheet:
-        cards_sheet_reader = csv.reader(cards_sheet)
-        columns = next(cards_sheet_reader)
-        for row in cards_sheet_reader:
+    card_spreadsheets: dict[str, dict[str, Card]] = {}
 
-            values = dict(zip(columns, row))
-            card_title = values.get(CARD_TITLE, "")
-            card_category = values.get(CARD_CATEGORY, "")
+    for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
+        output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
+        os.makedirs(output_path, exist_ok=True)
+        card_spreadsheets[output_path] = {}
+        with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
+            cards_sheet_reader = csv.reader(cards_sheet)
+            columns = next(cards_sheet_reader)
+            for row in cards_sheet_reader:
+                values = dict(zip(columns, row))
+                card_title = values.get(CARD_TITLE, "")
+                card_spreadsheets[output_path][card_title] = Card(metadata=values)
 
-            if card_category == "Regular":
-                cards[card_title] = Card(metadata=values)
-            elif card_category == "Transform Backside":
-                transform_backsides[card_title] = Card(metadata=values)
-
-    for backside in transform_backsides.values():
-        pass  # TODO: add TF backsides to metadata of card they're the back of
-
-    return cards
+    return card_spreadsheets
 
 
 def cardname_to_filename(card_name: str) -> str:
@@ -60,13 +58,14 @@ def cardname_to_filename(card_name: str) -> str:
 
 def main():
     reset_log()
-    cards = process_spreadsheet()
-    for card in cards.values():
-        log(f"Processing {card.metadata[CARD_TITLE]}...")
-        card.create_frame_layers()
-        card.create_text_layers()
-        final_card = card.render_card()
-        final_card.save(f"processed_cards/{cardname_to_filename(card.metadata[CARD_TITLE])}.png")
+    card_spreadsheets = process_spreadsheets()
+    for output_path, spreadsheet in card_spreadsheets.items():
+        for card in spreadsheet.values():
+            log(f"\nProcessing {card.metadata[CARD_TITLE]}...")
+            card.create_frame_layers()
+            card.create_text_layers()
+            final_card = card.render_card()
+            final_card.save(f"{output_path}/{cardname_to_filename(card.metadata[CARD_TITLE])}.png")
 
 
 if __name__ == "__main__":

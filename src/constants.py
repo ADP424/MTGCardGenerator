@@ -7,11 +7,7 @@ from model.Symbol import Symbol
 # CSV / SPREADSHEET INFO #
 ##########################
 
-# The name of the .csv file that hold all the card information
-CARDS_SPREADSHEET = "spreadsheets/the_one_set - Cards.csv"
-
 # Which columns in the spreadsheet correspond to which attribute
-CARD_CATEGORY = "Category"
 CARD_TITLE = "Title"
 CARD_MANA_COST = "Mana Cost"
 CARD_RULES_TEXT = "Rules Text"
@@ -80,6 +76,10 @@ POWER_TOUGHNESS_FONT_SIZE = 80
 ##################
 # FILE LOCATIONS #
 ##################
+
+# Input & Output locations
+INPUT_SPREADSHEETS_PATH = "spreadsheets"
+OUTPUT_CARDS_PATH = "processed_cards"
 
 # Image Locations
 FRAMES_PATH = "images/frames"
