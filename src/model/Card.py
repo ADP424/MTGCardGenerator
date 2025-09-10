@@ -1,6 +1,6 @@
 import io
 import re
-from PIL import Image, ImageChops, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont, ImageOps
 
 from constants import (
     BELEREN_BOLD_SMALL_CAPS,
@@ -11,9 +11,13 @@ from constants import (
     CARD_SUBTYPES,
     CARD_POWER_TOUGHNESS,
     CARD_MANA_COST,
+    WATERMARK_COLORS,
+    CARD_WATERMARK_COLOR,
     CARD_WIDTH,
     CARD_HEIGHT,
     CARD_RULES_TEXT,
+    CARD_WATERMARK,
+    WATERMARKS_PATH,
     MPLANTIN_ITALICS,
     FRAMES_PATH,
     LINE_HEIGHT_TO_GAP_RATIO,
@@ -50,10 +54,12 @@ from constants import (
     TYPE_MAX_WIDTH,
     TYPE_X,
     TYPE_Y,
+    WATERMARK_OPACITY,
+    WATERMARK_WIDTH,
 )
 from log import log
 from model.Layer import Layer
-from utils import replace_ticks
+from utils import open_image, replace_ticks
 
 
 class Card:
@@ -72,10 +78,13 @@ class Card:
         Information about the card (title, mana cost, rules text, frame, etc.)
 
     frame_layers : list[Layer], default : []
-        The layers of card frames. Lower-index layers are rendered first. Renders after art, before text.
+        The layers of card frames. Lower-index layers are rendered first. Renders after art, before collector info.
+
+    collector_layers : list[Layer], default : []
+        The layers of collector info. Lower-index layers are rendered first. Renders after frames, before text.
 
     text_layers : list[Layer], default : []
-        The layers of card text. Lower-index layers are rendered first. Renders after art and frames.
+        The layers of card text. Lower-index layers are rendered first. Renders after collector info and frames.
     """
 
     def __init__(
@@ -84,71 +93,15 @@ class Card:
         base_height: int = CARD_HEIGHT,
         metadata: dict[str, str | list] = None,
         frame_layers: list[Layer] = None,
+        collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
     ):
         self.base_width = base_width
         self.base_height = base_height
         self.metadata = metadata if metadata is not None else {}
         self.frame_layers = frame_layers if frame_layers is not None else []
+        self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
-
-    def _image_is_valid(self, image: Image.Image) -> bool:
-        """
-        Check if the provided image is a correctly formatted PNG.
-
-        Parameters
-        ----------
-        image: Image
-            The image to check.
-
-        Returns
-        -------
-        bool
-            Whether the image is valid or not.
-        """
-
-        try:
-            with io.BytesIO() as buffer:
-                image.save(buffer, format="PNG")
-                buffer.seek(0)
-                with Image.open(buffer) as temp:
-                    temp.verify()
-            return True
-        except Exception as e:
-            log(f"Image invalid: {e}")
-            return False
-
-    def _add_frame_layer(
-        self,
-        image: Image.Image | str,
-        index: int = None,
-        position: tuple[int, int] = (0, 0),
-    ):
-        """
-        Add a layer of the image at the given path before the given index.
-
-        Parameters
-        ----------
-        image: Image.Image | str
-            The Image, or the path to the image, to set the layer to.
-
-        index: int, optional
-            The index to add the layer before. Adds to the top if not given.
-
-        position: tuple[int, int], default : (0, 0)
-            The position of the layer relative to the top left corner of the main image.
-        """
-
-        if isinstance(image, str):
-            image = Image.open(image)
-
-        if not self._image_is_valid(image):
-            raise AttributeError
-
-        if index is None:
-            self.frame_layers.append(Layer(image, position))
-        else:
-            self.frame_layers.insert(index, Layer(image, position))
 
     def render_card(self) -> Image.Image:
         """
@@ -163,10 +116,10 @@ class Card:
         base_image = Image.new("RGBA", (self.base_width, self.base_height), (0, 0, 0, 0))
         composite_image = base_image.copy()
 
-        for layer in self.frame_layers:
-            composite_image.paste(layer.image, layer.position, mask=layer.image)
-        for layer in self.text_layers:
-            composite_image.paste(layer.image, layer.position, mask=layer.image)
+        for layer in self.frame_layers + self.collector_layers + self.text_layers:
+            temp = Image.new("RGBA", composite_image.size, (0, 0, 0, 0))
+            temp.paste(layer.image, layer.position, mask=layer.image)
+            composite_image = Image.alpha_composite(composite_image, temp)
 
         return composite_image
 
@@ -187,7 +140,7 @@ class Card:
                 continue
 
             try:
-                frame = Image.open(f"{FRAMES_PATH}/{frame_path}.png").convert("RGBA")
+                frame = open_image(f"{FRAMES_PATH}/{frame_path}.png")
             except Exception:
                 log(f"Invalid frame path '{frame_path}' in '{self.metadata.get(CARD_TITLE, 'Unknown Card')}'")
                 continue
@@ -196,16 +149,10 @@ class Card:
                 pending_masks.append(frame)
                 continue
 
-            frame = frame.convert("RGBA")
-
             if len(pending_masks) > 0:
                 combined_mask = Image.new("L", frame.size, 255)
                 for mask in pending_masks:
-                    if "A" in mask.getbands():
-                        base = mask.getchannel("A").resize(frame.size)
-                    else:
-                        base = mask.convert("L").resize(frame.size)
-
+                    base = mask.getchannel("A").resize(frame.size)
                     if base.getbbox() is None:
                         log(f"Warning: mask '{frame_path}' appears empty. Skipping one mask...")
                         continue
@@ -226,6 +173,112 @@ class Card:
                 f"Warning: {len(pending_masks)} mask layer(s) at end of frame list with no following frame."
                 "They were ignored."
             )
+
+    def create_collector_layers(self):
+        """
+        Append every layer of additional "meta" info (rarity symbol, collector info, watermark, etc.)
+        to `self.collector_layers`.
+        """
+
+        self._create_watermark_layer()
+
+    def _create_watermark_layer(
+        self,
+        watermark: Image.Image = None,
+        watermark_color: tuple[int, int, int] | list[tuple[int, int, int]] = None,
+        rules_box_x: int = RULES_BOX_X,
+        rules_box_y: int = RULES_BOX_Y,
+        rules_box_width: int = RULES_BOX_WIDTH,
+        rules_box_height: int = RULES_BOX_HEIGHT,
+        watermark_width: int = WATERMARK_WIDTH,
+        watermark_opacity: float = WATERMARK_OPACITY,
+    ):
+        """
+        Process a watermark image and append it to `self.collector_layers`.
+        Assumes the image is in RGBA format.
+
+        Parameters
+        ----------
+        watermark: Image, optional
+            The watermark image to use. Uses the image from the card's metadata if not given.
+
+        watermark_color: tuple[int, int, int] | list[tuple[int, int, int]], optional
+            The watermark color(s) to use. Uses (or guesses) the color based on the card's metadata if not given.
+
+        rules_box_x: int, default : `RULES_BOX_X`
+            The leftmost x position of the rules text box bounding the watermark.
+
+        rules_box_y: int, default : `RULES_BOX_Y`
+            The topmost y position of the rules text box bounding the watermark.
+
+        rules_box_width: int, default : `RULES_BOX_WIDTH`
+            The width of the rules text box bounding the watermark.
+
+        rules_box_height: int, default : `RULES_BOX_HEIGHT`
+            The height of the rules text box bounding the watermark.
+
+        watermark_width: int, default : `WATERMARK_WIDTH`
+            The width of the watermark. Also determines the height, based on the relative scale of the image.
+
+        watermark_opacity: int, default : `WATERMARK_OPACITY`
+            The opacity of the watermark in the range [0.0, 1.0].
+        """
+
+        if watermark is None:
+            watermark_path = f"{WATERMARKS_PATH}/{self.metadata.get(CARD_WATERMARK, "")}.png"
+            watermark = open_image(watermark_path)
+            if watermark is None:
+                return
+            
+        if watermark_color is None:
+            colors = self.metadata.get(CARD_WATERMARK_COLOR, "").strip()
+            if len(colors) > 0:
+                watermark_color = []
+                for color in colors.splitlines():
+                    color = WATERMARK_COLORS.get(color.lower())
+                    if color is not None:
+                        watermark_color.append(color)
+            else:
+                # TODO: Figure out watermark color from color identity context
+                pass
+
+        if not watermark_color:
+            watermark_color = (0, 0, 0)
+
+        resized = watermark.resize((watermark_width, int((watermark_width / watermark.width) * watermark.height)))
+
+        def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
+            alpha = image.getchannel("A")
+            solid = Image.new("RGBA", image.size, color)
+            recolored_image = Image.new("RGBA", image.size)
+            recolored_image.paste(solid, mask=alpha)
+            return recolored_image
+
+        recolored = resized
+        if isinstance(watermark_color, tuple):
+            recolored = recolor(recolored, watermark_color)
+        elif isinstance(watermark_color, list):
+            if len(watermark_color) == 1:
+                recolored = recolor(recolored, watermark_color[0])
+            else:
+                left_color = recolor(resized, watermark_color[0]).convert("RGBA")
+                right_color = recolor(resized, watermark_color[1]).convert("RGBA")
+                mask = Image.open(f"{FRAMES_PATH}/mask/left.png").resize(resized.size).getchannel("A")
+                recolored = Image.composite(left_color, right_color, mask)
+
+        r, g, b, alpha = recolored.split()
+        alpha = ImageEnhance.Brightness(alpha).enhance(watermark_opacity)
+        made_translucent = Image.merge('RGBA', (r, g, b, alpha))
+
+        self.collector_layers.append(
+            Layer(
+                made_translucent,
+                (
+                    rules_box_x + (rules_box_width - recolored.width) // 2,
+                    rules_box_y + (rules_box_height - recolored.height) // 2,
+                ),
+            )
+        )
 
     def create_text_layers(self):
         """
@@ -740,6 +793,15 @@ class Card:
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
+
+    def create_layers(self):
+        """
+        Append every frame, text, and collector layer to the card based on `self.metadata`.
+        """
+
+        self.create_frame_layers()
+        self.create_collector_layers()
+        self.create_text_layers()
 
     def add_metadata(self, key: str, value: str, append: bool = False):
         """

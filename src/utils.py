@@ -1,6 +1,41 @@
+from PIL import Image
+
+
+def open_image(filepath: str) -> Image.Image | None:
+    """
+    Open the image file at the given path and do the necessary conversions.
+    If no image is found, return None instead.
+
+    Parameters
+    ----------
+    filepath: str
+        The path to the image to open.
+
+    Returns
+    -------
+    Image | None
+        The image at the given filepath, or None if not found.
+    """
+
+    try:
+        return Image.open(filepath).convert("RGBA")
+    except:
+        return None
+
+
 def replace_ticks(word: str) -> str:
     """
     Replace ticks `'` and double ticks `"` with correctly facing apostrophes and quotation marks.
+
+    Parameters
+    ----------
+    word: str
+        The word to replace the ticks in.
+
+    Returns
+    -------
+    str
+        The converted word.
     """
 
     if word.endswith('"'):

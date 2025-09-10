@@ -3,7 +3,7 @@ import csv
 import glob
 import os
 from constants import CARD_TITLE, CHAR_TO_TITLE_CHAR, INPUT_SPREADSHEETS_PATH, OUTPUT_CARDS_PATH
-from log import log, reset_log
+from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.Card import Card
 
 
@@ -21,7 +21,9 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
     card_spreadsheets: dict[str, dict[str, Card]] = {}
 
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
-        output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
+        output_path = (
+            f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
+        )
         os.makedirs(output_path, exist_ok=True)
         card_spreadsheets[output_path] = {}
         with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
@@ -60,12 +62,17 @@ def main():
     reset_log()
     card_spreadsheets = process_spreadsheets()
     for output_path, spreadsheet in card_spreadsheets.items():
+        log(f"Processing spreadsheet at '{output_path}'...")
+        increase_log_indent()
         for card in spreadsheet.values():
-            log(f"\nProcessing {card.metadata[CARD_TITLE]}...")
-            card.create_frame_layers()
-            card.create_text_layers()
+            log(f"Processing {card.metadata[CARD_TITLE]}...")
+            increase_log_indent()
+            card.create_layers()
             final_card = card.render_card()
             final_card.save(f"{output_path}/{cardname_to_filename(card.metadata[CARD_TITLE])}.png")
+            decrease_log_indent()
+        decrease_log_indent()
+        log()
 
 
 if __name__ == "__main__":
