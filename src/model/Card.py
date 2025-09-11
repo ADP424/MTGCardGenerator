@@ -7,9 +7,15 @@ from constants import (
     CARD_TITLE,
     CARD_SUPERTYPES,
     CARD_TYPES,
+    CARD_RARITY,
+    CARD_SET,
     CARD_SUBTYPES,
     CARD_POWER_TOUGHNESS,
     CARD_MANA_COST,
+    SET_SYMBOL_WIDTH,
+    SET_SYMBOL_X,
+    SET_SYMBOL_Y,
+    SET_SYMBOLS_PATH,
     WATERMARK_COLORS,
     CARD_WATERMARK_COLOR,
     CARD_WIDTH,
@@ -141,7 +147,7 @@ class Card:
             try:
                 frame = open_image(f"{FRAMES_PATH}/{frame_path}.png")
             except Exception:
-                log(f"Invalid frame path '{frame_path}' in '{self.metadata.get(CARD_TITLE, 'Unknown Card')}'")
+                log(f"Invalid frame path '{frame_path}'.")
                 continue
 
             if "mask/" in frame_path.lower():
@@ -180,6 +186,7 @@ class Card:
         """
 
         self._create_watermark_layer()
+        self._create_rarity_symbol_layer()
 
     def _create_watermark_layer(
         self,
@@ -227,6 +234,7 @@ class Card:
             watermark_path = f"{WATERMARKS_PATH}/{self.metadata.get(CARD_WATERMARK, "")}.png"
             watermark = open_image(watermark_path)
             if watermark is None:
+                log(f"Could not find watermark at '{watermark_path}'.")
                 return
 
         if watermark_color is None:
@@ -278,6 +286,56 @@ class Card:
                 ),
             )
         )
+
+    def _create_rarity_symbol_layer(
+        self,
+        card_set: str = None,
+        rarity: str = None,
+        set_symbol_x: int = SET_SYMBOL_X,
+        set_symbol_y: int = SET_SYMBOL_Y,
+        set_symbol_width: int = SET_SYMBOL_WIDTH,
+    ):
+        """
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
+        and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        card_set: str, optional
+            The set whose symbol should be used. Uses the set from the card's metadata, if any, if not given.
+
+        rarity: str, optional
+            The rarity of the symbol that should be used. Uses the rarity from the card's metadata if not given.
+
+        set_symbol_x: int, default : `SET_SYMBOL_X`
+            The leftmost x position of the set symbol.
+
+        set_symbol_y: int, default : `SET_SYMBOL_Y`
+            The topmost y position of the set symbol.
+
+        set_symbol_width: int, default : `SET_SYMBOL_WIDTH`
+            The width of the set symbol.
+        """
+
+        if card_set is None:
+            card_set = self.metadata.get(CARD_SET, "")
+        if len(card_set) == 0:
+            return
+        
+        if rarity is None:
+            rarity = self.metadata.get(CARD_RARITY, "")
+        if len(rarity) == 0:
+            return
+        
+        symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
+        rarity_symbol = open_image(symbol_path)
+        if rarity_symbol is None:
+            log(f"Could not find rarity symbol at '{symbol_path}'.")
+            return
+        
+        rarity_symbol = rarity_symbol.resize((set_symbol_width, int((set_symbol_width / rarity_symbol.width) * rarity_symbol.height)))
+        self.collector_layers.append(Layer(rarity_symbol, (set_symbol_x, set_symbol_y)))
+
 
     def create_text_layers(self):
         """
@@ -396,7 +454,7 @@ class Card:
             if curr_x >= symbol_image.width:
                 image.alpha_composite(symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2))
             else:
-                log(f"The mana cost is too long on '{self.metadata.get(CARD_TITLE, "Unknown Card")}'.")
+                log(f"The mana cost is too long and has been cut off.")
                 break
 
         self.text_layers.append(Layer(image, (header_x, header_y)))

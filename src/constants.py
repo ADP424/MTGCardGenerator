@@ -15,10 +15,12 @@ CARD_SUPERTYPES = "Supertype(s)"
 CARD_TYPES = "Type(s)"
 CARD_SUBTYPES = "Subtype(s)"
 CARD_POWER_TOUGHNESS = "Power/Toughness"
+CARD_RARITY = "Rarity"
 
 CARD_FRAMES = "Frame(s)"
 CARD_WATERMARK = "Watermark"
 CARD_WATERMARK_COLOR = "Watermark Color(s)"
+CARD_SET = "Set"
 
 
 ###########################
@@ -90,6 +92,11 @@ WATERMARK_COLORS = {
     "land": (94, 84, 72),
 }
 
+# Rarity / Set Symbol
+SET_SYMBOL_X = 1296
+SET_SYMBOL_Y = 1198
+SET_SYMBOL_WIDTH = 90
+
 
 ##################
 # FILE LOCATIONS #
@@ -103,6 +110,7 @@ OUTPUT_CARDS_PATH = "processed_cards"
 FRAMES_PATH = "images/frames"
 MANA_SYMBOLS_PATH = "images/mana_symbols"
 WATERMARKS_PATH = "images/collector_info/watermarks"
+SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
 
 # Fonts
 MPLANTIN = "fonts/mplantin.ttf"
