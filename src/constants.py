@@ -1,5 +1,4 @@
 import re
-from PIL import Image
 
 from model.Symbol import Symbol
 from utils import open_image
@@ -88,7 +87,7 @@ WATERMARK_COLORS = {
     "multicolor": (202, 179, 77),
     "artifact": (100, 125, 134),
     "colorless": (100, 125, 134),
-    "land": (94, 84, 72)
+    "land": (94, 84, 72),
 }
 
 

@@ -1,6 +1,5 @@
-import io
 import re
-from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
     BELEREN_BOLD_SMALL_CAPS,
@@ -118,7 +117,7 @@ class Card:
 
         for layer in self.frame_layers + self.collector_layers + self.text_layers:
             temp = Image.new("RGBA", composite_image.size, (0, 0, 0, 0))
-            temp.paste(layer.image, layer.position, mask=layer.image)
+            temp.paste(layer.image, layer.position)
             composite_image = Image.alpha_composite(composite_image, temp)
 
         return composite_image
@@ -229,7 +228,7 @@ class Card:
             watermark = open_image(watermark_path)
             if watermark is None:
                 return
-            
+
         if watermark_color is None:
             colors = self.metadata.get(CARD_WATERMARK_COLOR, "").strip()
             if len(colors) > 0:
@@ -268,7 +267,7 @@ class Card:
 
         r, g, b, alpha = recolored.split()
         alpha = ImageEnhance.Brightness(alpha).enhance(watermark_opacity)
-        made_translucent = Image.merge('RGBA', (r, g, b, alpha))
+        made_translucent = Image.merge("RGBA", (r, g, b, alpha))
 
         self.collector_layers.append(
             Layer(

@@ -1,5 +1,7 @@
 from PIL import Image
 
+from log import log
+
 
 def open_image(filepath: str) -> Image.Image | None:
     """
@@ -19,7 +21,8 @@ def open_image(filepath: str) -> Image.Image | None:
 
     try:
         return Image.open(filepath).convert("RGBA")
-    except:
+    except Exception as e:
+        log(e)
         return None
 
 
