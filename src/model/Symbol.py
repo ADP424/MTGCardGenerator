@@ -20,7 +20,13 @@ class Symbol:
         The color of the outline to draw around the image.
     """
 
-    def __init__(self, image: Image.Image, size_ratio: float = 1.0, outline_size: int =  0, outline_color: tuple[int, int, int] = (0, 0, 0)):
+    def __init__(
+        self,
+        image: Image.Image,
+        size_ratio: float = 1.0,
+        outline_size: int = 0,
+        outline_color: tuple[int, int, int] = (0, 0, 0),
+    ):
         self.image = image
         self.size_ratio = size_ratio
         self.outline_size = outline_size
@@ -51,15 +57,23 @@ class Symbol:
             new_height = self.image.height
 
         # resize
-        resized_image = self.image.resize((int(new_width * self.size_ratio), int(new_height * self.size_ratio)), Image.LANCZOS)
+        resized_image = self.image.resize(
+            (int(new_width * self.size_ratio), int(new_height * self.size_ratio)), Image.LANCZOS
+        )
 
         # add outline
         alpha = resized_image.getchannel("A")
-        outlined_image = Image.new("RGBA", (resized_image.width + 2 * self.outline_size, resized_image.height + 2 * self.outline_size), (0,0,0,0))
+        outlined_image = Image.new(
+            "RGBA",
+            (resized_image.width + 2 * self.outline_size, resized_image.height + 2 * self.outline_size),
+            (0, 0, 0, 0),
+        )
         for dx in range(-self.outline_size, self.outline_size + 1):
             for dy in range(-self.outline_size, self.outline_size + 1):
                 if dx**2 + dy**2 <= self.outline_size**2:
-                    outlined_image.paste(self.outline_color, (dx + self.outline_size, dy + self.outline_size), mask=alpha)
+                    outlined_image.paste(
+                        self.outline_color, (dx + self.outline_size, dy + self.outline_size), mask=alpha
+                    )
         outlined_image.paste(resized_image, (self.outline_size, self.outline_size), mask=alpha)
 
         return outlined_image

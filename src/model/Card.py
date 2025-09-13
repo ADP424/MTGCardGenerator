@@ -410,19 +410,19 @@ class Card:
         """
 
         if card_set is None:
-            card_set = self.metadata.get(CARD_SET, "")
+            card_set = self.metadata.get(CARD_SET, "").strip()
 
         if rarity is None:
             rarity = self.metadata.get(CARD_RARITY, "")
 
         if creation_date is None:
-            creation_date = self.metadata.get(CARD_CREATION_DATE, "")
+            creation_date = self.metadata.get(CARD_CREATION_DATE, "").strip()
 
         if language is None:
-            language = self.metadata.get(CARD_LANGUAGE, "")
+            language = self.metadata.get(CARD_LANGUAGE, "").strip()
 
         if artist is None:
-            artist = self.metadata.get(CARD_ARTIST, "")
+            artist = self.metadata.get(CARD_ARTIST, "").strip()
 
         index = self.metadata.get(CARD_INDEX, "").zfill(len(largest_index))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
@@ -445,10 +445,12 @@ class Card:
         )
 
         top_left_bounding_box = footer_font.getbbox(collector_number_text)
-        collector_number_text_height = int(top_left_bounding_box[3] - top_left_bounding_box[1]) + FOOTER_FONT_OUTLINE_SIZE
+        collector_number_text_height = (
+            int(top_left_bounding_box[3] - top_left_bounding_box[1]) + FOOTER_FONT_OUTLINE_SIZE
+        )
         set_info_y = collector_number_text_height + collector_number_text_height // FOOTER_LINE_HEIGHT_TO_GAP_RATIO
 
-        set_info_text = f"{card_set} • {language}"
+        set_info_text = f"{card_set}{" • " if len(card_set) > 0 else ""}{language}"
         draw.text(
             (FOOTER_FONT_OUTLINE_SIZE, set_info_y),
             set_info_text,
@@ -459,7 +461,10 @@ class Card:
         )
 
         rarity_artist_x = (
-            max(int(footer_font.getlength(collector_number_text)) + FOOTER_FONT_OUTLINE_SIZE, int(footer_font.getlength(set_info_text)) + FOOTER_FONT_OUTLINE_SIZE)
+            max(
+                int(footer_font.getlength(collector_number_text)) + FOOTER_FONT_OUTLINE_SIZE,
+                int(footer_font.getlength(set_info_text)) + FOOTER_FONT_OUTLINE_SIZE,
+            )
             + FOOTER_TAB_LENGTH
         )
 
@@ -478,7 +483,8 @@ class Card:
         artist_brush_height = int(artist_brush.image.height * scale)
         artist_brush_image = artist_brush.get_formatted_image(artist_brush_width, artist_brush_height)
 
-        image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
+        if len(artist) > 0:
+            image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
         draw.text(
             (
                 rarity_artist_x + artist_brush_image.width + ARTIST_GAP_LENGTH,
