@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
@@ -124,6 +123,75 @@ class Card:
         self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
 
+    def create_layers(
+        self,
+        create_frame_layers: bool = True,
+        create_watermark_layer: bool = True,
+        create_rarity_symbol_layer: bool = True,
+        create_footer_layer: bool = True,
+        create_mana_cost_layer: bool = True,
+        create_title_layer: bool = True,
+        create_type_layer: bool = True,
+        create_rules_text_layer: bool = True,
+        create_power_toughness_layer: bool = True,
+    ):
+        """
+        Append every frame, text, and collector layer to the card based on `self.metadata`.
+
+        Parameters
+        ----------
+        create_frame_layers: bool, default: True
+            Whether to put the card's frames on or not.
+
+        create_watermark_layer: bool, default : True
+            Whether to put the watermark on the card or not.
+
+        create_rarity_symbol_layer: bool, default : True
+            Whether to put the rarity/set symbol on the card or not.
+
+        create_footer_layer: bool, default : True
+            Whether to put the footer collector info on the bottom of the card or not.
+
+        create_mana_cost_layer: bool, default : True
+            Whether to put the mana cost of the card on it or not.
+
+        create_title_layer: bool, default : True
+            Whether to put the title of the card on it or not.
+
+        create_type_layer: bool, default : True
+            Whether to put the type line of the card on it or not.
+
+        create_rules_text_layer: bool, default : True
+            Whether to put the rules text of the card on it or not.
+
+        create_power_toughness_layer: bool, default : True
+            Whether to put the power & toughness of the card on it or not.
+        """
+
+        # frame layers
+        if create_frame_layers:
+            self._create_frame_layers()
+        
+        # collector info layers
+        if create_watermark_layer:
+            self._create_watermark_layer()
+        if create_rarity_symbol_layer:
+            self._create_rarity_symbol_layer()
+        if create_footer_layer:
+            self._create_footer_layer()
+
+        # text layers
+        if create_mana_cost_layer:
+            self._create_mana_cost_layer()
+        if create_title_layer:
+            self._create_title_layer()
+        if create_type_layer:
+            self._create_type_layer()
+        if create_rules_text_layer:
+            self._create_rules_text_layer()
+        if create_power_toughness_layer:
+            self._create_power_toughness_layer()
+
     def render_card(self) -> Image.Image:
         """
         Merge all layers into one image.
@@ -144,7 +212,49 @@ class Card:
 
         return composite_image
 
-    def create_frame_layers(self):
+    def get_metadata(self, key: str, default: any = ""):
+        """
+        Fetch an entry from the card's metadata.
+
+        Parameters
+        ----------
+        key: str
+            The metadata entry to fetch the value of.
+
+        default: any, default : ""
+            The default value to return if the metadata entry isn't found.
+        """
+
+        return self.metadata.get(key, default)
+
+    def add_metadata(self, key: str, value: str, append: bool = False):
+        """
+        Add new metadata to the card. If `append = True`, try to append the value to the existing
+        metadata entry instead.
+
+        Parameters
+        ----------
+        key: str
+            The metadata entry to add, replace, or append to.
+
+        value: str
+            The value to set the metadata entry to.
+
+        append: bool, default : False
+            Whether to append the value to the existing value of the metadata entry or not.
+        """
+
+        if not append:
+            self.metadata[key] = value
+        else:
+            if not self.metadata.get(key, False):
+                self.metadata[key] = []
+            if isinstance(self.metadata[key], list):
+                self.metadata[key].append(value)
+            else:
+                log(f"The value of '{key}' is not a list.")
+
+    def _create_frame_layers(self):
         """
         Append every frame layer to the card based on `self.metadata`.
         """
@@ -194,16 +304,6 @@ class Card:
                 f"Warning: {len(pending_masks)} mask layer(s) at end of frame list with no following frame."
                 "They were ignored."
             )
-
-    def create_collector_layers(self):
-        """
-        Append every layer of additional "meta" info (rarity symbol, collector info, watermark, etc.)
-        to `self.collector_layers`.
-        """
-
-        self._create_watermark_layer()
-        self._create_rarity_symbol_layer()
-        self._create_footer_layer()
 
     def _create_watermark_layer(
         self,
@@ -255,11 +355,11 @@ class Card:
                 return
 
         if watermark_color is None:
-            colors = self.metadata.get(CARD_WATERMARK_COLOR, "").strip()
+            colors = self.metadata.get(CARD_WATERMARK_COLOR, "")
             if len(colors) > 0:
                 watermark_color = []
                 for color in colors.splitlines():
-                    color = WATERMARK_COLORS.get(color.lower())
+                    color = WATERMARK_COLORS.get(color.lower().strip())
                     if color is not None:
                         watermark_color.append(color)
             else:
@@ -387,13 +487,13 @@ class Card:
         language: str, optional
             The language to display next to the set name. Uses the language from the card's metadata if not given.
 
-        artist: str, default: ""
+        artist: str, default : ""
             The artist to display on the footer. Uses the artist from the card's metadata if not given.
 
-        largest_index: str, default: "999"
+        largest_index: str, default : "999"
             The largest index among cards in this set, for the purposes of the collector number.
 
-        add_total_card_count: bool, default: False
+        add_total_card_count: bool, default : False
             Whether to include the card total in the collector number (i.e. "012 / 999").
 
         footer_x: int, default : `FOOTER_X`
@@ -410,19 +510,19 @@ class Card:
         """
 
         if card_set is None:
-            card_set = self.metadata.get(CARD_SET, "").strip()
+            card_set = self.metadata.get(CARD_SET, "")
 
         if rarity is None:
             rarity = self.metadata.get(CARD_RARITY, "")
 
         if creation_date is None:
-            creation_date = self.metadata.get(CARD_CREATION_DATE, "").strip()
+            creation_date = self.metadata.get(CARD_CREATION_DATE, "")
 
         if language is None:
-            language = self.metadata.get(CARD_LANGUAGE, "").strip()
+            language = self.metadata.get(CARD_LANGUAGE, "")
 
         if artist is None:
-            artist = self.metadata.get(CARD_ARTIST, "").strip()
+            artist = self.metadata.get(CARD_ARTIST, "")
 
         index = self.metadata.get(CARD_INDEX, "").zfill(len(largest_index))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
@@ -509,17 +609,6 @@ class Card:
         )
 
         self.text_layers.append(Layer(image, (footer_x, footer_y)))
-
-    def create_text_layers(self):
-        """
-        Append every layer of text of the card (rules text, mana cost, etc.) to `self.text_layers`.
-        """
-
-        self._create_mana_cost_layer()
-        self._create_title_layer()
-        self._create_type_layer()
-        self._create_rules_text_layer()
-        self._create_power_toughness_layer()
 
     def _create_mana_cost_layer(
         self,
@@ -705,10 +794,8 @@ class Card:
         """
 
         if text is None:
-            first_part = (
-                f"{self.metadata.get(CARD_SUPERTYPES, "").strip()} {self.metadata.get(CARD_TYPES, "").strip()}".strip()
-            )
-            second_part = self.metadata.get(CARD_SUBTYPES, "").strip()
+            first_part = f"{self.metadata.get(CARD_SUPERTYPES, "")} {self.metadata.get(CARD_TYPES, "")}"
+            second_part = self.metadata.get(CARD_SUBTYPES, "")
             if len(second_part) > 0:
                 text = " — ".join((first_part, second_part))
             else:
@@ -1004,7 +1091,7 @@ class Card:
         """
 
         if text is None:
-            text = self.metadata.get(CARD_POWER_TOUGHNESS, "").strip()
+            text = self.metadata.get(CARD_POWER_TOUGHNESS, "")
         if len(text) == 0:
             return
 
@@ -1023,39 +1110,3 @@ class Card:
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
-
-    def create_layers(self):
-        """
-        Append every frame, text, and collector layer to the card based on `self.metadata`.
-        """
-
-        self.create_frame_layers()
-        self.create_collector_layers()
-        self.create_text_layers()
-
-    def add_metadata(self, key: str, value: str, append: bool = False):
-        """
-        Add new metadata to the card. If `append = True`, try to append the value to the existing
-        metadata entry instead.
-
-        Parameters
-        ----------
-        key: str
-            The metadata entry to add, replace, or append to.
-
-        value: str
-            The value to set the metadata entry to.
-
-        append: bool, default : False
-            Whether to append the value to the existing value of the metadata entry or not.
-        """
-
-        if not append:
-            self.metadata[key] = value
-        else:
-            if not self.metadata.get(key, False):
-                self.metadata[key] = []
-            if isinstance(self.metadata[key], list):
-                self.metadata[key].append(value)
-            else:
-                log(f"The value of '{key}' is not a list.")

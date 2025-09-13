@@ -10,7 +10,10 @@ from constants import (
     CARD_CREATION_DATE,
     CARD_FRONTSIDE,
     CARD_INDEX,
+    CARD_LANGUAGE,
     CARD_ORDERER,
+    CARD_RARITY,
+    CARD_SET,
     CARD_TITLE,
     CHAR_TO_TITLE_CHAR,
     INPUT_SPREADSHEETS_PATH,
@@ -43,7 +46,7 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             cards_sheet_reader = csv.reader(cards_sheet)
             columns = next(cards_sheet_reader)
             for row in cards_sheet_reader:
-                values = dict(zip(columns, row))
+                values = dict(zip(columns, [element.strip() for element in row]))
                 card_title = values.get(CARD_TITLE, "")
                 card_spreadsheets[output_path][card_title] = Card(metadata=values)
 
@@ -65,7 +68,7 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             card_spreadsheets[output_path].values(),
             key=lambda card: (
                 str_to_datetime(card.metadata.get(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                str_to_int(card.metadata.get(CARD_ORDERER, ""), default=0),
+                str_to_int(card.metadata.get(CARD_ORDERER), 0),
                 card.metadata.get(CARD_TITLE, ""),
             ),
         )
@@ -73,7 +76,8 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
         # Add indices to all the cards, for collector info
         category_indices: dict[str, int] = {}
         for card in sorted_cards:
-            if len(card.metadata.get(CARD_FRONTSIDE, "").strip()) > 0:
+            if len(card.metadata.get(CARD_FRONTSIDE, "")) > 0:
+                card.add_metadata(CARD_INDEX, "")
                 continue
 
             category = card.metadata.get(CARD_CATEGORY, "")
@@ -83,13 +87,19 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             card.add_metadata(CARD_INDEX, str(category_indices[category]))
 
         # Add transform backsides to the transform cards
+        # If the backside is missing any collector columns, copy them from the frontside
         for card in sorted_cards:
-            frontside_title = card.metadata.get(CARD_FRONTSIDE, "").strip()
+            frontside_title = card.metadata.get(CARD_FRONTSIDE, "")
             if len(frontside_title) == 0:
                 continue
             frontside_card = card_spreadsheets[output_path].get(frontside_title)
             if frontside_card is not None:
-                card.add_metadata(CARD_INDEX, frontside_card.metadata.get(CARD_INDEX, "0"))
+                for key, value in card.metadata.items():
+                    if (
+                        key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_SET, CARD_LANGUAGE)
+                        and len(value) == 0
+                    ):
+                        card.add_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
             else:
                 log(f"Could not find '{frontside_title}' as a frontside.")
@@ -141,7 +151,7 @@ def main():
                 log(f"Processing {backside_title}...")
                 increase_log_indent()
 
-                backside.create_layers()
+                backside.create_layers(create_mana_cost_layer=False)
                 final_backside = backside.render_card()
                 final_backside.save(f"{output_path}/{cardname_to_filename(backside_title)}.png")
 

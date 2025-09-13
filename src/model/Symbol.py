@@ -10,13 +10,13 @@ class Symbol:
     image: Image
         The image of the symbol.
 
-    size_ratio: float, default: 1.0
+    size_ratio: float, default : 1.0
         The ratio of the size of this symbol to the regular size the symbol would appear as.
 
-    outline_size: int, default: 0
+    outline_size: int, default : 0
         The size of the outline to draw around the image.
 
-    outline_color: tuple[int, int, int]: default: (0, 0, 0)
+    outline_color: tuple[int, int, int]: default : (0, 0, 0)
         The color of the outline to draw around the image.
     """
 
