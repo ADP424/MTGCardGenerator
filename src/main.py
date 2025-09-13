@@ -2,7 +2,20 @@ import argparse
 import csv
 import glob
 import os
-from constants import CARD_TITLE, CHAR_TO_TITLE_CHAR, INPUT_SPREADSHEETS_PATH, OUTPUT_CARDS_PATH
+from datetime import MINYEAR, datetime
+
+from constants import (
+    CARD_BACKSIDES,
+    CARD_CATEGORY,
+    CARD_CREATION_DATE,
+    CARD_FRONTSIDE,
+    CARD_INDEX,
+    CARD_ORDERER,
+    CARD_TITLE,
+    CHAR_TO_TITLE_CHAR,
+    INPUT_SPREADSHEETS_PATH,
+    OUTPUT_CARDS_PATH,
+)
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.Card import Card
 
@@ -34,6 +47,53 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
                 card_title = values.get(CARD_TITLE, "")
                 card_spreadsheets[output_path][card_title] = Card(metadata=values)
 
+        def str_to_int(string: str, default: int) -> int:
+            try:
+                return int(string)
+            except Exception:
+                return default
+
+        def str_to_datetime(string: str, default: datetime) -> datetime:
+            try:
+                return datetime.strptime(card.metadata.get(CARD_CREATION_DATE, datetime(MINYEAR, 1, 1)), "%m/%d/%Y")(
+                    string
+                )
+            except Exception:
+                return default
+
+        sorted_cards = sorted(
+            card_spreadsheets[output_path].values(),
+            key=lambda card: (
+                str_to_datetime(card.metadata.get(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
+                str_to_int(card.metadata.get(CARD_ORDERER, ""), default=0),
+                card.metadata.get(CARD_TITLE, ""),
+            ),
+        )
+
+        # Add indices to all the cards, for collector info
+        category_indices: dict[str, int] = {}
+        for card in sorted_cards:
+            if len(card.metadata.get(CARD_FRONTSIDE, "").strip()) > 0:
+                continue
+
+            category = card.metadata.get(CARD_CATEGORY, "")
+            if not category_indices.get(category, False):
+                category_indices[category] = 0
+            category_indices[category] += 1
+            card.add_metadata(CARD_INDEX, str(category_indices[category]))
+
+        # Add transform backsides to the transform cards
+        for card in sorted_cards:
+            frontside_title = card.metadata.get(CARD_FRONTSIDE, "").strip()
+            if len(frontside_title) == 0:
+                continue
+            frontside_card = card_spreadsheets[output_path].get(frontside_title)
+            if frontside_card is not None:
+                card.add_metadata(CARD_INDEX, frontside_card.metadata.get(CARD_INDEX, "0"))
+                frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
+            else:
+                log(f"Could not find '{frontside_title}' as a frontside.")
+
     return card_spreadsheets
 
 
@@ -64,14 +124,33 @@ def main():
     for output_path, spreadsheet in card_spreadsheets.items():
         log(f"Processing spreadsheet at '{output_path}'...")
         increase_log_indent()
+
         for card in spreadsheet.values():
-            log(f"Processing {card.metadata[CARD_TITLE]}...")
+            card_title = card.metadata.get(CARD_TITLE, "")
+
+            log(f"Processing {card_title}...")
             increase_log_indent()
+
             card.create_layers()
             final_card = card.render_card()
-            final_card.save(f"{output_path}/{cardname_to_filename(card.metadata[CARD_TITLE])}.png")
+            final_card.save(f"{output_path}/{cardname_to_filename(card_title)}.png")
+
+            for backside in card.metadata.get(CARD_BACKSIDES, []):
+                backside_title = backside.metadata.get(CARD_TITLE, "")
+
+                log(f"Processing {backside_title}...")
+                increase_log_indent()
+
+                backside.create_layers()
+                final_backside = backside.render_card()
+                final_backside.save(f"{output_path}/{cardname_to_filename(backside_title)}.png")
+
+                decrease_log_indent()
+
             decrease_log_indent()
+
         decrease_log_indent()
+
         log()
 
 

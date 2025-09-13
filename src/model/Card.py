@@ -1,9 +1,13 @@
+from datetime import datetime
 import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
+    ARTIST_GAP_LENGTH,
     BELEREN_BOLD_SMALL_CAPS,
+    CARD_CREATION_DATE,
     CARD_FRAMES,
+    CARD_INDEX,
     CARD_TITLE,
     CARD_SUPERTYPES,
     CARD_TYPES,
@@ -12,6 +16,18 @@ from constants import (
     CARD_SUBTYPES,
     CARD_POWER_TOUGHNESS,
     CARD_MANA_COST,
+    CARD_LANGUAGE,
+    CARD_ARTIST,
+    FOOTER_FONT_OUTLINE_SIZE,
+    FOOTER_FONT_SIZE,
+    FOOTER_HEIGHT,
+    FOOTER_LINE_HEIGHT_TO_GAP_RATIO,
+    FOOTER_TAB_LENGTH,
+    FOOTER_WIDTH,
+    FOOTER_X,
+    FOOTER_Y,
+    HELVETICA,
+    RARITY_TO_INITIAL,
     SET_SYMBOL_WIDTH,
     SET_SYMBOL_X,
     SET_SYMBOL_Y,
@@ -25,7 +41,7 @@ from constants import (
     WATERMARKS_PATH,
     MPLANTIN_ITALICS,
     FRAMES_PATH,
-    LINE_HEIGHT_TO_GAP_RATIO,
+    RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO,
     MANA_SYMBOL_RULES_TEXT_MARGIN,
     POWER_TOUGHNESS_FONT_SIZE,
     POWER_TOUGHNESS_HEIGHT,
@@ -50,7 +66,7 @@ from constants import (
     MPLANTIN,
     PLACEHOLDER_REGEX,
     BELEREN_BOLD,
-    BELEREN_BOLD_SIZE,
+    TITLE_FONT_SIZE,
     TITLE_MAX_WIDTH,
     TITLE_X,
     TITLE_Y,
@@ -96,7 +112,7 @@ class Card:
         self,
         base_width: int = CARD_WIDTH,
         base_height: int = CARD_HEIGHT,
-        metadata: dict[str, str | list] = None,
+        metadata: dict[str, str | list["Card"]] = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
@@ -187,6 +203,7 @@ class Card:
 
         self._create_watermark_layer()
         self._create_rarity_symbol_layer()
+        self._create_footer_layer()
 
     def _create_watermark_layer(
         self,
@@ -318,24 +335,174 @@ class Card:
         """
 
         if card_set is None:
-            card_set = self.metadata.get(CARD_SET, "")
+            card_set = self.metadata.get(CARD_SET, "").lower().replace(" ", "_")
         if len(card_set) == 0:
             return
-        
+
         if rarity is None:
-            rarity = self.metadata.get(CARD_RARITY, "")
+            rarity = self.metadata.get(CARD_RARITY, "").lower()
         if len(rarity) == 0:
             return
-        
+
         symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
         rarity_symbol = open_image(symbol_path)
         if rarity_symbol is None:
             log(f"Could not find rarity symbol at '{symbol_path}'.")
             return
-        
-        rarity_symbol = rarity_symbol.resize((set_symbol_width, int((set_symbol_width / rarity_symbol.width) * rarity_symbol.height)))
+
+        rarity_symbol = rarity_symbol.resize(
+            (set_symbol_width, int((set_symbol_width / rarity_symbol.width) * rarity_symbol.height))
+        )
         self.collector_layers.append(Layer(rarity_symbol, (set_symbol_x, set_symbol_y)))
 
+    def _create_footer_layer(
+        self,
+        card_set: str = None,
+        rarity: str = None,
+        creation_date: str = None,
+        language: str = None,
+        artist: str = None,
+        largest_index: str = "999",
+        add_total_card_count: bool = False,
+        footer_x: int = FOOTER_X,
+        footer_y: int = FOOTER_Y,
+        footer_width: int = FOOTER_WIDTH,
+        footer_height: int = FOOTER_HEIGHT,
+    ):
+        """
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
+        and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        card_set: str, optional
+            The set of the card. Uses the set from the card's metadata, if any, if not given.
+
+        rarity: str, optional
+            The rarity of the card. Uses the rarity from the card's metadata if not given.
+
+        creation_date: str, optional
+            The date the card was created. Uses the creation date from the card's metadata if not given.
+
+        language: str, optional
+            The language to display next to the set name. Uses the language from the card's metadata if not given.
+
+        artist: str, default: ""
+            The artist to display on the footer. Uses the artist from the card's metadata if not given.
+
+        largest_index: str, default: "999"
+            The largest index among cards in this set, for the purposes of the collector number.
+
+        add_total_card_count: bool, default: False
+            Whether to include the card total in the collector number (i.e. "012 / 999").
+
+        footer_x: int, default : `FOOTER_X`
+            The leftmost x position of the footer.
+
+        footer_y: int, default : `FOOTER_Y`
+            The topmost y position of the footer.
+
+        footer_width: int, default : `FOOTER_WIDTH`
+            The width of the footer.
+
+        footer_height: int, default : `FOOTER_HEIGHT`
+            The height of the footer.
+        """
+
+        if card_set is None:
+            card_set = self.metadata.get(CARD_SET, "")
+
+        if rarity is None:
+            rarity = self.metadata.get(CARD_RARITY, "")
+
+        if creation_date is None:
+            creation_date = self.metadata.get(CARD_CREATION_DATE, "")
+
+        if language is None:
+            language = self.metadata.get(CARD_LANGUAGE, "")
+
+        if artist is None:
+            artist = self.metadata.get(CARD_ARTIST, "")
+
+        index = self.metadata.get(CARD_INDEX, "").zfill(len(largest_index))
+        rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
+
+        footer_font = ImageFont.truetype(HELVETICA, FOOTER_FONT_SIZE)
+        artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, FOOTER_FONT_SIZE)
+        legal_font = ImageFont.truetype(MPLANTIN, FOOTER_FONT_SIZE)
+
+        image = Image.new("RGBA", (footer_width, footer_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        collector_number_text = f"{index}{f"/{largest_index}" if add_total_card_count else ""}"
+        draw.text(
+            (FOOTER_FONT_OUTLINE_SIZE, FOOTER_FONT_OUTLINE_SIZE),
+            collector_number_text,
+            font=footer_font,
+            fill="white",
+            stroke_width=FOOTER_FONT_OUTLINE_SIZE,
+            stroke_fill="black",
+        )
+
+        top_left_bounding_box = footer_font.getbbox(collector_number_text)
+        collector_number_text_height = int(top_left_bounding_box[3] - top_left_bounding_box[1]) + FOOTER_FONT_OUTLINE_SIZE
+        set_info_y = collector_number_text_height + collector_number_text_height // FOOTER_LINE_HEIGHT_TO_GAP_RATIO
+
+        set_info_text = f"{card_set} • {language}"
+        draw.text(
+            (FOOTER_FONT_OUTLINE_SIZE, set_info_y),
+            set_info_text,
+            font=footer_font,
+            fill="white",
+            stroke_width=FOOTER_FONT_OUTLINE_SIZE,
+            stroke_fill="black",
+        )
+
+        rarity_artist_x = (
+            max(int(footer_font.getlength(collector_number_text)) + FOOTER_FONT_OUTLINE_SIZE, int(footer_font.getlength(set_info_text)) + FOOTER_FONT_OUTLINE_SIZE)
+            + FOOTER_TAB_LENGTH
+        )
+
+        draw.text(
+            (rarity_artist_x, FOOTER_FONT_OUTLINE_SIZE),
+            rarity_initial,
+            font=footer_font,
+            fill="white",
+            stroke_width=FOOTER_FONT_OUTLINE_SIZE,
+            stroke_fill="black",
+        )
+
+        artist_brush = SYMBOL_PLACEHOLDER_KEY.get("artist_brush")
+        scale = FOOTER_FONT_SIZE / artist_brush.image.height
+        artist_brush_width = int(artist_brush.image.width * scale)
+        artist_brush_height = int(artist_brush.image.height * scale)
+        artist_brush_image = artist_brush.get_formatted_image(artist_brush_width, artist_brush_height)
+
+        image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
+        draw.text(
+            (
+                rarity_artist_x + artist_brush_image.width + ARTIST_GAP_LENGTH,
+                set_info_y,
+            ),
+            artist,
+            font=artist_font,
+            anchor="lt",
+            fill="white",
+            stroke_width=FOOTER_FONT_OUTLINE_SIZE,
+            stroke_fill="black",
+        )
+
+        creation_date_width = int(legal_font.getlength(creation_date)) + FOOTER_FONT_OUTLINE_SIZE
+        draw.text(
+            (footer_width - creation_date_width, set_info_y),
+            creation_date,
+            font=legal_font,
+            fill="white",
+            stroke_width=FOOTER_FONT_OUTLINE_SIZE,
+            stroke_fill="black",
+        )
+
+        self.text_layers.append(Layer(image, (footer_x, footer_y)))
 
     def create_text_layers(self):
         """
@@ -445,16 +612,16 @@ class Card:
                 log(f"Unknown placeholder '{{{sym}}}'")
                 continue
 
-            scale = symbol.size_ratio * MANA_COST_SYMBOL_SIZE / symbol.image.height
+            scale = MANA_COST_SYMBOL_SIZE / symbol.image.height
             width = int(symbol.image.width * scale)
             height = int(symbol.image.height * scale)
-            symbol_image = add_drop_shadow(symbol.image.resize((width, height), Image.LANCZOS))
+            symbol_image = add_drop_shadow(symbol.get_formatted_image(width, height))
 
             curr_x -= symbol_image.width + MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
                 image.alpha_composite(symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2))
             else:
-                log(f"The mana cost is too long and has been cut off.")
+                log("The mana cost is too long and has been cut off.")
                 break
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
@@ -493,7 +660,7 @@ class Card:
         if len(text) == 0:
             return
 
-        title_font = ImageFont.truetype(BELEREN_BOLD, BELEREN_BOLD_SIZE)
+        title_font = ImageFont.truetype(BELEREN_BOLD, TITLE_FONT_SIZE)
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
         bounding_box = title_font.getbbox(text)
@@ -639,10 +806,10 @@ class Card:
                     placeholder = f"[{token}]"
                     return int(rules_font.getlength(placeholder)), font_size, None
 
-                scale = MANA_SYMBOL_RULES_TEXT_SCALE * symbol.size_ratio * font_size / symbol.image.height
+                scale = MANA_SYMBOL_RULES_TEXT_SCALE * font_size / symbol.image.height
                 width = int(symbol.image.width * scale)
                 height = int(symbol.image.height * scale)
-                symbol = symbol.image.resize((width, height), Image.LANCZOS)
+                symbol = symbol.get_formatted_image(width, height)
                 return width, height, symbol
 
             def wrap_text_fragments(
@@ -734,13 +901,13 @@ class Card:
             content_height = 0
             for line in rules_lines:
                 if line[0][0] == "newline":
-                    content_height += line_height // LINE_HEIGHT_TO_GAP_RATIO
+                    content_height += line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                 else:
                     content_height += line_height
             for lines in flavor_lines:
                 for line in lines:
                     if line[0][0] == "newline":
-                        content_height += line_height // LINE_HEIGHT_TO_GAP_RATIO
+                        content_height += line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                     else:
                         content_height += line_height
                 content_height += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height
@@ -762,7 +929,7 @@ class Card:
                 for line_fragments in lines:
                     if line_fragments and line_fragments[0][0] == "newline":
                         curr_y += (
-                            line_height // LINE_HEIGHT_TO_GAP_RATIO
+                            line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                         )  # add an extra gap for user-specified newlines
                         continue
 
@@ -880,6 +1047,8 @@ class Card:
         if not append:
             self.metadata[key] = value
         else:
+            if not self.metadata.get(key, False):
+                self.metadata[key] = []
             if isinstance(self.metadata[key], list):
                 self.metadata[key].append(value)
             else:

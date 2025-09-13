@@ -15,12 +15,26 @@ CARD_SUPERTYPES = "Supertype(s)"
 CARD_TYPES = "Type(s)"
 CARD_SUBTYPES = "Subtype(s)"
 CARD_POWER_TOUGHNESS = "Power/Toughness"
-CARD_RARITY = "Rarity"
 
 CARD_FRAMES = "Frame(s)"
+CARD_RARITY = "Rarity"
 CARD_WATERMARK = "Watermark"
 CARD_WATERMARK_COLOR = "Watermark Color(s)"
+CARD_CATEGORY = "Category"
+CARD_CREATION_DATE = "Creation Date"
 CARD_SET = "Set"
+CARD_LANGUAGE = "Language"
+CARD_ARTIST = "Artist"
+
+CARD_TF_POWER_TOUGHNESS = "Transform P/T"
+CARD_FRONTSIDE = "Transform Frontside"
+CARD_ORDERER = "Orderer"
+CARD_ORIGINAL = "Original Card"
+CARD_DESCRIPTOR = "Descriptor"
+
+# Not in Spreadsheet (Added at Runtime)
+CARD_INDEX = "Index"
+CARD_BACKSIDES = "Transform Backsides"
 
 
 ###########################
@@ -48,7 +62,7 @@ HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
 TITLE_X = 128
 TITLE_Y = 105
 TITLE_MAX_WIDTH = 1244
-BELEREN_BOLD_SIZE = 79
+TITLE_FONT_SIZE = 79
 
 # Type Text
 TYPE_X = 128
@@ -68,7 +82,7 @@ RULES_BOX_MIN_FONT_SIZE = 6
 # Rules Text
 MANA_SYMBOL_RULES_TEXT_SCALE = 0.78
 MANA_SYMBOL_RULES_TEXT_MARGIN = 5
-LINE_HEIGHT_TO_GAP_RATIO = 4
+RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
 
 # Power & Toughness
 POWER_TOUGHNESS_WIDTH = 252
@@ -97,6 +111,17 @@ SET_SYMBOL_X = 1296
 SET_SYMBOL_Y = 1198
 SET_SYMBOL_WIDTH = 90
 
+# Footer
+FOOTER_WIDTH = 1304
+FOOTER_HEIGHT = 152
+FOOTER_X = 96
+FOOTER_Y = 1968
+FOOTER_FONT_SIZE = 35
+FOOTER_FONT_OUTLINE_SIZE = 3
+FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
+FOOTER_TAB_LENGTH = 25
+ARTIST_GAP_LENGTH = 5
+
 
 ##################
 # FILE LOCATIONS #
@@ -117,6 +142,8 @@ MPLANTIN = "fonts/mplantin.ttf"
 MPLANTIN_ITALICS = "fonts/mplantinit.ttf"
 BELEREN_BOLD = "fonts/beleren-bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
+MATRIX_BOLD = "fonts/MatrixBold.ttf"
+HELVETICA = "fonts/GothamBold.ttf"
 
 
 ##########
@@ -148,8 +175,9 @@ RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/red_white.png")
 GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_white.png")
 GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
 
-# Text Formatting
+# Other
 FLAVOR_DIVIDING_LINE = open_image("images/flavor_divider.png")
+ARTIST_BRUSH = open_image("images/collector_info/artist_brush.png")
 
 
 ################
@@ -191,8 +219,9 @@ SYMBOL_PLACEHOLDER_KEY = {
     "w/g": Symbol(GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "g/u": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
-    # Text Formatting
+    # Other
     "flavor": Symbol(FLAVOR_DIVIDING_LINE),
+    "artist_brush": Symbol(ARTIST_BRUSH, 1.25, FOOTER_FONT_OUTLINE_SIZE),
 }
 
 
@@ -200,19 +229,8 @@ SYMBOL_PLACEHOLDER_KEY = {
 # FORMATTING GUIDES #
 #####################
 
-# Collector Info Number Widths
-NUMBER_WIDTHS = {
-    "0": 26,
-    "1": 14,
-    "2": 23,
-    "3": 22,
-    "4": 25,
-    "5": 22,
-    "6": 23,
-    "7": 21,
-    "8": 23,
-    "9": 25,
-}
+# Rarity to Collector Initial Conversion
+RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O"}
 
 # Illegal Filename Character Conversion
 CHAR_TO_TITLE_CHAR = {
