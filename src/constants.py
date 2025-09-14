@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 
 from model.Symbol import Symbol
@@ -17,6 +18,7 @@ CARD_SUBTYPES = "Subtype(s)"
 CARD_POWER_TOUGHNESS = "Power/Toughness"
 
 CARD_FRAMES = "Frame(s)"
+CARD_FRAME_LAYOUT = "Frame Layout"
 CARD_RARITY = "Rarity"
 CARD_WATERMARK = "Watermark"
 CARD_WATERMARK_COLOR = "Watermark Color(s)"
@@ -41,59 +43,244 @@ CARD_BACKSIDES = "Transform Backsides"
 # FORMATTING & DIMENSIONS #
 ###########################
 
+# Card Types with Different Formats
+REGULAR = "regular"
+TRANSFORM_FRONTSIDE = "transform frontside"
+TRANSFORM_BACKSIDE_PIP = "transform backside pip"
+TRANSFORM_BACKSIDE_NO_PIP = "transform backside no pip"
+BATTLE = "battle"
+
 # Card Dimensions
-CARD_WIDTH = 1500
-CARD_HEIGHT = 2100
-BATTLE_CARD_MULT = 1.34
+CARD_WIDTH = defaultdict(lambda: 1500, {REGULAR: 1500, BATTLE: 2814})
+CARD_HEIGHT = defaultdict(lambda: 2100, {REGULAR: 2100, BATTLE: 2010})
 
 # Title Header Box
-TITLE_BOX_WIDTH = 1280
-TITLE_BOX_HEIGHT = 114
-TITLE_BOX_X = 110
-TITLE_BOX_Y = 105
+TITLE_BOX_WIDTH = defaultdict(
+    lambda: 1280,
+    {
+        REGULAR: 1280,
+        BATTLE: 2326,
+        TRANSFORM_FRONTSIDE: 1170,
+        TRANSFORM_BACKSIDE_PIP: 1170,
+        TRANSFORM_BACKSIDE_NO_PIP: 1170,
+    },
+)
+TITLE_BOX_HEIGHT = defaultdict(lambda: 114, {REGULAR: 114, BATTLE: 153})
+TITLE_BOX_X = defaultdict(lambda: 90, {REGULAR: 90, BATTLE: 312, TRANSFORM_FRONTSIDE: 220})
+TITLE_BOX_Y = defaultdict(lambda: 105, {REGULAR: 105, BATTLE: 101})
 
 # Mana Cost Symbol
-MANA_COST_SYMBOL_SIZE = 70
-MANA_COST_SYMBOL_SPACING = 6
-MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+MANA_COST_SYMBOL_SIZE = defaultdict(lambda: 70, {REGULAR: 70, BATTLE: 94})
+MANA_COST_SYMBOL_SPACING = defaultdict(lambda: 6, {REGULAR: 6, BATTLE: 8})
+MANA_COST_SYMBOL_SHADOW_OFFSET = defaultdict(
+    lambda: (-1, 6),
+    {
+        REGULAR: (-1, 6),
+    },
+)
 HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
 
 # Title Text
-TITLE_X = 128
-TITLE_Y = 105
-TITLE_MAX_WIDTH = 1244
-TITLE_FONT_SIZE = 79
+TITLE_X = defaultdict(
+    lambda: 128,
+    {REGULAR: 128, BATTLE: 172, TRANSFORM_FRONTSIDE: 240},
+)
+TITLE_Y = defaultdict(
+    lambda: 105,
+    {
+        REGULAR: 105,
+        BATTLE: 101,
+    },
+)
+TITLE_MAX_WIDTH = defaultdict(
+    lambda: 1244,
+    {
+        REGULAR: 1244,
+        BATTLE: 2280,
+        TRANSFORM_FRONTSIDE: 1158,
+        TRANSFORM_BACKSIDE_PIP: 1158,
+        TRANSFORM_BACKSIDE_NO_PIP: 1158,
+    },
+)
+TITLE_FONT_SIZE = defaultdict(
+    lambda: 79,
+    {
+        REGULAR: 79,
+        BATTLE: 106,
+    },
+)
+TITLE_FONT_COLOR = defaultdict(
+    lambda: (0, 0, 0),
+    {
+        REGULAR: (0, 0, 0),
+        TRANSFORM_BACKSIDE_PIP: (255, 255, 255),
+        TRANSFORM_BACKSIDE_NO_PIP: (255, 255, 255),
+    },
+)
 
 # Type Text
-TYPE_X = 128
-TYPE_Y = 1186
-TYPE_MAX_WIDTH = 1244
-TYPE_BOX_HEIGHT = 114
-TYPE_FONT_SIZE = 67
+TYPE_X = defaultdict(
+    lambda: 128,
+    {REGULAR: 128, BATTLE: 172, TRANSFORM_BACKSIDE_PIP: 199},
+)
+TYPE_Y = defaultdict(
+    lambda: 1190,
+    {
+        REGULAR: 1190,
+        BATTLE: 1166,
+    },
+)
+TYPE_MAX_WIDTH = defaultdict(
+    lambda: 1244,
+    {REGULAR: 1244, BATTLE: 2280, TRANSFORM_BACKSIDE_PIP: 1115},
+)
+TYPE_BOX_HEIGHT = defaultdict(
+    lambda: 114,
+    {
+        REGULAR: 114,
+        BATTLE: 153,
+    },
+)
+TYPE_FONT_SIZE = defaultdict(
+    lambda: 67,
+    {
+        REGULAR: 67,
+        BATTLE: 90,
+    },
+)
+TYPE_FONT_COLOR = defaultdict(
+    lambda: (0, 0, 0),
+    {
+        REGULAR: (0, 0, 0),
+        TRANSFORM_BACKSIDE_PIP: (255, 255, 255),
+        TRANSFORM_BACKSIDE_NO_PIP: (255, 255, 255),
+    },
+)
 
 # Rules Text Box
-RULES_BOX_WIDTH = 1278
-RULES_BOX_HEIGHT = 623
-RULES_BOX_X = 112
-RULES_BOX_Y = 1315
-RULES_BOX_MAX_FONT_SIZE = 78
-RULES_BOX_MIN_FONT_SIZE = 6
+RULES_BOX_WIDTH = defaultdict(
+    lambda: 1278,
+    {
+        REGULAR: 1278,
+        BATTLE: 2276,
+    },
+)
+RULES_BOX_HEIGHT = defaultdict(
+    lambda: 623,
+    {
+        REGULAR: 623,
+        BATTLE: 579,
+    },
+)
+RULES_BOX_X = defaultdict(
+    lambda: 112,
+    {
+        REGULAR: 112,
+        BATTLE: 339,
+    },
+)
+RULES_BOX_Y = defaultdict(
+    lambda: 1315,
+    {
+        REGULAR: 1315,
+        BATTLE: 1339,
+    },
+)
+RULES_BOX_MAX_FONT_SIZE = defaultdict(
+    lambda: 78,
+    {
+        REGULAR: 78,
+        BATTLE: 104,
+    },
+)
+RULES_BOX_MIN_FONT_SIZE = defaultdict(
+    lambda: 6,
+    {
+        REGULAR: 6,
+        BATTLE: 8,
+    },
+)
 
 # Rules Text
-MANA_SYMBOL_RULES_TEXT_SCALE = 0.78
-MANA_SYMBOL_RULES_TEXT_MARGIN = 5
-RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
+MANA_SYMBOL_RULES_TEXT_SCALE = defaultdict(
+    lambda: 0.78,
+    {
+        REGULAR: 0.78,
+    },
+)
+MANA_SYMBOL_RULES_TEXT_MARGIN = defaultdict(
+    lambda: 5,
+    {
+        REGULAR: 5,
+        BATTLE: 7,
+    },
+)
+RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = defaultdict(
+    lambda: 4,
+    {
+        REGULAR: 4,
+    },
+)
 
 # Power & Toughness
-POWER_TOUGHNESS_WIDTH = 252
-POWER_TOUGHNESS_HEIGHT = 124
-POWER_TOUGHNESS_X = 1166
-POWER_TOUGHNESS_Y = 1866
-POWER_TOUGHNESS_FONT_SIZE = 80
+POWER_TOUGHNESS_WIDTH = defaultdict(
+    lambda: 252,
+    {
+        REGULAR: 252,
+        BATTLE: 118,
+    },
+)
+POWER_TOUGHNESS_HEIGHT = defaultdict(
+    lambda: 124,
+    {
+        REGULAR: 124,
+        BATTLE: 137,
+    },
+)
+POWER_TOUGHNESS_X = defaultdict(
+    lambda: 1166,
+    {
+        REGULAR: 1166,
+        BATTLE: 2570,
+    },
+)
+POWER_TOUGHNESS_Y = defaultdict(
+    lambda: 1866,
+    {
+        REGULAR: 1866,
+        BATTLE: 1784,
+    },
+)
+POWER_TOUGHNESS_FONT_SIZE = defaultdict(
+    lambda: 80,
+    {
+        REGULAR: 80,
+        BATTLE: 107,
+    },
+)
+POWER_TOUGHNESS_FONT_COLOR = defaultdict(
+    lambda: (0, 0, 0),
+    {
+        REGULAR: (0, 0, 0),
+        TRANSFORM_BACKSIDE_PIP: (255, 255, 255),
+        TRANSFORM_BACKSIDE_NO_PIP: (255, 255, 255),
+    },
+)
 
 # Watermark
-WATERMARK_WIDTH = 325
-WATERMARK_OPACITY = 0.4
+WATERMARK_WIDTH = defaultdict(
+    lambda: 325,
+    {
+        REGULAR: 325,
+        BATTLE: 435,
+    },
+)
+WATERMARK_OPACITY = defaultdict(
+    lambda: 0.4,
+    {
+        REGULAR: 0.4,
+    },
+)
 WATERMARK_COLORS = {
     "white": (183, 157, 88),
     "blue": (140, 172, 197),
@@ -107,20 +294,91 @@ WATERMARK_COLORS = {
 }
 
 # Rarity / Set Symbol
-SET_SYMBOL_X = 1296
-SET_SYMBOL_Y = 1198
-SET_SYMBOL_WIDTH = 90
+SET_SYMBOL_X = defaultdict(
+    lambda: 1296,
+    {
+        REGULAR: 1296,
+        BATTLE: 2484,
+    },
+)
+SET_SYMBOL_Y = defaultdict(
+    lambda: 1198,
+    {
+        REGULAR: 1198,
+        BATTLE: 1176,
+    },
+)
+SET_SYMBOL_WIDTH = defaultdict(
+    lambda: 90,
+    {
+        REGULAR: 90,
+        BATTLE: 121,
+    },
+)
 
 # Footer
-FOOTER_WIDTH = 1304
-FOOTER_HEIGHT = 152
-FOOTER_X = 96
-FOOTER_Y = 1968
-FOOTER_FONT_SIZE = 35
-FOOTER_FONT_OUTLINE_SIZE = 3
-FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
-FOOTER_TAB_LENGTH = 25
-ARTIST_GAP_LENGTH = 5
+FOOTER_WIDTH = defaultdict(
+    lambda: 1304,
+    {
+        REGULAR: 1304,
+        BATTLE: 204,
+    },
+)
+FOOTER_HEIGHT = defaultdict(
+    lambda: 152,
+    {
+        REGULAR: 152,
+        BATTLE: 1747,
+    },
+)
+FOOTER_X = defaultdict(
+    lambda: 96,
+    {
+        REGULAR: 96,
+        BATTLE: 0,
+    },
+)
+FOOTER_Y = defaultdict(
+    lambda: 1968,
+    {
+        REGULAR: 1968,
+        BATTLE: 120,
+    },
+)
+FOOTER_FONT_SIZE = defaultdict(
+    lambda: 35,
+    {
+        REGULAR: 35,
+        BATTLE: 47,
+    },
+)
+FOOTER_FONT_OUTLINE_SIZE = defaultdict(
+    lambda: 3,
+    {
+        REGULAR: 3,
+        BATTLE: 4,
+    },
+)
+FOOTER_LINE_HEIGHT_TO_GAP_RATIO = defaultdict(
+    lambda: 2,
+    {
+        REGULAR: 2,
+    },
+)
+FOOTER_TAB_LENGTH = defaultdict(
+    lambda: 25,
+    {
+        REGULAR: 25,
+        BATTLE: 33,
+    },
+)
+ARTIST_GAP_LENGTH = defaultdict(
+    lambda: 5,
+    {
+        REGULAR: 5,
+        BATTLE: 7,
+    },
+)
 
 
 ##################
@@ -221,7 +479,7 @@ SYMBOL_PLACEHOLDER_KEY = {
     "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # Other
     "flavor": Symbol(FLAVOR_DIVIDING_LINE),
-    "artist_brush": Symbol(ARTIST_BRUSH, 1.25, FOOTER_FONT_OUTLINE_SIZE),
+    "artist_brush": Symbol(ARTIST_BRUSH, 1.25),
 }
 
 

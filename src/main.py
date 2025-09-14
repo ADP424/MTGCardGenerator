@@ -101,6 +101,7 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
                     ):
                         card.add_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
+                del card_spreadsheets[output_path][card.get_metadata(CARD_TITLE, "")]
             else:
                 log(f"Could not find '{frontside_title}' as a frontside.")
 
@@ -151,7 +152,7 @@ def main():
                 log(f"Processing {backside_title}...")
                 increase_log_indent()
 
-                backside.create_layers(create_mana_cost_layer=False)
+                backside.create_layers(create_rarity_symbol_layer=False)
                 final_backside = backside.render_card()
                 final_backside.save(f"{output_path}/{cardname_to_filename(backside_title)}.png")
 
