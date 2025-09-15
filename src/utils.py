@@ -1,7 +1,5 @@
 from PIL import Image
 
-from log import log
-
 
 def open_image(filepath: str) -> Image.Image | None:
     """
@@ -48,6 +46,39 @@ def replace_ticks(word: str) -> str:
     word = word.replace("'", "’")
 
     return word
+
+
+def cardname_to_filename(card_name: str) -> str:
+    """
+    Return `card_name` with all characters not allowed in a file name replaced.
+
+    Parameters
+    ----------
+    card_name: str
+        The card name to convert to a legal file name.
+
+    Returns
+    -------
+    str
+        The card name converted to a legal file name.
+    """
+
+    CHAR_TO_TITLE_CHAR = {
+        "<": "{BC}",
+        ">": "{FC}",
+        ":": "{C}",
+        '"': "{QT}",
+        "/": "{FS}",
+        "\\": "{BS}",
+        "|": "{B}",
+        "?": "{QS}",
+        "*": "{A}",
+    }
+
+    file_name = card_name.replace("’", "'")
+    for bad_char in CHAR_TO_TITLE_CHAR.keys():
+        file_name = file_name.replace(bad_char, CHAR_TO_TITLE_CHAR[bad_char])
+    return file_name
 
 
 # def get_token_full_name(token: dict[str, str]) -> str:

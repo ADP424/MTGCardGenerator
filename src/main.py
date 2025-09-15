@@ -2,8 +2,8 @@ import argparse
 import csv
 import glob
 import os
-
 from PIL import Image
+
 from datetime import MINYEAR, datetime
 
 from constants import (
@@ -22,15 +22,14 @@ from constants import (
     CARD_RARITY,
     CARD_SET,
     CARD_TITLE,
-    CHAR_TO_TITLE_CHAR,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
-    OUTPUT_ART_PATH,
+    ART_PATH,
     OUTPUT_CARDS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.Card import Card
-from utils import open_image
+from utils import cardname_to_filename, open_image
 
 
 def process_spreadsheets() -> dict[str, dict[str, Card]]:
@@ -48,9 +47,15 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
 
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
         if spreadsheet_path.rfind("-") >= 0:
-            output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind("-") - 1]}"
+            output_path = (
+                f"{OUTPUT_CARDS_PATH}/"
+                f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind("-") - 1]}"
+            )
         else:
-            output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
+            output_path = (
+                f"{OUTPUT_CARDS_PATH}/"
+                f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
+            )
         os.makedirs(output_path, exist_ok=True)
         card_spreadsheets[output_path] = {}
         with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
@@ -69,7 +74,7 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
 
         def str_to_datetime(string: str, default: datetime) -> datetime:
             try:
-                return datetime.strptime(card.metadata.get(CARD_CREATION_DATE, datetime(MINYEAR, 1, 1)), "%m/%d/%Y")(
+                return datetime.strptime(card.get_metadata(CARD_CREATION_DATE, datetime(MINYEAR, 1, 1)), "%m/%d/%Y")(
                     string
                 )
             except Exception:
@@ -78,20 +83,20 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
         sorted_cards = sorted(
             card_spreadsheets[output_path].values(),
             key=lambda card: (
-                str_to_datetime(card.metadata.get(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                str_to_int(card.metadata.get(CARD_ORDERER), 0),
-                card.metadata.get(CARD_TITLE, ""),
+                str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
+                str_to_int(card.get_metadata(CARD_ORDERER), 0),
+                card.get_metadata(CARD_TITLE),
             ),
         )
 
         # Add indices to all the cards, for collector info
         category_indices: dict[str, int] = {}
         for card in sorted_cards:
-            if len(card.metadata.get(CARD_FRONTSIDE, "")) > 0:
+            if len(card.get_metadata(CARD_FRONTSIDE)) > 0:
                 card.add_metadata(CARD_INDEX, "")
                 continue
 
-            category = card.metadata.get(CARD_CATEGORY, "")
+            category = card.get_metadata(CARD_CATEGORY)
             if not category_indices.get(category, False):
                 category_indices[category] = 0
             category_indices[category] += 1
@@ -100,7 +105,7 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
         # Add transform backsides to the transform cards
         # If the backside is missing any collector columns, copy them from the frontside
         for card in sorted_cards:
-            frontside_title = card.metadata.get(CARD_FRONTSIDE, "")
+            frontside_title = card.get_metadata(CARD_FRONTSIDE)
             if len(frontside_title) == 0:
                 continue
             frontside_card = card_spreadsheets[output_path].get(frontside_title)
@@ -112,42 +117,20 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
                     ):
                         card.add_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
-                del card_spreadsheets[output_path][card.get_metadata(CARD_TITLE, "")]
+                del card_spreadsheets[output_path][card.get_metadata(CARD_TITLE)]
             else:
                 log(f"Could not find '{frontside_title}' as a frontside.")
 
     return card_spreadsheets
 
 
-def cardname_to_filename(card_name: str) -> str:
-    """
-    Return `card_name` with all characters not allowed in a file name replaced.
-
-    Parameters
-    ----------
-    card_name: str
-        The card name to convert to a legal file name.
-
-    Returns
-    -------
-    str
-        The card name converted to a legal file name.
-    """
-
-    file_name = card_name.replace("’", "'")
-    for bad_char in CHAR_TO_TITLE_CHAR.keys():
-        file_name = file_name.replace(bad_char, CHAR_TO_TITLE_CHAR[bad_char])
-    return file_name
-
-
-def render_cards():
-    card_spreadsheets = process_spreadsheets()
+def render_cards(card_spreadsheets: dict[str, dict[str, Card]]):
     for output_path, spreadsheet in card_spreadsheets.items():
         log(f"Processing spreadsheet at '{output_path}'...")
         increase_log_indent()
 
         for card in spreadsheet.values():
-            card_title = card.metadata.get(CARD_TITLE, "")
+            card_title = card.get_metadata(CARD_TITLE)
 
             log(f"Processing {card_title}...")
             increase_log_indent()
@@ -156,7 +139,7 @@ def render_cards():
             final_card = card.render_card()
             final_card.save(f"{output_path}/{cardname_to_filename(card_title)}.png")
 
-            for backside in card.metadata.get(CARD_BACKSIDES, []):
+            for backside in card.get_metadata(CARD_BACKSIDES, []):
                 backside_title = backside.metadata.get(CARD_TITLE, "")
 
                 log(f"Processing {backside_title}...")
@@ -175,20 +158,62 @@ def render_cards():
         log()
 
 
-def capture_art():
-    for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
-        log(f"Extracting art from '{card_path}'...")
+def capture_art(card_spreadsheets: dict[str, dict[str, Card]]):
+    for output_path, spreadsheet in card_spreadsheets.items():
+        log(f"Processing spreadsheet at '{output_path}'...")
+        increase_log_indent()
 
-        card_image = open_image(card_path)
-        art = card_image.crop((ART_X, ART_Y, ART_X + ART_WIDTH, ART_Y + ART_HEIGHT))
-        card_name = card_path[card_path.rfind("\\") + 1:]
-        art.save(f"{OUTPUT_ART_PATH}/{card_name}")
+        for card in spreadsheet.values():
+            card_title = card.get_metadata(CARD_TITLE)
+            card_filename = cardname_to_filename(card_title)
+            card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
+
+            log(f"Extracting art from '{card_path}'...")
+            increase_log_indent()
+
+            card_image = open_image(card_path)
+            art_bounding_box = (
+                ART_X[card.get_frame_layout()],
+                ART_Y[card.get_frame_layout()],
+                ART_X[card.get_frame_layout()] + ART_WIDTH[card.get_frame_layout()],
+                ART_Y[card.get_frame_layout()] + ART_HEIGHT[card.get_frame_layout()],
+            )
+            art = card_image.crop(art_bounding_box)
+            base_image = Image.new("RGBA", (card.base_width, card.base_height), (0, 0, 0, 0))
+            base_image.paste(art, art_bounding_box)
+            base_image.save(f"{ART_PATH}/{card_filename}.png")
+
+            for backside in card.get_metadata(CARD_BACKSIDES, []):
+                backside_title = backside.get_metadata(CARD_TITLE)
+                backside_filename = cardname_to_filename(backside_title)
+                backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
+
+                log(f"Extracting art from '{backside_path}'...")
+                increase_log_indent()
+
+                backside_image = open_image(backside_path)
+                art_bounding_box = (
+                    ART_X[backside.get_frame_layout()],
+                    ART_Y[backside.get_frame_layout()],
+                    ART_X[backside.get_frame_layout()] + ART_WIDTH[backside.get_frame_layout()],
+                    ART_Y[backside.get_frame_layout()] + ART_HEIGHT[backside.get_frame_layout()],
+                )
+                art = backside_image.crop(art_bounding_box)
+                base_image = Image.new("RGBA", (backside.base_width, backside.base_height), (0, 0, 0, 0))
+                base_image.paste(art, art_bounding_box)
+                base_image.save(f"{ART_PATH}/{backside_filename}.png")
+
+                decrease_log_indent()
+
+            decrease_log_indent()
+
+        decrease_log_indent()
 
 
 def main(action: str):
     """
     Run the program.
-    
+
     Parameters
     ----------
     action: str
@@ -197,24 +222,27 @@ def main(action: str):
 
     reset_log()
     if action == ACTIONS[0]:
-        render_cards()
+        log("Rendering cards...")
+        card_spreadsheets = process_spreadsheets()
+        render_cards(card_spreadsheets)
     elif action == ACTIONS[1]:
-        pass # TODO
+        pass  # TODO
     elif action == ACTIONS[2]:
-        capture_art()
+        log("Capturing art from existing cards...")
+        card_spreadsheets = process_spreadsheets()
+        capture_art(card_spreadsheets)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate MTG cards based on the provided CSV file.")
 
     parser.add_argument(
-        "-a"
-        "--action",
+        "-a" "--action",
         type=str,
         choices=ACTIONS,
         default=ACTIONS[0],
         dest="action",
-        help=f"The action for the program to perform, one of {ACTIONS}."
+        help=f"The action for the program to perform, one of {ACTIONS}.",
     )
 
     args = parser.parse_args()

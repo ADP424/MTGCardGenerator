@@ -62,10 +62,34 @@ CARD_WIDTH = defaultdict(lambda: 1500, {REGULAR: 1500, BATTLE: 2814})
 CARD_HEIGHT = defaultdict(lambda: 2100, {REGULAR: 2100, BATTLE: 2010})
 
 # Card Art
-ART_WIDTH = 1270
-ART_HEIGHT = 929
-ART_X = 116
-ART_Y = 238
+ART_WIDTH = defaultdict(
+    lambda: 1270,
+    {
+        REGULAR: 1270,
+        BATTLE: 2511,
+    },
+)
+ART_HEIGHT = defaultdict(
+    lambda: 929,
+    {
+        REGULAR: 929,
+        BATTLE: 1840,
+    },
+)
+ART_X = defaultdict(
+    lambda: 115,
+    {
+        REGULAR: 116,
+        BATTLE: 224,
+    },
+)
+ART_Y = defaultdict(
+    lambda: 237,
+    {
+        REGULAR: 238,
+        BATTLE: 81,
+    },
+)
 
 # Title Header Box
 TITLE_BOX_WIDTH = defaultdict(
@@ -441,7 +465,7 @@ INPUT_SPREADSHEETS_PATH = "spreadsheets"
 OUTPUT_CARDS_PATH = "processed_cards"
 
 INPUT_CARDS_PATH = "existing_cards"
-OUTPUT_ART_PATH = "images/art"
+ART_PATH = "images/art"
 
 # Image Locations
 FRAMES_PATH = "images/frames"
@@ -543,19 +567,6 @@ SYMBOL_PLACEHOLDER_KEY = {
 
 # Rarity to Collector Initial Conversion
 RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O"}
-
-# Illegal Filename Character Conversion
-CHAR_TO_TITLE_CHAR = {
-    "<": "{BC}",
-    ">": "{FC}",
-    ":": "{C}",
-    '"': "{QT}",
-    "/": "{FS}",
-    "\\": "{BS}",
-    "|": "{B}",
-    "?": "{QS}",
-    "*": "{A}",
-}
 
 # Color to Poker Border Conversion
 POKER_BORDERS = {
