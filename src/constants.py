@@ -5,6 +5,13 @@ from model.Symbol import Symbol
 from utils import open_image
 
 ##########################
+# Command Line Arguments #
+##########################
+
+ACTIONS = ["render", "tile", "art"]
+
+
+##########################
 # CSV / SPREADSHEET INFO #
 ##########################
 
@@ -28,7 +35,7 @@ CARD_SET = "Set"
 CARD_LANGUAGE = "Language"
 CARD_ARTIST = "Artist"
 
-CARD_TF_POWER_TOUGHNESS = "Transform P/T"
+CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"
 CARD_FRONTSIDE = "Transform Frontside"
 CARD_ORDERER = "Orderer"
 CARD_ORIGINAL = "Original Card"
@@ -53,6 +60,12 @@ BATTLE = "battle"
 # Card Dimensions
 CARD_WIDTH = defaultdict(lambda: 1500, {REGULAR: 1500, BATTLE: 2814})
 CARD_HEIGHT = defaultdict(lambda: 2100, {REGULAR: 2100, BATTLE: 2010})
+
+# Card Art
+ART_WIDTH = 1270
+ART_HEIGHT = 929
+ART_X = 116
+ART_Y = 238
 
 # Title Header Box
 TITLE_BOX_WIDTH = defaultdict(
@@ -267,6 +280,44 @@ POWER_TOUGHNESS_FONT_COLOR = defaultdict(
     },
 )
 
+# Reverse Power & Toughness
+REVERSE_POWER_TOUGHNESS_WIDTH = defaultdict(
+    lambda: 90,
+    {
+        REGULAR: 90,
+    },
+)
+REVERSE_POWER_TOUGHNESS_HEIGHT = defaultdict(
+    lambda: 65,
+    {
+        REGULAR: 65,
+    },
+)
+REVERSE_POWER_TOUGHNESS_X = defaultdict(
+    lambda: 1301,
+    {
+        REGULAR: 1301,
+    },
+)
+REVERSE_POWER_TOUGHNESS_Y = defaultdict(
+    lambda: 1762,
+    {
+        REGULAR: 1762,
+    },
+)
+REVERSE_POWER_TOUGHNESS_FONT_SIZE = defaultdict(
+    lambda: 60,
+    {
+        REGULAR: 60,
+    },
+)
+REVERSE_POWER_TOUGHNESS_FONT_COLOR = defaultdict(
+    lambda: (102, 102, 102),
+    {
+        REGULAR: (102, 102, 102),
+    },
+)
+
 # Watermark
 WATERMARK_WIDTH = defaultdict(
     lambda: 325,
@@ -388,6 +439,9 @@ ARTIST_GAP_LENGTH = defaultdict(
 # Input & Output locations
 INPUT_SPREADSHEETS_PATH = "spreadsheets"
 OUTPUT_CARDS_PATH = "processed_cards"
+
+INPUT_CARDS_PATH = "existing_cards"
+OUTPUT_ART_PATH = "images/art"
 
 # Image Locations
 FRAMES_PATH = "images/frames"

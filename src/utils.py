@@ -21,8 +21,7 @@ def open_image(filepath: str) -> Image.Image | None:
 
     try:
         return Image.open(filepath).convert("RGBA")
-    except Exception as e:
-        log(e)
+    except Exception:
         return None
 
 

@@ -2,9 +2,16 @@ import argparse
 import csv
 import glob
 import os
+
+from PIL import Image
 from datetime import MINYEAR, datetime
 
 from constants import (
+    ACTIONS,
+    ART_HEIGHT,
+    ART_WIDTH,
+    ART_X,
+    ART_Y,
     CARD_BACKSIDES,
     CARD_CATEGORY,
     CARD_CREATION_DATE,
@@ -16,11 +23,14 @@ from constants import (
     CARD_SET,
     CARD_TITLE,
     CHAR_TO_TITLE_CHAR,
+    INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
+    OUTPUT_ART_PATH,
     OUTPUT_CARDS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.Card import Card
+from utils import open_image
 
 
 def process_spreadsheets() -> dict[str, dict[str, Card]]:
@@ -37,9 +47,10 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
     card_spreadsheets: dict[str, dict[str, Card]] = {}
 
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
-        output_path = (
-            f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
-        )
+        if spreadsheet_path.rfind("-") >= 0:
+            output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind("-") - 1]}"
+        else:
+            output_path = f"{OUTPUT_CARDS_PATH}/{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
         os.makedirs(output_path, exist_ok=True)
         card_spreadsheets[output_path] = {}
         with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
@@ -129,8 +140,7 @@ def cardname_to_filename(card_name: str) -> str:
     return file_name
 
 
-def main():
-    reset_log()
+def render_cards():
     card_spreadsheets = process_spreadsheets()
     for output_path, spreadsheet in card_spreadsheets.items():
         log(f"Processing spreadsheet at '{output_path}'...")
@@ -165,6 +175,47 @@ def main():
         log()
 
 
+def capture_art():
+    for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
+        log(f"Extracting art from '{card_path}'...")
+
+        card_image = open_image(card_path)
+        art = card_image.crop((ART_X, ART_Y, ART_X + ART_WIDTH, ART_Y + ART_HEIGHT))
+        card_name = card_path[card_path.rfind("\\") + 1:]
+        art.save(f"{OUTPUT_ART_PATH}/{card_name}")
+
+
+def main(action: str):
+    """
+    Run the program.
+    
+    Parameters
+    ----------
+    action: str
+        The action to perform (render cards, tile cards, etc.)
+    """
+
+    reset_log()
+    if action == ACTIONS[0]:
+        render_cards()
+    elif action == ACTIONS[1]:
+        pass # TODO
+    elif action == ACTIONS[2]:
+        capture_art()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate MTG cards based on the provided CSV file.")
-    main()
+
+    parser.add_argument(
+        "-a"
+        "--action",
+        type=str,
+        choices=ACTIONS,
+        default=ACTIONS[0],
+        dest="action",
+        help=f"The action for the program to perform, one of {ACTIONS}."
+    )
+
+    args = parser.parse_args()
+    main(args.action)

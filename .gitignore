@@ -1,12 +1,17 @@
-# cache files
+# cache / settings files
 __pycache__
+.vscode
 
 # inputs & outputs
 processed_cards/*
 !processed_cards/.gitkeep
+images/art/*
+!images/art/.gitkeep
 
 spreadsheets/*
 !spreadsheets/.gitkeep
+existing_cards/*
+!existing_cards/.gitkeep
 
 # log/debug
 log.txt

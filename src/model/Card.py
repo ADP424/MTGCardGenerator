@@ -28,7 +28,8 @@ from constants import (
     HELVETICA,
     POWER_TOUGHNESS_FONT_COLOR,
     RARITY_TO_INITIAL,
-    REGULAR,
+    REVERSE_POWER_TOUGHNESS_FONT_COLOR,
+    REVERSE_POWER_TOUGHNESS_FONT_SIZE,
     SET_SYMBOL_WIDTH,
     SET_SYMBOL_X,
     SET_SYMBOL_Y,
@@ -81,6 +82,11 @@ from constants import (
     TYPE_Y,
     WATERMARK_OPACITY,
     WATERMARK_WIDTH,
+    CARD_REVERSE_POWER_TOUGHNESS,
+    REVERSE_POWER_TOUGHNESS_WIDTH,
+    REVERSE_POWER_TOUGHNESS_HEIGHT,
+    REVERSE_POWER_TOUGHNESS_X,
+    REVERSE_POWER_TOUGHNESS_Y,
 )
 from log import log
 from model.Layer import Layer
@@ -139,6 +145,7 @@ class Card:
         create_type_layer: bool = True,
         create_rules_text_layer: bool = True,
         create_power_toughness_layer: bool = True,
+        create_reverse_power_toughness_layer: bool = True,
     ):
         """
         Append every frame, text, and collector layer to the card based on `self.metadata`.
@@ -171,6 +178,9 @@ class Card:
 
         create_power_toughness_layer: bool, default : True
             Whether to put the power & toughness of the card on it or not.
+
+        create_reverse_power_toughness_layer: bool, default: True
+            Whether to put the reverse power & toughness of the card on it or not.
         """
 
         # frame layers
@@ -196,6 +206,8 @@ class Card:
             self._create_rules_text_layer()
         if create_power_toughness_layer:
             self._create_power_toughness_layer()
+        if create_reverse_power_toughness_layer:
+            self._create_reverse_power_toughness_layer()
 
     def render_card(self) -> Image.Image:
         """
@@ -282,9 +294,8 @@ class Card:
             if len(frame_path) == 0:
                 continue
 
-            try:
-                frame = open_image(f"{FRAMES_PATH}/{frame_path}.png")
-            except Exception:
+            frame = open_image(f"{FRAMES_PATH}/{frame_path}.png")
+            if frame is None:
                 log(f"Invalid frame path '{frame_path}'.")
                 continue
 
@@ -341,22 +352,28 @@ class Card:
             The watermark color(s) to use. Uses (or guesses) the color based on the card's metadata if not given.
 
         rules_box_x: int, optional
-            The leftmost x position of the rules text box bounding the watermark. Determined by the frame layout in the metadata if not given.
+            The leftmost x position of the rules text box bounding the watermark.
+            Determined by the frame layout in the metadata if not given.
 
         rules_box_y: int, optional
-            The topmost y position of the rules text box bounding the watermark. Determined by the frame layout in the metadata if not given.
+            The topmost y position of the rules text box bounding the watermark.
+            Determined by the frame layout in the metadata if not given.
 
         rules_box_width: int, optional
-            The width of the rules text box bounding the watermark. Determined by the frame layout in the metadata if not given.
+            The width of the rules text box bounding the watermark.
+            Determined by the frame layout in the metadata if not given.
 
         rules_box_height: int, optional
-            The height of the rules text box bounding the watermark. Determined by the frame layout in the metadata if not given.
+            The height of the rules text box bounding the watermark. Determined by the frame layout in the
+            metadata if not given.
 
         watermark_width: int, optional
-            The width of the watermark. Also determines the height, based on the relative scale of the image. Determined by the frame layout in the metadata if not given.
+            The width of the watermark. Also determines the height, based on the relative scale of the image.
+            Determined by the frame layout in the metadata if not given.
 
         watermark_opacity: int, optional
-            The opacity of the watermark in the range [0.0, 1.0]. Determined by the frame layout in the metadata if not given.
+            The opacity of the watermark in the range [0.0, 1.0].
+            Determined by the frame layout in the metadata if not given.
         """
 
         if watermark is None:
@@ -666,7 +683,8 @@ class Card:
             The mana cost text to process. Uses the mana cost text in the card's metadata if not given.
 
         header_x: int, optional
-            The leftmost x position of the mana cost header. Determined by the frame layout in the metadata if not given.
+            The leftmost x position of the mana cost header.
+            Determined by the frame layout in the metadata if not given.
 
         header_y: int, optional
             The topmost y position of the mana cost header. Determined by the frame layout in the metadata if not given.
@@ -1152,16 +1170,18 @@ class Card:
             The power & toughness text to process. Uses the power & toughness in the card's metadata if not given.
 
         power_toughness_x: int, optional
-            The leftmost x position of the type header. Determined by the frame layout in the metadata if not given.
+            The leftmost x position of the power & touchness box. Determined by the frame layout in the metadata if not given.
 
         power_toughness_y: int, optional
-            The topmost y position of the type header. Determined by the frame layout in the metadata if not given.
+            The topmost y position of the power & touchness box. Determined by the frame layout in the metadata if not given.
 
         power_toughness_width: int, optional
-            The width of the frame's power & toughness area. Determined by the frame layout in the metadata if not given.
+            The width of the frame's power & toughness area.
+            Determined by the frame layout in the metadata if not given.
 
         power_toughness_height: int, optional
-            The height of the frame's type power & toughness area. Determined by the frame layout in the metadata if not given.
+            The height of the frame's power & toughness area.
+            Determined by the frame layout in the metadata if not given.
         """
 
         if text is None:
@@ -1198,6 +1218,79 @@ class Card:
             text,
             font=power_toughness_font,
             fill=POWER_TOUGHNESS_FONT_COLOR[self._get_frame_layout()],
+        )
+
+        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
+
+    def _create_reverse_power_toughness_layer(
+        self,
+        text: str = None,
+        power_toughness_x: int = None,
+        power_toughness_y: int = None,
+        power_toughness_width: int = None,
+        power_toughness_height: int = None,
+    ):
+        """
+        Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
+
+        Parameters
+        ----------
+        text: str, optional
+            The reverse power & toughness text to process. Uses the power & toughness in the card's metadata if not given.
+
+        power_toughness_x: int, optional
+            The leftmost x position of the reverse power & toughness area.
+            Determined by the frame layout in the metadata if not given.
+
+        power_toughness_y: int, optional
+            The topmost y position of the reverse power & toughness area.
+            Determined by the frame layout in the metadata if not given.
+
+        power_toughness_width: int, optional
+            The width of the frame's reverse power & toughness area.
+            Determined by the frame layout in the metadata if not given.
+
+        power_toughness_height: int, optional
+            The height of the frame's reverse power & toughness area.
+            Determined by the frame layout in the metadata if not given.
+        """
+
+        if text is None:
+            text = self.metadata.get(CARD_REVERSE_POWER_TOUGHNESS, "")
+        if len(text) == 0:
+            return
+
+        power_toughness_x = (
+            REVERSE_POWER_TOUGHNESS_X[self._get_frame_layout()] if power_toughness_x is None else power_toughness_x
+        )
+        power_toughness_y = (
+            REVERSE_POWER_TOUGHNESS_Y[self._get_frame_layout()] if power_toughness_y is None else power_toughness_y
+        )
+        power_toughness_width = (
+            REVERSE_POWER_TOUGHNESS_WIDTH[self._get_frame_layout()]
+            if power_toughness_width is None
+            else power_toughness_width
+        )
+        power_toughness_height = (
+            REVERSE_POWER_TOUGHNESS_HEIGHT[self._get_frame_layout()]
+            if power_toughness_height is None
+            else power_toughness_height
+        )
+
+        power_toughness_font = ImageFont.truetype(
+            BELEREN_BOLD_SMALL_CAPS, REVERSE_POWER_TOUGHNESS_FONT_SIZE[self._get_frame_layout()]
+        )
+        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        text_width = power_toughness_font.getlength(text)
+        bounding_box = power_toughness_font.getbbox(text)
+        text_height = int(bounding_box[3] - bounding_box[1])
+        draw.text(
+            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4),
+            text,
+            font=power_toughness_font,
+            fill=REVERSE_POWER_TOUGHNESS_FONT_COLOR[self._get_frame_layout()],
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
