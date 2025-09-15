@@ -847,7 +847,10 @@ class Card:
 
         font_size = TITLE_MAX_FONT_SIZE[self.get_frame_layout()]
         title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-        while header_x + title_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()] and font_size >= TITLE_MIN_FONT_SIZE[self.get_frame_layout()]:
+        while (
+            header_x + title_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()]
+            and font_size >= TITLE_MIN_FONT_SIZE[self.get_frame_layout()]
+        ):
             font_size -= 1
             title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
 
@@ -860,7 +863,7 @@ class Card:
             text,
             font=title_font,
             fill=TITLE_FONT_COLOR[self.get_frame_layout()],
-            anchor="lt"
+            anchor="lt",
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
@@ -911,7 +914,10 @@ class Card:
 
         font_size = TYPE_MAX_FONT_SIZE[self.get_frame_layout()]
         type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-        while header_x + type_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()] and font_size >= TYPE_MIN_FONT_SIZE[self.get_frame_layout()]:
+        while (
+            header_x + type_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()]
+            and font_size >= TYPE_MIN_FONT_SIZE[self.get_frame_layout()]
+        ):
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
 
@@ -924,7 +930,7 @@ class Card:
             text,
             font=type_font,
             fill=TYPE_FONT_COLOR[self.get_frame_layout()],
-            anchor="lt"
+            anchor="lt",
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
@@ -1032,11 +1038,12 @@ class Card:
                 symbol = symbol.get_formatted_image(width, height)
                 return width, height, symbol
 
-            def wrap_text_fragments(frags, regular_font, italic_font):
+            def wrap_text_fragments(
+                frags: list[tuple[str, str]], regular_font: ImageFont.FreeTypeFont, italic_font: ImageFont.FreeTypeFont
+            ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
                 """
-                Split the lines into individual words and symbols, then wrap them so that they fit within 
-                `max_line_width` (based on rules box size and margins). For example, `"Add {R}."` becomes 
-                `[[("text": "Add"), ("text": " "), ("symbol": "R"), ("text": ".")]]`.
+                Split the lines into individual words and symbols, then wrap them so that they fit within
+                `max_line_width` (based on rules box size and margins).
                 """
 
                 lines = []
@@ -1058,6 +1065,9 @@ class Card:
                             curr_font = regular_font
                         continue
                     elif kind == "symbol":
+                        if value.lower() == "lns":
+                            go_to_newline()
+                            continue
                         width, _, _ = get_symbol_metrics(value)
                         if curr_fragment and curr_width + width > max_line_width:
                             go_to_newline()
@@ -1065,7 +1075,9 @@ class Card:
                         curr_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
                     else:
                         for word in re.findall(r"\S+|\s+", value):
+                            word = replace_ticks(word)
                             width = curr_font.getlength(word)
+
                             if word.isspace():
                                 if not curr_fragment:
                                     continue
@@ -1093,21 +1105,27 @@ class Card:
                 return lines
 
             # Split the rules text into lines that fit the rules box horizontally
-            rules_lines: list[list[tuple[str, str]]] = []
+            rules_lines: list[list[tuple[str, str, ImageFont.FreeTypeFont]]] = []
             for line in raw_rules_text.splitlines():
                 rules_fragments = parse_fragments(line)
-                rules_lines += wrap_text_fragments(rules_fragments, rules_font, italics_font) if rules_fragments else [[("text", "")]]
+                rules_lines += (
+                    wrap_text_fragments(rules_fragments, rules_font, italics_font)
+                    if rules_fragments
+                    else [[("text", "")]]
+                )
                 rules_lines.append([("newline", None)])
             rules_lines.pop()  # remove the ending newline
 
             # Split the flavor text into lines that fit the rules box horizontally
-            flavor_lines: list[list[list[tuple[str, str]]]] = []
+            flavor_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]] = []
             for raw_flavor_text in raw_flavor_texts:
                 flavor_lines.append([])
                 for line in raw_flavor_text.splitlines():
                     flavor_fragments = parse_fragments(line)
                     flavor_lines[-1] += (
-                        wrap_text_fragments(flavor_fragments, italics_font, italics_font) if flavor_fragments else [[("text", "")]]
+                        wrap_text_fragments(flavor_fragments, italics_font, italics_font)
+                        if flavor_fragments
+                        else [[("text", "")]]
                     )
                     flavor_lines[-1].append([("newline", None)])
                 flavor_lines[-1].pop()  # remove the ending newline
@@ -1133,6 +1151,22 @@ class Card:
             image = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
             draw = ImageDraw.Draw(image)
 
+            # check for power/toughness overlap
+            power_toughness_x = POWER_TOUGHNESS_X[self.get_frame_layout()]
+            power_toughness_y = POWER_TOUGHNESS_Y[self.get_frame_layout()]
+            if box_y + usable_height >= power_toughness_y:
+                final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
+                final_line_width = 0
+                for kind, value, frag_font in final_line:
+                    if kind == "text":
+                        if value:
+                            final_line_width += draw.textlength(value, font=frag_font)
+                    else:
+                        width, _, _ = get_symbol_metrics(value)
+                        final_line_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
+                if box_x + final_line_width >= power_toughness_x:
+                    continue
+
             curr_y = margin + (usable_height - content_height) // 2
 
             def draw_lines(lines: list[list[tuple[str, str, str]]], text_font: ImageFont.ImageFont):
@@ -1153,7 +1187,7 @@ class Card:
                         if kind == "text":
                             if value:
                                 draw.text((curr_x, curr_y), value, font=frag_font, fill="black")
-                                curr_x += draw.textlength(value, font=text_font)
+                                curr_x += draw.textlength(value, font=frag_font)
                         else:
                             width, _, symbol_image = get_symbol_metrics(value)
                             if symbol_image is not None:
