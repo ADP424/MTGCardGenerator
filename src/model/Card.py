@@ -853,7 +853,7 @@ class Card:
 
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
-        
+
         ascent = title_font.getmetrics()[0]
         draw.text(
             (0, (header_height - ascent) // 2),
@@ -989,7 +989,7 @@ class Card:
             RULES_BOX_MAX_FONT_SIZE[self.get_frame_layout()], RULES_BOX_MIN_FONT_SIZE[self.get_frame_layout()] - 1, -1
         ):
             rules_font = ImageFont.truetype(MPLANTIN, font_size)
-            flavor_font = ImageFont.truetype(MPLANTIN_ITALICS, font_size)
+            italics_font = ImageFont.truetype(MPLANTIN_ITALICS, font_size)
 
             line_height = font_size
             margin = int(font_size * 0.25)
@@ -997,19 +997,22 @@ class Card:
 
             def parse_fragments(line: str) -> list[tuple[str, str]]:
                 """
-                Return [("text", str) | ("symbol", token), ...] for a single line.
+                Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off"), ...]
                 """
-
                 fragments = []
                 parts = PLACEHOLDER_REGEX.split(line)
                 for i, part in enumerate(parts):
-
-                    # Parts alternate like (text, symbol, text, symbol, etc.)
                     if i % 2 == 0:
                         if part:
                             fragments.append(("text", part))
                     else:
-                        fragments.append(("symbol", part.strip()))
+                        token = part.strip()
+                        if token == "I":
+                            fragments.append(("format", "italic_on"))
+                        elif token == "\\I":
+                            fragments.append(("format", "italic_off"))
+                        else:
+                            fragments.append(("symbol", token))
                 return fragments
 
             def get_symbol_metrics(token: str) -> tuple[int, int, Image.Image | None]:
@@ -1029,68 +1032,60 @@ class Card:
                 symbol = symbol.get_formatted_image(width, height)
                 return width, height, symbol
 
-            def wrap_text_fragments(
-                frags: list[tuple[str, str]], text_font: ImageFont.ImageFont
-            ) -> list[list[tuple[str, str]]]:
+            def wrap_text_fragments(frags, regular_font, italic_font):
                 """
-                Split the lines into individual words and symbols, then wrap them so that they fit within
-                `max_line_width` (based on rules box size and margins).
-                For example, `"Add {R}."` becomes `[[("text": "Add"), ("text": " "), ("symbol": "R"), ("text": ".")]]`
+                Split the lines into individual words and symbols, then wrap them so that they fit within 
+                `max_line_width` (based on rules box size and margins). For example, `"Add {R}."` becomes 
+                `[[("text": "Add"), ("text": " "), ("symbol": "R"), ("text": ".")]]`.
                 """
 
-                lines: list[list[tuple[str, str]]] = []
-                curr_fragment: list[tuple[str, str]] = []
+                lines = []
+                curr_fragment = []
                 curr_width = 0
+                curr_font = regular_font
 
                 def go_to_newline():
-                    """
-                    Wrap the text to the next line.
-                    """
-
                     nonlocal curr_fragment, curr_width
                     if curr_fragment:
                         lines.append(curr_fragment)
                     curr_fragment, curr_width = [], 0
 
                 for kind, value in frags:
-
-                    if kind == "symbol":
-                        if value == "lns":
-                            go_to_newline()
-                            continue
+                    if kind == "format":
+                        if value == "italic_on":
+                            curr_font = italic_font
+                        elif value == "italic_off":
+                            curr_font = regular_font
+                        continue
+                    elif kind == "symbol":
                         width, _, _ = get_symbol_metrics(value)
                         if curr_fragment and curr_width + width > max_line_width:
                             go_to_newline()
-                        curr_fragment.append(("symbol", value))
+                        curr_fragment.append(("symbol", value, curr_font))
                         curr_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
-
                     else:
                         for word in re.findall(r"\S+|\s+", value):
-                            word = replace_ticks(word)
-                            width = text_font.getlength(word)
-
+                            width = curr_font.getlength(word)
                             if word.isspace():
-                                if not curr_fragment:  # get rid of leading spaces
+                                if not curr_fragment:
                                     continue
                                 if curr_width + width > max_line_width:
                                     go_to_newline()
                                     continue
-                                curr_fragment.append(("text", word))
+                                curr_fragment.append(("text", word, curr_font))
                                 curr_width += width
                             else:
                                 if curr_fragment and curr_width + width > max_line_width:
                                     go_to_newline()
-
-                                # If a single word is longer than a line by itself, split it up
                                 if width > max_line_width:
                                     for char in word:
-                                        char_width = text_font.getlength(char)
+                                        char_width = curr_font.getlength(char)
                                         if curr_fragment and curr_width + char_width > max_line_width:
                                             go_to_newline()
-                                        curr_fragment.append(("text", char))
+                                        curr_fragment.append(("text", char, curr_font))
                                         curr_width += char_width
                                 else:
-                                    curr_fragment.append(("text", word))
+                                    curr_fragment.append(("text", word, curr_font))
                                     curr_width += width
 
                 if curr_fragment:
@@ -1101,7 +1096,7 @@ class Card:
             rules_lines: list[list[tuple[str, str]]] = []
             for line in raw_rules_text.splitlines():
                 rules_fragments = parse_fragments(line)
-                rules_lines += wrap_text_fragments(rules_fragments, rules_font) if rules_fragments else [[("text", "")]]
+                rules_lines += wrap_text_fragments(rules_fragments, rules_font, italics_font) if rules_fragments else [[("text", "")]]
                 rules_lines.append([("newline", None)])
             rules_lines.pop()  # remove the ending newline
 
@@ -1112,7 +1107,7 @@ class Card:
                 for line in raw_flavor_text.splitlines():
                     flavor_fragments = parse_fragments(line)
                     flavor_lines[-1] += (
-                        wrap_text_fragments(flavor_fragments, flavor_font) if flavor_fragments else [[("text", "")]]
+                        wrap_text_fragments(flavor_fragments, italics_font, italics_font) if flavor_fragments else [[("text", "")]]
                     )
                     flavor_lines[-1].append([("newline", None)])
                 flavor_lines[-1].pop()  # remove the ending newline
@@ -1140,7 +1135,7 @@ class Card:
 
             curr_y = margin + (usable_height - content_height) // 2
 
-            def draw_lines(lines: list[list[tuple[str, str]]], text_font: ImageFont.ImageFont):
+            def draw_lines(lines: list[list[tuple[str, str, str]]], text_font: ImageFont.ImageFont):
                 """
                 Render lines of text as images.
                 """
@@ -1154,10 +1149,10 @@ class Card:
                         continue
 
                     curr_x = margin
-                    for kind, value in line_fragments:
+                    for kind, value, frag_font in line_fragments:
                         if kind == "text":
                             if value:
-                                draw.text((curr_x, curr_y), value, font=text_font, fill="black")
+                                draw.text((curr_x, curr_y), value, font=frag_font, fill="black")
                                 curr_x += draw.textlength(value, font=text_font)
                         else:
                             width, _, symbol_image = get_symbol_metrics(value)
@@ -1185,7 +1180,7 @@ class Card:
                     (0, curr_y),
                 )
                 curr_y += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height // 2
-                draw_lines(lines, flavor_font)
+                draw_lines(lines, italics_font)
 
             self.text_layers.append(Layer(image, (box_x, box_y)))
             return

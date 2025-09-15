@@ -64,7 +64,8 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             for row in cards_sheet_reader:
                 values = dict(zip(columns, [element.strip() for element in row]))
                 card_title = values.get(CARD_TITLE, "")
-                card_spreadsheets[output_path][card_title] = Card(metadata=values)
+                if len(card_title) > 0:
+                    card_spreadsheets[output_path][card_title] = Card(metadata=values)
 
         def str_to_int(string: str, default: int) -> int:
             try:
