@@ -499,6 +499,12 @@ ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/1.png")
 TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/2.png")
 THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/3.png")
 
+# Tapping
+TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap.png")
+UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/untap.png")
+OLD_TAP = open_image(f"{MANA_SYMBOLS_PATH}/old_tap.png")
+ORIGINAL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/original_tap.png")
+
 # Standard Hybrid Mana
 WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/white_blue.png")
 WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/white_black.png")
@@ -534,6 +540,11 @@ SYMBOL_PLACEHOLDER_KEY = {
     "1": Symbol(ONE_MANA),
     "2": Symbol(TWO_MANA),
     "3": Symbol(THREE_MANA),
+    # Tapping
+    "t": Symbol(TAP),
+    "untap": Symbol(UNTAP),
+    "old_tap": Symbol(OLD_TAP),
+    "original_tap": Symbol(ORIGINAL_TAP),
     # Standard Hybrid Mana
     "w/u": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "u/w": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),

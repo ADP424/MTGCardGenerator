@@ -1041,6 +1041,9 @@ class Card:
                 for kind, value in frags:
 
                     if kind == "symbol":
+                        if value == "lns":
+                            go_to_newline()
+                            continue
                         width, _, _ = get_symbol_metrics(value)
                         if curr_fragment and curr_width + width > max_line_width:
                             go_to_newline()
