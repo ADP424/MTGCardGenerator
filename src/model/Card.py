@@ -36,7 +36,9 @@ from constants import (
     SET_SYMBOL_Y,
     SET_SYMBOLS_PATH,
     TITLE_FONT_COLOR,
+    TITLE_MIN_FONT_SIZE,
     TYPE_FONT_COLOR,
+    TYPE_MIN_FONT_SIZE,
     WATERMARK_COLORS,
     CARD_WATERMARK_COLOR,
     CARD_WIDTH,
@@ -72,12 +74,12 @@ from constants import (
     MPLANTIN,
     PLACEHOLDER_REGEX,
     BELEREN_BOLD,
-    TITLE_FONT_SIZE,
-    TITLE_MAX_WIDTH,
+    TITLE_MAX_FONT_SIZE,
+    TITLE_WIDTH,
     TITLE_X,
     TITLE_Y,
     TYPE_BOX_HEIGHT,
-    TYPE_FONT_SIZE,
+    TYPE_MAX_FONT_SIZE,
     TYPE_MAX_WIDTH,
     TYPE_X,
     TYPE_Y,
@@ -781,7 +783,7 @@ class Card:
 
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
 
-        curr_x = header_width + MANA_COST_SYMBOL_SPACING[self.get_frame_layout()]
+        curr_x = header_width - MANA_COST_SYMBOL_SPACING[self.get_frame_layout()]
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
@@ -840,19 +842,25 @@ class Card:
 
         header_x = TITLE_X[self.get_frame_layout()] if header_x is None else header_x
         header_y = TITLE_Y[self.get_frame_layout()] if header_y is None else header_y
-        header_width = TITLE_MAX_WIDTH[self.get_frame_layout()] if header_width is None else header_width
+        header_width = TITLE_WIDTH[self.get_frame_layout()] if header_width is None else header_width
         header_height = TITLE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
 
-        title_font = ImageFont.truetype(BELEREN_BOLD, TITLE_FONT_SIZE[self.get_frame_layout()])
+        font_size = TITLE_MAX_FONT_SIZE[self.get_frame_layout()]
+        title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+        while header_x + title_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()] and font_size >= TITLE_MIN_FONT_SIZE[self.get_frame_layout()]:
+            font_size -= 1
+            title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
-        bounding_box = title_font.getbbox(text)
-        text_height = int(bounding_box[3] - bounding_box[1])
+        
+        ascent = title_font.getmetrics()[0]
         draw.text(
-            (0, (header_height - text_height) // 4),
+            (0, (header_height - ascent) // 2),
             text,
             font=title_font,
             fill=TITLE_FONT_COLOR[self.get_frame_layout()],
+            anchor="lt"
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
@@ -890,9 +898,9 @@ class Card:
             first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
             second_part = self.get_metadata(CARD_SUBTYPES)
             if len(second_part) > 0:
-                text = " — ".join((first_part, second_part))
+                text = " — ".join((first_part, second_part)).strip()
             else:
-                text = first_part
+                text = first_part.strip()
         if len(text) == 0:
             return
 
@@ -901,16 +909,22 @@ class Card:
         header_width = TYPE_MAX_WIDTH[self.get_frame_layout()] if header_width is None else header_width
         header_height = TYPE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
 
-        type_font = ImageFont.truetype(BELEREN_BOLD, TYPE_FONT_SIZE[self.get_frame_layout()])
+        font_size = TYPE_MAX_FONT_SIZE[self.get_frame_layout()]
+        type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+        while header_x + type_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()] and font_size >= TYPE_MIN_FONT_SIZE[self.get_frame_layout()]:
+            font_size -= 1
+            type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
-        bounding_box = type_font.getbbox(text)
-        text_height = int(bounding_box[3] - bounding_box[1])
+
+        ascent = type_font.getmetrics()[0]
         draw.text(
-            (0, (header_height - text_height) // 4),
+            (0, (header_height - ascent) // 2),
             text,
             font=type_font,
             fill=TYPE_FONT_COLOR[self.get_frame_layout()],
+            anchor="lt"
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))

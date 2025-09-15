@@ -93,13 +93,13 @@ ART_Y = defaultdict(
 
 # Title Header Box
 TITLE_BOX_WIDTH = defaultdict(
-    lambda: 1280,
+    lambda: 1313,
     {
-        REGULAR: 1280,
+        REGULAR: 1313,
         BATTLE: 2326,
-        TRANSFORM_FRONTSIDE: 1170,
-        TRANSFORM_BACKSIDE_PIP: 1170,
-        TRANSFORM_BACKSIDE_NO_PIP: 1170,
+        TRANSFORM_FRONTSIDE: 1183,
+        TRANSFORM_BACKSIDE_PIP: 1183,
+        TRANSFORM_BACKSIDE_NO_PIP: 1183,
     },
 )
 TITLE_BOX_HEIGHT = defaultdict(lambda: 114, {REGULAR: 114, BATTLE: 153})
@@ -129,7 +129,7 @@ TITLE_Y = defaultdict(
         BATTLE: 101,
     },
 )
-TITLE_MAX_WIDTH = defaultdict(
+TITLE_WIDTH = defaultdict(
     lambda: 1244,
     {
         REGULAR: 1244,
@@ -139,11 +139,18 @@ TITLE_MAX_WIDTH = defaultdict(
         TRANSFORM_BACKSIDE_NO_PIP: 1158,
     },
 )
-TITLE_FONT_SIZE = defaultdict(
+TITLE_MAX_FONT_SIZE = defaultdict(
     lambda: 79,
     {
         REGULAR: 79,
         BATTLE: 106,
+    },
+)
+TITLE_MIN_FONT_SIZE = defaultdict(
+    lambda: 6,
+    {
+        REGULAR: 6,
+        BATTLE: 8,
     },
 )
 TITLE_FONT_COLOR = defaultdict(
@@ -178,11 +185,18 @@ TYPE_BOX_HEIGHT = defaultdict(
         BATTLE: 153,
     },
 )
-TYPE_FONT_SIZE = defaultdict(
+TYPE_MAX_FONT_SIZE = defaultdict(
     lambda: 67,
     {
         REGULAR: 67,
         BATTLE: 90,
+    },
+)
+TYPE_MIN_FONT_SIZE = defaultdict(
+    lambda: 6,
+    {
+        REGULAR: 6,
+        BATTLE: 8,
     },
 )
 TYPE_FONT_COLOR = defaultdict(
