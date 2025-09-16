@@ -1,9 +1,6 @@
 # Credits
 
-Many Standard Frames from MTGCardBuilder
-- https://mtgcardbuilder.com/
-
-Mana Symbols & Many Specialty Frames from CardConjurer
+Frames & Mana Symbols from CardConjurer
 - https://github.com/Investigamer/cardconjurer
 
 Standard Magic: the Gathering fonts from M15-Magic-Pack

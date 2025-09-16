@@ -5,13 +5,16 @@ __pycache__
 # inputs & outputs
 processed_cards/*
 !processed_cards/.gitkeep
-images/art/*
-!images/art/.gitkeep
+extracted_art/*
+extracted_art/.gitkeep
 
 spreadsheets/*
 !spreadsheets/.gitkeep
 existing_cards/*
 !existing_cards/.gitkeep
+
+images/art/*
+!images/art/.gitkeep
 
 # log/debug
 log.txt

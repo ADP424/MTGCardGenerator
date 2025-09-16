@@ -2,7 +2,7 @@ import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
-    ART_PATH,
+    INPUT_ART_PATH,
     ARTIST_GAP_LENGTH,
     BELEREN_BOLD_SMALL_CAPS,
     CARD_CREATION_DATE,
@@ -300,7 +300,7 @@ class Card:
         Create the art layer of the card from the art folder.
         """
 
-        art_path = f"{ART_PATH}/{cardname_to_filename(self.get_metadata(CARD_TITLE))}.png"
+        art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(self.get_metadata(CARD_TITLE))}.png"
         self.art_layer = Layer(open_image(art_path))
 
     def _create_frame_layers(self):
@@ -836,7 +836,7 @@ class Card:
         """
 
         if text is None:
-            text = self.get_metadata(CARD_TITLE)
+            text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
 
@@ -898,6 +898,7 @@ class Card:
         """
 
         if text is None:
+            text = replace_ticks(text)
             first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
             second_part = self.get_metadata(CARD_SUBTYPES)
             if len(second_part) > 0:

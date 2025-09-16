@@ -16,15 +16,18 @@ from constants import (
     CARD_CATEGORY,
     CARD_CREATION_DATE,
     CARD_FRONTSIDE,
+    CARD_HEIGHT,
     CARD_INDEX,
     CARD_LANGUAGE,
     CARD_ORDERER,
     CARD_RARITY,
     CARD_SET,
     CARD_TITLE,
+    CARD_WIDTH,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
-    ART_PATH,
+    INPUT_ART_PATH,
+    OUTPUT_ART_PATH,
     OUTPUT_CARDS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
@@ -159,56 +162,75 @@ def render_cards(card_spreadsheets: dict[str, dict[str, Card]]):
         log()
 
 
-def capture_art(card_spreadsheets: dict[str, dict[str, Card]]):
-    for output_path, spreadsheet in card_spreadsheets.items():
-        log(f"Processing spreadsheet at '{output_path}'...")
-        increase_log_indent()
+def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = True):
 
-        for card in spreadsheet.values():
-            card_title = card.get_metadata(CARD_TITLE)
-            card_filename = cardname_to_filename(card_title)
-            card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
-
-            log(f"Extracting art from '{card_path}'...")
+    if smart:
+        for output_path, spreadsheet in card_spreadsheets.items():
+            log(f"Processing spreadsheet at '{output_path}'...")
             increase_log_indent()
 
-            card_image = open_image(card_path)
-            art_bounding_box = (
-                ART_X[card.get_frame_layout()],
-                ART_Y[card.get_frame_layout()],
-                ART_X[card.get_frame_layout()] + ART_WIDTH[card.get_frame_layout()],
-                ART_Y[card.get_frame_layout()] + ART_HEIGHT[card.get_frame_layout()],
-            )
-            art = card_image.crop(art_bounding_box)
-            base_image = Image.new("RGBA", (card.base_width, card.base_height), (0, 0, 0, 0))
-            base_image.paste(art, art_bounding_box)
-            base_image.save(f"{ART_PATH}/{card_filename}.png")
+            for card in spreadsheet.values():
+                card_title = card.get_metadata(CARD_TITLE)
+                card_filename = cardname_to_filename(card_title)
+                card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
 
-            for backside in card.get_metadata(CARD_BACKSIDES, []):
-                backside_title = backside.get_metadata(CARD_TITLE)
-                backside_filename = cardname_to_filename(backside_title)
-                backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
-
-                log(f"Extracting art from '{backside_path}'...")
+                log(f"Extracting art from '{card_path}'...")
                 increase_log_indent()
 
-                backside_image = open_image(backside_path)
+                card_image = open_image(card_path)
                 art_bounding_box = (
-                    ART_X[backside.get_frame_layout()],
-                    ART_Y[backside.get_frame_layout()],
-                    ART_X[backside.get_frame_layout()] + ART_WIDTH[backside.get_frame_layout()],
-                    ART_Y[backside.get_frame_layout()] + ART_HEIGHT[backside.get_frame_layout()],
+                    ART_X[card.get_frame_layout()],
+                    ART_Y[card.get_frame_layout()],
+                    ART_X[card.get_frame_layout()] + ART_WIDTH[card.get_frame_layout()],
+                    ART_Y[card.get_frame_layout()] + ART_HEIGHT[card.get_frame_layout()],
                 )
-                art = backside_image.crop(art_bounding_box)
-                base_image = Image.new("RGBA", (backside.base_width, backside.base_height), (0, 0, 0, 0))
+                art = card_image.crop(art_bounding_box)
+                base_image = Image.new("RGBA", (card.base_width, card.base_height), (0, 0, 0, 0))
                 base_image.paste(art, art_bounding_box)
-                base_image.save(f"{ART_PATH}/{backside_filename}.png")
+                base_image.save(f"{OUTPUT_ART_PATH}/{card_filename}.png")
+
+                for backside in card.get_metadata(CARD_BACKSIDES, []):
+                    backside_title = backside.get_metadata(CARD_TITLE)
+                    backside_filename = cardname_to_filename(backside_title)
+                    backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
+
+                    log(f"Extracting art from '{backside_path}'...")
+                    increase_log_indent()
+
+                    backside_image = open_image(backside_path)
+                    art_bounding_box = (
+                        ART_X[backside.get_frame_layout()],
+                        ART_Y[backside.get_frame_layout()],
+                        ART_X[backside.get_frame_layout()] + ART_WIDTH[backside.get_frame_layout()],
+                        ART_Y[backside.get_frame_layout()] + ART_HEIGHT[backside.get_frame_layout()],
+                    )
+                    art = backside_image.crop(art_bounding_box)
+                    base_image = Image.new("RGBA", (backside.base_width, backside.base_height), (0, 0, 0, 0))
+                    base_image.paste(art, art_bounding_box)
+                    base_image.save(f"{OUTPUT_ART_PATH}/{backside_filename}.png")
+
+                    decrease_log_indent()
 
                 decrease_log_indent()
 
             decrease_log_indent()
 
-        decrease_log_indent()
+    else:
+        for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
+            log(f"Extracting art from '{card_path}'...")
+
+            card_image = open_image(card_path)
+            art_bounding_box = (
+                ART_X[""],
+                ART_Y[""],
+                ART_X[""] + ART_WIDTH[""],
+                ART_Y[""] + ART_HEIGHT[""],
+            )
+            art = card_image.crop(art_bounding_box)
+            base_image = Image.new("RGBA", (CARD_WIDTH[""], CARD_HEIGHT[""]), (0, 0, 0, 0))
+            base_image.paste(art, art_bounding_box)
+            card_name = card_path[card_path.rfind("\\") + 1:]
+            base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 
 def main(action: str):
@@ -232,6 +254,10 @@ def main(action: str):
         log("Capturing art from existing cards...")
         card_spreadsheets = process_spreadsheets()
         capture_art(card_spreadsheets)
+    elif action == ACTIONS[3]:
+        log("Capturing art from existing cards...")
+        card_spreadsheets = process_spreadsheets()
+        capture_art(card_spreadsheets, smart=False)
 
 
 if __name__ == "__main__":

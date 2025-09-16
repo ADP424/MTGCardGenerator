@@ -8,7 +8,7 @@ from utils import open_image
 # Command Line Arguments #
 ##########################
 
-ACTIONS = ["render", "tile", "art"]
+ACTIONS = ["render", "tile", "art", "dumbart"]
 
 
 ##########################
@@ -479,7 +479,9 @@ INPUT_SPREADSHEETS_PATH = "spreadsheets"
 OUTPUT_CARDS_PATH = "processed_cards"
 
 INPUT_CARDS_PATH = "existing_cards"
-ART_PATH = "images/art"
+OUTPUT_ART_PATH = "extracted_art"
+
+INPUT_ART_PATH = "images/art"
 
 # Image Locations
 FRAMES_PATH = "images/frames"
