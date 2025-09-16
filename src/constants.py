@@ -493,7 +493,8 @@ MPLANTIN_ITALICS = "fonts/mplantinit.ttf"
 BELEREN_BOLD = "fonts/beleren-bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
 MATRIX_BOLD = "fonts/MatrixBold.ttf"
-HELVETICA = "fonts/GothamBold.ttf"
+GOTHAM_BOLD = "fonts/GothamBold.ttf"
+HELVETICA = "fonts/Helvetica.ttf"
 
 
 ##########

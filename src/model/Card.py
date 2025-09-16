@@ -26,6 +26,7 @@ from constants import (
     FOOTER_WIDTH,
     FOOTER_X,
     FOOTER_Y,
+    GOTHAM_BOLD,
     HELVETICA,
     POWER_TOUGHNESS_FONT_COLOR,
     RARITY_TO_INITIAL,
@@ -599,7 +600,7 @@ class Card:
         index = self.get_metadata(CARD_INDEX).zfill(len(largest_index))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
 
-        footer_font = ImageFont.truetype(HELVETICA, FOOTER_FONT_SIZE[self.get_frame_layout()])
+        footer_font = ImageFont.truetype(GOTHAM_BOLD, FOOTER_FONT_SIZE[self.get_frame_layout()])
         artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, FOOTER_FONT_SIZE[self.get_frame_layout()])
         legal_font = ImageFont.truetype(MPLANTIN, FOOTER_FONT_SIZE[self.get_frame_layout()])
 
@@ -1255,7 +1256,7 @@ class Card:
         """
 
         if text is None:
-            text = self.get_metadata(CARD_POWER_TOUGHNESS)
+            text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
         if len(text) == 0:
             return
 
@@ -1275,19 +1276,21 @@ class Card:
         )
 
         power_toughness_font = ImageFont.truetype(
-            BELEREN_BOLD_SMALL_CAPS, POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
+            "fonts/BelerenSmallCaps-Bold.ttf", POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
         )
         image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_width = power_toughness_font.getlength(text)
+        text_width = int(power_toughness_font.getlength(text))
         bounding_box = power_toughness_font.getbbox(text)
         text_height = int(bounding_box[3] - bounding_box[1])
+
         draw.text(
-            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4),
+            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
             text,
             font=power_toughness_font,
             fill=POWER_TOUGHNESS_FONT_COLOR[self.get_frame_layout()],
+            anchor="lt"
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
