@@ -489,12 +489,10 @@ SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
 
 # Fonts
 MPLANTIN = "fonts/mplantin.ttf"
-MPLANTIN_ITALICS = "fonts/mplantinit.ttf"
+MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
 BELEREN_BOLD = "fonts/beleren-bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
-MATRIX_BOLD = "fonts/MatrixBold.ttf"
-GOTHAM_BOLD = "fonts/GothamBold.ttf"
-HELVETICA = "fonts/Helvetica.ttf"
+GOTHAM_BOLD = "fonts/gotham-bold.ttf"
 
 
 ##########

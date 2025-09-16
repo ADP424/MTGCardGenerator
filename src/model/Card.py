@@ -27,7 +27,6 @@ from constants import (
     FOOTER_X,
     FOOTER_Y,
     GOTHAM_BOLD,
-    HELVETICA,
     POWER_TOUGHNESS_FONT_COLOR,
     RARITY_TO_INITIAL,
     REVERSE_POWER_TOUGHNESS_FONT_COLOR,
@@ -1276,7 +1275,7 @@ class Card:
         )
 
         power_toughness_font = ImageFont.truetype(
-            "fonts/BelerenSmallCaps-Bold.ttf", POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
+            BELEREN_BOLD_SMALL_CAPS, POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
         )
         image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
