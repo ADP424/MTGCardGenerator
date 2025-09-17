@@ -90,6 +90,7 @@ TALL_TOKEN = "tall token"
 SHORT_TOKEN = "short token"
 
 BATTLE = "battle"
+TRANSFORM_BATTLE = "transform battle"
 
 # Card Dimensions
 CARD_WIDTH = defaultdict(lambda: 1500, {REGULAR: 1500, BATTLE: 2814})
@@ -573,6 +574,9 @@ RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/red_white.png")
 GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_white.png")
 GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
 
+# Other Mana
+SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
+
 # Other
 FLAVOR_DIVIDING_LINE = open_image("images/flavor_divider.png")
 ARTIST_BRUSH = open_image("images/collector_info/artist_brush.png")
@@ -622,6 +626,8 @@ SYMBOL_PLACEHOLDER_KEY = {
     "w/g": Symbol(GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "g/u": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # other mana
+    "s": Symbol(SNOW_MANA),
     # Other
     "flavor": Symbol(FLAVOR_DIVIDING_LINE),
     "artist_brush": Symbol(ARTIST_BRUSH, 1.25),

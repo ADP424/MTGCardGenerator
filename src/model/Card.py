@@ -305,6 +305,7 @@ class Card:
         art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(self.get_metadata(CARD_TITLE))}.png"
         self.art_layer = Layer(open_image(art_path))
 
+    
     def _create_frame_layers(self):
         """
         Append every frame layer to the card based on `self.metadata`.
@@ -334,18 +335,15 @@ class Card:
                 combined_mask = Image.new("L", frame.size, 255)
                 for mask in pending_masks:
                     base = mask.getchannel("A").resize(frame.size)
-                    if base.getbbox() is None:
-                        log(f"Warning: mask '{frame_path}' appears empty. Skipping one mask...")
-                        continue
-
-                    # combine masks multiplicatively so multiple masks narrow the kept area
                     combined_mask = ImageChops.multiply(combined_mask, base)
 
-                new_frame = frame.copy()
-                new_frame.putalpha(combined_mask)
-                frame = new_frame
+                # This is the important part: preserving the r, g, b and alpha separation to prevent banding
+                r, g, b, original_alpha = frame.split()
+                new_alpha = ImageChops.multiply(original_alpha, combined_mask)
+                new_frame = Image.merge("RGBA", (r, g, b, new_alpha))
 
                 pending_masks.clear()
+                frame = new_frame
 
             self.frame_layers.append(Layer(frame))
 
