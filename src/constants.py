@@ -4,9 +4,9 @@ import re
 from model.Symbol import Symbol
 from utils import open_image
 
-##########################
-# Command Line Arguments #
-##########################
+################
+# Command Line #
+################
 
 ACTIONS = ["render", "tile", "art", "dumbart"]
 
@@ -46,15 +46,49 @@ CARD_INDEX = "Index"
 CARD_BACKSIDES = "Transform Backsides"
 
 
+##################
+# FILE LOCATIONS #
+##################
+
+# Input & Output locations
+INPUT_SPREADSHEETS_PATH = "spreadsheets"
+OUTPUT_CARDS_PATH = "processed_cards"
+
+INPUT_CARDS_PATH = "existing_cards"
+OUTPUT_ART_PATH = "extracted_art"
+
+INPUT_ART_PATH = "images/art"
+
+# Image Locations
+FRAMES_PATH = "images/frames"
+MANA_SYMBOLS_PATH = "images/mana_symbols"
+WATERMARKS_PATH = "images/collector_info/watermarks"
+SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
+
+# Fonts
+MPLANTIN = "fonts/mplantin.ttf"
+MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
+BELEREN_BOLD = "fonts/beleren-bold.ttf"
+BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
+GOTHAM_BOLD = "fonts/gotham-bold.ttf"
+
+
 ###########################
 # FORMATTING & DIMENSIONS #
 ###########################
 
 # Card Types with Different Formats
 REGULAR = "regular"
+
 TRANSFORM_FRONTSIDE = "transform frontside"
 TRANSFORM_BACKSIDE_PIP = "transform backside pip"
 TRANSFORM_BACKSIDE_NO_PIP = "transform backside no pip"
+
+REGULAR_TOKEN = "regular token"
+TEXTLESS_TOKEN = "textless token"
+TALL_TOKEN = "tall token"
+SHORT_TOKEN = "short token"
+
 BATTLE = "battle"
 
 # Card Dimensions
@@ -66,28 +100,24 @@ ART_WIDTH = defaultdict(
     lambda: 1270,
     {
         REGULAR: 1270,
-        BATTLE: 2511,
     },
 )
 ART_HEIGHT = defaultdict(
     lambda: 929,
     {
         REGULAR: 929,
-        BATTLE: 1840,
     },
 )
 ART_X = defaultdict(
     lambda: 115,
     {
         REGULAR: 116,
-        BATTLE: 224,
     },
 )
 ART_Y = defaultdict(
     lambda: 237,
     {
         REGULAR: 238,
-        BATTLE: 81,
     },
 )
 
@@ -123,10 +153,10 @@ TITLE_X = defaultdict(
     {REGULAR: 128, BATTLE: 172, TRANSFORM_FRONTSIDE: 240},
 )
 TITLE_Y = defaultdict(
-    lambda: 105,
+    lambda: 113,
     {
-        REGULAR: 105,
-        BATTLE: 101,
+        REGULAR: 113,
+        BATTLE: 112,
     },
 )
 TITLE_WIDTH = defaultdict(
@@ -153,14 +183,39 @@ TITLE_MIN_FONT_SIZE = defaultdict(
         BATTLE: 8,
     },
 )
+TITLE_FONT = defaultdict(
+    lambda: BELEREN_BOLD,
+    {
+        REGULAR: BELEREN_BOLD,
+        REGULAR_TOKEN: BELEREN_BOLD_SMALL_CAPS,
+        TALL_TOKEN: BELEREN_BOLD_SMALL_CAPS,
+        SHORT_TOKEN: BELEREN_BOLD_SMALL_CAPS,
+        TEXTLESS_TOKEN: BELEREN_BOLD_SMALL_CAPS,
+    },
+)
 TITLE_FONT_COLOR = defaultdict(
     lambda: (0, 0, 0),
     {
         REGULAR: (0, 0, 0),
         TRANSFORM_BACKSIDE_PIP: (255, 255, 255),
         TRANSFORM_BACKSIDE_NO_PIP: (255, 255, 255),
+        REGULAR_TOKEN: (255, 255, 255),
+        TALL_TOKEN: (255, 255, 255),
+        SHORT_TOKEN: (255, 255, 255),
+        TEXTLESS_TOKEN: (255, 255, 255),
     },
 )
+TITLE_TEXT_ALIGN = defaultdict(
+    lambda: "left",
+    {
+        REGULAR: "left",
+        REGULAR_TOKEN: "center",
+        TALL_TOKEN: "center",
+        SHORT_TOKEN: "center",
+        TEXTLESS_TOKEN: "center",
+    },
+)
+
 
 # Type Text
 TYPE_X = defaultdict(
@@ -172,6 +227,9 @@ TYPE_Y = defaultdict(
     {
         REGULAR: 1190,
         BATTLE: 1166,
+        REGULAR_TOKEN: 1366,
+        SHORT_TOKEN: 1424,
+        TEXTLESS_TOKEN: 1718,
     },
 )
 TYPE_MAX_WIDTH = defaultdict(
@@ -221,6 +279,8 @@ RULES_BOX_HEIGHT = defaultdict(
     {
         REGULAR: 623,
         BATTLE: 579,
+        REGULAR_TOKEN: 437,
+        SHORT_TOKEN: 377,
     },
 )
 RULES_BOX_X = defaultdict(
@@ -235,6 +295,8 @@ RULES_BOX_Y = defaultdict(
     {
         REGULAR: 1315,
         BATTLE: 1339,
+        REGULAR_TOKEN: 1496,
+        SHORT_TOKEN: 1555,
     },
 )
 RULES_BOX_MAX_FONT_SIZE = defaultdict(
@@ -362,6 +424,9 @@ WATERMARK_WIDTH = defaultdict(
     {
         REGULAR: 325,
         BATTLE: 435,
+        REGULAR_TOKEN: 1366,
+        SHORT_TOKEN: 1424,
+        TEXTLESS_TOKEN: 1718,
     },
 )
 WATERMARK_OPACITY = defaultdict(
@@ -395,6 +460,9 @@ SET_SYMBOL_Y = defaultdict(
     {
         REGULAR: 1198,
         BATTLE: 1176,
+        REGULAR_TOKEN: 1373,
+        SHORT_TOKEN: 1432,
+        TEXTLESS_TOKEN: 1731,
     },
 )
 SET_SYMBOL_WIDTH = defaultdict(
@@ -468,33 +536,6 @@ ARTIST_GAP_LENGTH = defaultdict(
         BATTLE: 7,
     },
 )
-
-
-##################
-# FILE LOCATIONS #
-##################
-
-# Input & Output locations
-INPUT_SPREADSHEETS_PATH = "spreadsheets"
-OUTPUT_CARDS_PATH = "processed_cards"
-
-INPUT_CARDS_PATH = "existing_cards"
-OUTPUT_ART_PATH = "extracted_art"
-
-INPUT_ART_PATH = "images/art"
-
-# Image Locations
-FRAMES_PATH = "images/frames"
-MANA_SYMBOLS_PATH = "images/mana_symbols"
-WATERMARKS_PATH = "images/collector_info/watermarks"
-SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
-
-# Fonts
-MPLANTIN = "fonts/mplantin.ttf"
-MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
-BELEREN_BOLD = "fonts/beleren-bold.ttf"
-BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
-GOTHAM_BOLD = "fonts/gotham-bold.ttf"
 
 
 ##########
@@ -592,7 +633,7 @@ SYMBOL_PLACEHOLDER_KEY = {
 #####################
 
 # Rarity to Collector Initial Conversion
-RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O"}
+RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
 
 # Color to Poker Border Conversion
 POKER_BORDERS = {

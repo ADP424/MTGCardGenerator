@@ -35,8 +35,10 @@ from constants import (
     SET_SYMBOL_X,
     SET_SYMBOL_Y,
     SET_SYMBOLS_PATH,
+    TITLE_FONT,
     TITLE_FONT_COLOR,
     TITLE_MIN_FONT_SIZE,
+    TITLE_TEXT_ALIGN,
     TYPE_FONT_COLOR,
     TYPE_MIN_FONT_SIZE,
     WATERMARK_COLORS,
@@ -350,7 +352,7 @@ class Card:
         if pending_masks:
             log(
                 f"Warning: {len(pending_masks)} mask layer(s) at end of frame list with no following frame."
-                "They were ignored."
+                " They were ignored."
             )
 
     def _create_watermark_layer(
@@ -402,7 +404,10 @@ class Card:
         """
 
         if watermark is None:
-            watermark_path = f"{WATERMARKS_PATH}/{self.get_metadata(CARD_WATERMARK)}.png"
+            watermark_name = self.get_metadata(CARD_WATERMARK)
+            if len(watermark_name) == 0:
+                return
+            watermark_path = f"{WATERMARKS_PATH}/{watermark_name}.png"
             watermark = open_image(watermark_path)
             if watermark is None:
                 log(f"Could not find watermark at '{watermark_path}'.")
@@ -416,9 +421,6 @@ class Card:
                     color = WATERMARK_COLORS.get(color.lower().strip())
                     if color is not None:
                         watermark_color.append(color)
-            else:
-                # TODO: Figure out watermark color from color identity context
-                pass
 
         if not watermark_color:
             watermark_color = (0, 0, 0)
@@ -504,6 +506,8 @@ class Card:
 
         if rarity is None:
             rarity = self.get_metadata(CARD_RARITY).lower()
+            if rarity == "token":
+                rarity = "common"
         if len(rarity) == 0:
             return
 
@@ -846,9 +850,10 @@ class Card:
         header_height = TITLE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
 
         font_size = TITLE_MAX_FONT_SIZE[self.get_frame_layout()]
-        title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+        title_font = ImageFont.truetype(TITLE_FONT[self.get_frame_layout()], font_size)
+        title_length = title_font.getlength(text)
         while (
-            header_x + title_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()]
+            header_x + title_length > SET_SYMBOL_X[self.get_frame_layout()]
             and font_size >= TITLE_MIN_FONT_SIZE[self.get_frame_layout()]
         ):
             font_size -= 1
@@ -857,13 +862,20 @@ class Card:
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
+        text_align = TITLE_TEXT_ALIGN[self.get_frame_layout()]
+        if text_align == "left":
+            x_pos = 0
+        elif text_align == "center":
+            x_pos = (header_width - title_length) // 2
+
         ascent = title_font.getmetrics()[0]
         draw.text(
-            (0, (header_height - ascent) // 2),
+            (x_pos, (header_height - ascent) // 2),
             text,
             font=title_font,
             fill=TITLE_FONT_COLOR[self.get_frame_layout()],
             anchor="lt",
+            align=TITLE_TEXT_ALIGN[self.get_frame_layout()],
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
@@ -898,13 +910,13 @@ class Card:
         """
 
         if text is None:
-            text = replace_ticks(text)
             first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
             second_part = self.get_metadata(CARD_SUBTYPES)
             if len(second_part) > 0:
                 text = " — ".join((first_part, second_part)).strip()
             else:
                 text = first_part.strip()
+            text = replace_ticks(text)
         if len(text) == 0:
             return
 
@@ -980,6 +992,11 @@ class Card:
             text = self.get_metadata(CARD_RULES_TEXT)
         if len(text) == 0:
             return
+        
+        centered = False
+        if "{center}" in text:
+            centered = True
+            text = text.replace("{center}", "")
 
         box_x = RULES_BOX_X[self.get_frame_layout()] if box_x is None else box_x
         box_y = RULES_BOX_Y[self.get_frame_layout()] if box_y is None else box_y
@@ -1183,7 +1200,19 @@ class Card:
                         )  # add an extra gap for user-specified newlines
                         continue
 
-                    curr_x = margin
+                    if centered:
+                        total_line_length = 0
+                        for kind, value, frag_font in line_fragments:
+                            if kind == "text":
+                                if value:
+                                    total_line_length += draw.textlength(value, font=frag_font)
+                            else:
+                                width, _, _ = get_symbol_metrics(value)
+                                total_line_length += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
+                        curr_x = (box_width - total_line_length) // 2
+                    else:
+                        curr_x = margin
+
                     for kind, value, frag_font in line_fragments:
                         if kind == "text":
                             if value:
