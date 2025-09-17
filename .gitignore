@@ -1,6 +1,7 @@
 # cache / settings files
 __pycache__
 .vscode
+temp/
 
 # inputs & outputs
 processed_cards/*
