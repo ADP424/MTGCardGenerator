@@ -229,7 +229,7 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
             art = card_image.crop(art_bounding_box)
             base_image = Image.new("RGBA", (CARD_WIDTH[""], CARD_HEIGHT[""]), (0, 0, 0, 0))
             base_image.paste(art, art_bounding_box)
-            card_name = card_path[card_path.rfind("\\") + 1:]
+            card_name = card_path[card_path.rfind("\\") + 1 :]
             base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 

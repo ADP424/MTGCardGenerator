@@ -2,8 +2,9 @@ import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
+    FOOTER_ROTATION,
     INPUT_ART_PATH,
-    ARTIST_GAP_LENGTH,
+    FOOTER_ARTIST_GAP_LENGTH,
     BELEREN_BOLD_SMALL_CAPS,
     CARD_CREATION_DATE,
     CARD_FRAMES,
@@ -86,7 +87,7 @@ from constants import (
     TYPE_X,
     TYPE_Y,
     WATERMARK_OPACITY,
-    WATERMARK_WIDTH,
+    WATERMARK_HEIGHT,
     CARD_REVERSE_POWER_TOUGHNESS,
     REVERSE_POWER_TOUGHNESS_WIDTH,
     REVERSE_POWER_TOUGHNESS_HEIGHT,
@@ -139,7 +140,7 @@ class Card:
         self.metadata = metadata if metadata is not None else {}
         self.base_width = base_width if base_width is not None else CARD_WIDTH[self.get_frame_layout()]
         self.base_height = base_height if base_height is not None else CARD_HEIGHT[self.get_frame_layout()]
-        self.art_layer = art_layer
+        self.art_layer = art_layer if art_layer is not None else Layer(None)
         self.frame_layers = frame_layers if frame_layers is not None else []
         self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
@@ -305,7 +306,6 @@ class Card:
         art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(self.get_metadata(CARD_TITLE))}.png"
         self.art_layer = Layer(open_image(art_path))
 
-    
     def _create_frame_layers(self):
         """
         Append every frame layer to the card based on `self.metadata`.
@@ -361,7 +361,7 @@ class Card:
         rules_box_y: int = None,
         rules_box_width: int = None,
         rules_box_height: int = None,
-        watermark_width: int = None,
+        watermark_height: int = None,
         watermark_opacity: float = None,
     ):
         """
@@ -392,7 +392,7 @@ class Card:
             The height of the rules text box bounding the watermark. Determined by the frame layout in the
             metadata if not given.
 
-        watermark_width: int, optional
+        watermark_height: int, optional
             The width of the watermark. Also determines the height, based on the relative scale of the image.
             Determined by the frame layout in the metadata if not given.
 
@@ -427,12 +427,12 @@ class Card:
         rules_box_y = RULES_BOX_Y[self.get_frame_layout()] if rules_box_y is None else rules_box_y
         rules_box_width = RULES_BOX_WIDTH[self.get_frame_layout()] if rules_box_width is None else rules_box_width
         rules_box_height = RULES_BOX_HEIGHT[self.get_frame_layout()] if rules_box_height is None else rules_box_height
-        watermark_width = WATERMARK_WIDTH[self.get_frame_layout()] if watermark_width is None else watermark_width
+        watermark_height = WATERMARK_HEIGHT[self.get_frame_layout()] if watermark_height is None else watermark_height
         watermark_opacity = (
             WATERMARK_OPACITY[self.get_frame_layout()] if watermark_opacity is None else watermark_opacity
         )
 
-        resized = watermark.resize((watermark_width, int((watermark_width / watermark.width) * watermark.height)))
+        resized = watermark.resize((int((watermark_height / watermark.height) * watermark.width), watermark_height))
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
             alpha = image.getchannel("A")
@@ -537,6 +537,7 @@ class Card:
         footer_y: int = None,
         footer_width: int = None,
         footer_height: int = None,
+        footer_rotation: int = None
     ):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
@@ -576,6 +577,10 @@ class Card:
 
         footer_height: int, optional
             The height of the footer. Determined by the frame layout in the metadata if not given.
+
+        footer_rotation: {0, 90, 180, 270}, optional
+            How much to rotate the footer by clockwise before pasting it onto the card.
+            Determined by the frame layout in the metadata if not given.
         """
 
         if card_set is None:
@@ -597,6 +602,7 @@ class Card:
         footer_y = FOOTER_Y[self.get_frame_layout()] if footer_y is None else footer_y
         footer_width = FOOTER_WIDTH[self.get_frame_layout()] if footer_width is None else footer_width
         footer_height = FOOTER_HEIGHT[self.get_frame_layout()] if footer_height is None else footer_height
+        footer_rotation = FOOTER_ROTATION[self.get_frame_layout()] if footer_rotation is None else footer_rotation
 
         index = self.get_metadata(CARD_INDEX).zfill(len(largest_index))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
@@ -666,7 +672,7 @@ class Card:
             image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
         draw.text(
             (
-                rarity_artist_x + artist_brush_image.width + ARTIST_GAP_LENGTH[self.get_frame_layout()],
+                rarity_artist_x + artist_brush_image.width + FOOTER_ARTIST_GAP_LENGTH[self.get_frame_layout()],
                 set_info_y,
             ),
             artist,
@@ -689,6 +695,12 @@ class Card:
             stroke_fill="black",
         )
 
+        if footer_rotation == 90:
+            image = image.transpose(Image.Transpose.ROTATE_90)
+        elif footer_rotation == 180:
+            image = image.transpose(Image.Transpose.ROTATE_180)
+        if footer_rotation == 270:
+            image = image.transpose(Image.Transpose.ROTATE_270)
         self.text_layers.append(Layer(image, (footer_x, footer_y)))
 
     def _create_mana_cost_layer(
@@ -990,7 +1002,7 @@ class Card:
             text = self.get_metadata(CARD_RULES_TEXT)
         if len(text) == 0:
             return
-        
+
         centered = False
         if "{center}" in text:
             centered = True
@@ -1317,7 +1329,7 @@ class Card:
             text,
             font=power_toughness_font,
             fill=POWER_TOUGHNESS_FONT_COLOR[self.get_frame_layout()],
-            anchor="lt"
+            anchor="lt",
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
