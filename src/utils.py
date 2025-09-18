@@ -75,34 +75,8 @@ def cardname_to_filename(card_name: str) -> str:
         "*": "{A}",
     }
 
-    file_name = card_name.replace("’", "'")
+    file_name = card_name
     for bad_char in CHAR_TO_TITLE_CHAR.keys():
         file_name = file_name.replace(bad_char, CHAR_TO_TITLE_CHAR[bad_char])
+
     return file_name
-
-
-# def get_token_full_name(token: dict[str, str]) -> str:
-#     color = token[CARD_COLOR]
-#     token_color = ""
-#     if "Colorless" in color:
-#         token_color = "Colorless "
-#     else:
-#         for char in color.strip():
-#             try:
-#                 token_color += f"{COLORS[char]} "
-#             except:
-#                 log(f"""Token "{token[CARD_NAME]}" has an invalid color identity.""")
-#                 token_color = ""
-#                 break
-
-#     if len(token_color) == 0:
-#         log(f"""Token "{token[CARD_NAME]}" has an invalid color identity.""")
-#         return None
-
-#     token_descriptor = token[DESCRIPTOR].strip()
-#     if len(token_descriptor) > 0:
-#         token_descriptor = f" - {token_descriptor}"
-
-#     token_supertypes = token[CARD_SUPERTYPES]
-#     token_types = token[CARD_TYPESS]
-#     return f"{token_color}{token_supertypes} {token[CARD_NAME]} {token_types}{token_descriptor}"

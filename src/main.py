@@ -15,6 +15,7 @@ from constants import (
     CARD_BACKSIDES,
     CARD_CATEGORY,
     CARD_CREATION_DATE,
+    CARD_DESCRIPTOR,
     CARD_FRONTSIDE,
     CARD_HEIGHT,
     CARD_INDEX,
@@ -26,7 +27,6 @@ from constants import (
     CARD_WIDTH,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
-    INPUT_ART_PATH,
     OUTPUT_ART_PATH,
     OUTPUT_CARDS_PATH,
 )
@@ -67,8 +67,10 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             for row in cards_sheet_reader:
                 values = dict(zip(columns, [element.strip() for element in row]))
                 card_title = values.get(CARD_TITLE, "")
+                card_descriptor = values.get(CARD_DESCRIPTOR, "")
+                card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
                 if len(card_title) > 0:
-                    card_spreadsheets[output_path][card_title] = Card(metadata=values)
+                    card_spreadsheets[output_path][card_key] = Card(metadata=values)
 
         def str_to_int(string: str, default: int) -> int:
             try:
@@ -106,12 +108,32 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             category_indices[category] += 1
             card.add_metadata(CARD_INDEX, str(category_indices[category]))
 
+        # Replace empty columns in alternates with their original card's values
+        for card in sorted_cards:
+            card_title = card.get_metadata(CARD_TITLE)
+            descriptor = card.get_metadata(CARD_DESCRIPTOR)
+
+            # skip if this isn't an alternate
+            if len(descriptor) == 0:
+                continue
+
+            original_card = card_spreadsheets[output_path].get(card_title)
+            if original_card is not None:
+                for key, value in card.metadata.items():
+                    if len(value) == 0:
+                        card.add_metadata(key, original_card.get_metadata(key))
+            else:
+                log(f"Could not find '{card_title}' as an original card of an alternate.")
+
         # Add transform backsides to the transform cards
         # If the backside is missing any collector columns, copy them from the frontside
         for card in sorted_cards:
             frontside_title = card.get_metadata(CARD_FRONTSIDE)
+
+            # Skip if this isn't a transform card
             if len(frontside_title) == 0:
                 continue
+
             frontside_card = card_spreadsheets[output_path].get(frontside_title)
             if frontside_card is not None:
                 for key, value in card.metadata.items():
@@ -121,9 +143,13 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
                     ):
                         card.add_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
-                del card_spreadsheets[output_path][card.get_metadata(CARD_TITLE)]
             else:
                 log(f"Could not find '{frontside_title}' as a frontside.")
+
+            card_title = card.get_metadata(CARD_TITLE)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+            del card_spreadsheets[output_path][card_key]
 
     return card_spreadsheets
 
@@ -135,23 +161,27 @@ def render_cards(card_spreadsheets: dict[str, dict[str, Card]]):
 
         for card in spreadsheet.values():
             card_title = card.get_metadata(CARD_TITLE)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
 
-            log(f"Processing {card_title}...")
+            log(f"Processing '{card_key}'...")
             increase_log_indent()
 
             card.create_layers()
             final_card = card.render_card()
-            final_card.save(f"{output_path}/{cardname_to_filename(card_title)}.png")
+            final_card.save(f"{output_path}/{cardname_to_filename(card_key)}.png")
 
             for backside in card.get_metadata(CARD_BACKSIDES, []):
                 backside_title = backside.metadata.get(CARD_TITLE, "")
+                backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
+                backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
 
-                log(f"Processing {backside_title}...")
+                log(f"Processing '{backside_key}'...")
                 increase_log_indent()
 
                 backside.create_layers(create_rarity_symbol_layer=False)
                 final_backside = backside.render_card()
-                final_backside.save(f"{output_path}/{cardname_to_filename(backside_title)}.png")
+                final_backside.save(f"{output_path}/{cardname_to_filename(backside_key)}.png")
 
                 decrease_log_indent()
 
@@ -171,7 +201,9 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
 
             for card in spreadsheet.values():
                 card_title = card.get_metadata(CARD_TITLE)
-                card_filename = cardname_to_filename(card_title)
+                card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+                card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+                card_filename = cardname_to_filename(card_key)
                 card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
 
                 log(f"Extracting art from '{card_path}'...")
@@ -191,7 +223,9 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
 
                 for backside in card.get_metadata(CARD_BACKSIDES, []):
                     backside_title = backside.get_metadata(CARD_TITLE)
-                    backside_filename = cardname_to_filename(backside_title)
+                    backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
+                    backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
+                    backside_filename = cardname_to_filename(backside_key)
                     backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
 
                     log(f"Extracting art from '{backside_path}'...")

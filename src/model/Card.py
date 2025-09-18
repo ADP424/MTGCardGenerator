@@ -2,6 +2,7 @@ import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
+    CARD_DESCRIPTOR,
     FOOTER_ROTATION,
     INPUT_ART_PATH,
     FOOTER_ARTIST_GAP_LENGTH,
@@ -303,7 +304,10 @@ class Card:
         Create the art layer of the card from the art folder.
         """
 
-        art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(self.get_metadata(CARD_TITLE))}.png"
+        card_title = self.get_metadata(CARD_TITLE)
+        card_descriptor = self.get_metadata(CARD_DESCRIPTOR)
+        card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+        art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(card_key)}.png"
         self.art_layer = Layer(open_image(art_path))
 
     def _create_frame_layers(self):
@@ -537,7 +541,7 @@ class Card:
         footer_y: int = None,
         footer_width: int = None,
         footer_height: int = None,
-        footer_rotation: int = None
+        footer_rotation: int = None,
     ):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,

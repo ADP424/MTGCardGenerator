@@ -35,11 +35,10 @@ CARD_SET = "Set"
 CARD_LANGUAGE = "Language"
 CARD_ARTIST = "Artist"
 
+CARD_DESCRIPTOR = "Descriptor"
+CARD_ORDERER = "Orderer"
 CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"
 CARD_FRONTSIDE = "Transform Frontside"
-CARD_ORDERER = "Orderer"
-CARD_ORIGINAL = "Original Card"
-CARD_DESCRIPTOR = "Descriptor"
 
 # Not in Spreadsheet (Added at Runtime)
 CARD_INDEX = "Index"
@@ -493,7 +492,7 @@ SET_SYMBOL_WIDTH = defaultdict(
 # Footer
 # All RELATIVE values assume 0 degree rotation, the way the text would be read
 # This means width, height, tab length, etc. but NOT x or y coordinates
-FOOTER_ROTATION = defaultdict( # anticlockwise
+FOOTER_ROTATION = defaultdict(  # anticlockwise
     lambda: 0,
     {
         REGULAR: 0,
