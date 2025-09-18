@@ -127,14 +127,14 @@ TITLE_BOX_WIDTH = defaultdict(
     lambda: 1313,
     {
         REGULAR: 1313,
-        BATTLE: 2342,
-        TRANSFORM_BATTLE: 2327,
+        BATTLE: 2335,
+        TRANSFORM_BATTLE: 2320,
         TRANSFORM_FRONTSIDE: 1183,
         TRANSFORM_BACKSIDE_PIP: 1183,
         TRANSFORM_BACKSIDE_NO_PIP: 1183,
     },
 )
-TITLE_BOX_HEIGHT = defaultdict(lambda: 114, {REGULAR: 114, BATTLE: 153, TRANSFORM_BATTLE: 153})
+TITLE_BOX_HEIGHT = defaultdict(lambda: 114, {REGULAR: 114, BATTLE: 145, TRANSFORM_BATTLE: 145})
 TITLE_BOX_X = defaultdict(lambda: 90, {REGULAR: 90, BATTLE: 298, TRANSFORM_BATTLE: 313, TRANSFORM_FRONTSIDE: 220})
 TITLE_BOX_Y = defaultdict(lambda: 105, {REGULAR: 105, BATTLE: 101, TRANSFORM_BATTLE: 101})
 
@@ -282,7 +282,7 @@ RULES_BOX_WIDTH = defaultdict(
     {
         REGULAR: 1278,
         BATTLE: 2291,
-        TRANSFORM_BATTLE: 1263,
+        TRANSFORM_BATTLE: 2276,
     },
 )
 RULES_BOX_HEIGHT = defaultdict(
@@ -472,14 +472,14 @@ WATERMARK_COLORS = {
 # Rarity / Set Symbol
 SET_SYMBOL_X = defaultdict(
     lambda: 1296,
-    {REGULAR: 1296, BATTLE: 2487, TRANSFORM_BATTLE: 2487},
+    {REGULAR: 1296, BATTLE: 2490, TRANSFORM_BATTLE: 2490},
 )
 SET_SYMBOL_Y = defaultdict(
     lambda: 1198,
     {
         REGULAR: 1198,
-        BATTLE: 1179,
-        TRANSFORM_BATTLE: 1179,
+        BATTLE: 1182,
+        TRANSFORM_BATTLE: 1182,
         REGULAR_TOKEN: 1373,
         SHORT_TOKEN: 1432,
         TEXTLESS_TOKEN: 1731,
@@ -503,7 +503,7 @@ FOOTER_ROTATION = defaultdict( # anticlockwise
 )
 FOOTER_WIDTH = defaultdict(
     lambda: 1304,
-    {REGULAR: 1304, BATTLE: 1747, TRANSFORM_BATTLE: 1747},
+    {REGULAR: 1304, BATTLE: 1760, TRANSFORM_BATTLE: 1760},
 )
 FOOTER_HEIGHT = defaultdict(
     lambda: 152,
