@@ -40,6 +40,8 @@ CARD_ORDERER = "Orderer"
 CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"
 CARD_FRONTSIDE = "Transform Frontside"
 
+CARD_OVERLAYS = "Overlay(s)"
+
 # Not in Spreadsheet (Added at Runtime)
 CARD_INDEX = "Index"
 CARD_BACKSIDES = "Transform Backsides"
@@ -63,6 +65,7 @@ FRAMES_PATH = "images/frames"
 MANA_SYMBOLS_PATH = "images/mana_symbols"
 WATERMARKS_PATH = "images/collector_info/watermarks"
 SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
+OVERLAYS_PATH = "images/art/overlay"
 
 # Fonts
 MPLANTIN = "fonts/mplantin.ttf"

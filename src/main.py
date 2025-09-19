@@ -35,9 +35,33 @@ from model.Card import Card
 from utils import cardname_to_filename, open_image
 
 
-def process_spreadsheets() -> dict[str, dict[str, Card]]:
+def process_spreadsheets(
+    do_cards: bool = True,
+    do_tokens: bool = True,
+    do_basic_lands: bool = True,
+    do_alts: bool = True,
+    card_names_whitelist: list[str] = None,
+) -> dict[str, dict[str, Card]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
+
+    Parameters
+    ----------
+
+    do_cards: bool, default : True
+        Whether to process regular cards or skip them instead.
+
+    do_tokens: bool, default : True
+        Whether to process tokens or skip them instead.
+
+    do_basic_lands: bool, default : True
+        Whether to process basic land cards or skip them instead.
+
+    do_alts: bool, default : True
+        Whether to process alternate versions of cards or skip them instead.
+
+    card_names_whitelist: list[str], optional
+        The names of the cards to process. Process all of them by default.
 
     Returns
     -------
@@ -69,8 +93,9 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
                 card_title = values.get(CARD_TITLE, "")
                 card_descriptor = values.get(CARD_DESCRIPTOR, "")
                 card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
-                if len(card_title) > 0:
-                    card_spreadsheets[output_path][card_key] = Card(metadata=values)
+                if len(card_title) == 0:
+                    continue
+                card_spreadsheets[output_path][card_key] = Card(metadata=values)
 
         def str_to_int(string: str, default: int) -> int:
             try:
@@ -151,6 +176,30 @@ def process_spreadsheets() -> dict[str, dict[str, Card]]:
             card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
             del card_spreadsheets[output_path][card_key]
 
+        # Remove any cards that aren't on the whitelist
+        for card_key, card in list(card_spreadsheets[output_path].items()):
+            card_category = card.get_metadata(CARD_CATEGORY)
+            if (
+                (not do_cards and card_category.lower() == "regular")
+                or (not do_tokens and card_category.lower() == "token")
+                or (not do_basic_lands and card_category.lower() == "basic land")
+                or (not do_alts and card_category.lower() == "alternate")
+                or (card_names_whitelist is not None and card_key not in card_names_whitelist)
+            ):
+                del card_spreadsheets[output_path][card_key]
+
+            backsides = card.get_metadata(CARD_BACKSIDES, [])
+            idx = 0
+            while idx < len(backsides):
+                backside_title = backsides[idx].get_metadata(CARD_TITLE)
+                backside_descriptor = backsides[idx].get_metadata(CARD_DESCRIPTOR)
+                backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
+                if card_names_whitelist is not None and backside_key not in card_names_whitelist:
+                    backsides.pop(idx)
+                    idx -= 1
+                idx += 1
+
+    log(card_spreadsheets[output_path])
     return card_spreadsheets
 
 
@@ -210,6 +259,11 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
                 increase_log_indent()
 
                 card_image = open_image(card_path)
+                if card_image is None:
+                    log(f"Couldn't find image at '{card_path}'")
+                    decrease_log_indent()
+                    continue
+
                 art_bounding_box = (
                     ART_X[card.get_frame_layout()],
                     ART_Y[card.get_frame_layout()],
@@ -224,7 +278,9 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
                 for backside in card.get_metadata(CARD_BACKSIDES, []):
                     backside_title = backside.get_metadata(CARD_TITLE)
                     backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                    backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
+                    backside_key = (
+                        f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
+                    )
                     backside_filename = cardname_to_filename(backside_key)
                     backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
 
@@ -232,6 +288,11 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
                     increase_log_indent()
 
                     backside_image = open_image(backside_path)
+                    if backside_image is None:
+                        log(f"Couldn't find image at '{card_path}'")
+                        decrease_log_indent()
+                        continue
+
                     art_bounding_box = (
                         ART_X[backside.get_frame_layout()],
                         ART_Y[backside.get_frame_layout()],
@@ -267,7 +328,14 @@ def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = Tru
             base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 
-def main(action: str):
+def main(
+    action: str,
+    do_cards: bool = True,
+    do_tokens: bool = True,
+    do_basic_lands: bool = True,
+    do_alts: bool = True,
+    card_names_whitelist: list[str] = None,
+):
     """
     Run the program.
 
@@ -275,22 +343,38 @@ def main(action: str):
     ----------
     action: str
         The action to perform (render cards, tile cards, etc.)
+
+    do_cards: bool, default : True
+        Whether to perform the action on regular cards or skip them instead.
+
+    do_tokens: bool, default : True
+        Whether to perform the action on tokens or skip them instead.
+
+    do_basic_lands: bool, default : True
+        Whether to perform the action on basic land cards or skip them instead.
+
+    do_alts: bool, default : True
+        Whether to perform the action on alternate versions of cards or skip them instead.
+
+    card_names_whitelist: list[str], optional
+        The names of the cards to perform the action on (including descriptors when applicable).
+        By default, perform the action on all cards.
     """
 
     reset_log()
     if action == ACTIONS[0]:
         log("Rendering cards...")
-        card_spreadsheets = process_spreadsheets()
+        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
         render_cards(card_spreadsheets)
     elif action == ACTIONS[1]:
         pass  # TODO
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
-        card_spreadsheets = process_spreadsheets()
+        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
         capture_art(card_spreadsheets)
     elif action == ACTIONS[3]:
         log("Capturing art from existing cards...")
-        card_spreadsheets = process_spreadsheets()
+        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
         capture_art(card_spreadsheets, smart=False)
 
 
@@ -305,6 +389,48 @@ if __name__ == "__main__":
         dest="action",
         help=f"The action for the program to perform, one of {ACTIONS}.",
     )
+    parser.add_argument(
+        "-nc",
+        "--no-cards",
+        action="store_false",
+        help="Skip processing the regular cards.",
+        dest="cards",
+    )
+    parser.add_argument(
+        "-nt",
+        "--no-tokens",
+        action="store_false",
+        help="Skip processing the tokens.",
+        dest="tokens",
+    )
+    parser.add_argument(
+        "-nbl",
+        "--no-basic-lands",
+        action="store_false",
+        help="Skip processing the basic lands.",
+        dest="basic_lands",
+    )
+    parser.add_argument(
+        "-naa",
+        "--no-alt-arts",
+        action="store_false",
+        help="Skip processing the alternate arts of cards.",
+        dest="alt_arts",
+    )
+    parser.add_argument(
+        "-c",
+        "--cards",
+        nargs="+",
+        help="Only process the cards with these names (including tokens, alt arts, etc.).",
+        dest="card_names_whitelist",
+    )
 
     args = parser.parse_args()
-    main(args.action)
+    main(
+        args.action,
+        args.cards,
+        args.tokens,
+        args.basic_lands,
+        args.alt_arts,
+        args.card_names_whitelist,
+    )

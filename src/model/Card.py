@@ -3,6 +3,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
     CARD_DESCRIPTOR,
+    CARD_OVERLAYS,
     FOOTER_ROTATION,
     INPUT_ART_PATH,
     FOOTER_ARTIST_GAP_LENGTH,
@@ -29,6 +30,7 @@ from constants import (
     FOOTER_X,
     FOOTER_Y,
     GOTHAM_BOLD,
+    OVERLAYS_PATH,
     POWER_TOUGHNESS_FONT_COLOR,
     RARITY_TO_INITIAL,
     REVERSE_POWER_TOUGHNESS_FONT_COLOR,
@@ -126,6 +128,9 @@ class Card:
 
     text_layers : list[Layer], default : []
         The layers of card text. Lower-index layers are rendered first. Renders after collector info and frames.
+
+    overlay_layers : list[Layer], default : []
+        Any additional layers to render above everything else on the card. Rendered absolutely last.
     """
 
     def __init__(
@@ -137,6 +142,7 @@ class Card:
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
+        overlay_layers: list[Layer] = None,
     ):
         self.metadata = metadata if metadata is not None else {}
         self.base_width = base_width if base_width is not None else CARD_WIDTH[self.get_frame_layout()]
@@ -145,6 +151,7 @@ class Card:
         self.frame_layers = frame_layers if frame_layers is not None else []
         self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
+        self.overlay_layers = overlay_layers if overlay_layers is not None else []
 
     def create_layers(
         self,
@@ -159,6 +166,7 @@ class Card:
         create_rules_text_layer: bool = True,
         create_power_toughness_layer: bool = True,
         create_reverse_power_toughness_layer: bool = True,
+        create_overlay_layers: bool = True,
     ):
         """
         Append every frame, text, and collector layer to the card based on `self.metadata`.
@@ -197,6 +205,9 @@ class Card:
 
         create_reverse_power_toughness_layer: bool, default: True
             Whether to put the reverse power & toughness of the card on it or not.
+
+        create_overlay_layers: bool, default: True
+            Whether to put the overlays on top of the card after everything else or not.
         """
 
         # art layer
@@ -229,6 +240,10 @@ class Card:
         if create_reverse_power_toughness_layer:
             self._create_reverse_power_toughness_layer()
 
+        # overlay layers
+        if create_overlay_layers:
+            self._create_overlay_layers()
+
     def render_card(self) -> Image.Image:
         """
         Merge all layers into one image.
@@ -242,7 +257,9 @@ class Card:
         base_image = Image.new("RGBA", (self.base_width, self.base_height), (0, 0, 0, 0))
         composite_image = base_image.copy()
 
-        for layer in [self.art_layer] + self.frame_layers + self.collector_layers + self.text_layers:
+        for layer in (
+            [self.art_layer] + self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers
+        ):
             temp = Image.new("RGBA", composite_image.size, (0, 0, 0, 0))
             if layer.image is not None:
                 temp.paste(layer.image, layer.position)
@@ -1411,3 +1428,23 @@ class Card:
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
+
+    def _create_overlay_layers(self):
+        """
+        Create images from the filepaths in the overlays from `self.metadata` and append them to `self.overlay_layers`.
+        """
+
+        card_overlays = self.get_metadata(CARD_OVERLAYS)
+        if len(card_overlays) == 0:
+            log("Did this happen?")
+            return
+
+        for image_path in card_overlays.split("\n"):
+            image_path = image_path.lower().strip()
+            if len(image_path) == 0:
+                continue
+            overlay = open_image(f"{OVERLAYS_PATH}/{image_path}.png")
+            if overlay is None:
+                log(f"Could not find overlay '{image_path}'.")
+                continue
+            self.overlay_layers.append(Layer(overlay))
