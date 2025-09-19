@@ -15,7 +15,9 @@ existing_cards/*
 !existing_cards/.gitkeep
 
 images/art/*
+images/art/overlays/*
 !images/art/.gitkeep
+!images/art/overlays/
 !images/art/overlays/foil.png
 
 # log/debug
