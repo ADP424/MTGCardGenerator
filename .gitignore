@@ -15,10 +15,10 @@ existing_cards/*
 !existing_cards/.gitkeep
 
 images/art/*
-images/art/overlays/*
+images/art/overlay/*
 !images/art/.gitkeep
-!images/art/overlays/
-!images/art/overlays/foil.png
+!images/art/overlay/
+!images/art/overlay/foil.png
 
 # log/debug
 log.txt
