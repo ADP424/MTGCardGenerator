@@ -2,11 +2,10 @@ import re
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
+    ADD_TOTAL_TO_FOOTER,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
-    FOOTER_ROTATION,
     INPUT_ART_PATH,
-    FOOTER_ARTIST_GAP_LENGTH,
     BELEREN_BOLD_SMALL_CAPS,
     CARD_CREATION_DATE,
     CARD_FRAMES,
@@ -21,81 +20,22 @@ from constants import (
     CARD_MANA_COST,
     CARD_LANGUAGE,
     CARD_ARTIST,
-    FOOTER_FONT_OUTLINE_SIZE,
-    FOOTER_FONT_SIZE,
-    FOOTER_HEIGHT,
-    FOOTER_LINE_HEIGHT_TO_GAP_RATIO,
-    FOOTER_TAB_LENGTH,
-    FOOTER_WIDTH,
-    FOOTER_X,
-    FOOTER_Y,
     GOTHAM_BOLD,
     OVERLAYS_PATH,
-    POWER_TOUGHNESS_FONT_COLOR,
     RARITY_TO_INITIAL,
-    REVERSE_POWER_TOUGHNESS_FONT_COLOR,
-    REVERSE_POWER_TOUGHNESS_FONT_SIZE,
-    SET_SYMBOL_WIDTH,
-    SET_SYMBOL_X,
-    SET_SYMBOL_Y,
     SET_SYMBOLS_PATH,
-    TITLE_FONT,
-    TITLE_FONT_COLOR,
-    TITLE_MIN_FONT_SIZE,
-    TITLE_TEXT_ALIGN,
-    TYPE_FONT_COLOR,
-    TYPE_MIN_FONT_SIZE,
     WATERMARK_COLORS,
     CARD_WATERMARK_COLOR,
-    CARD_WIDTH,
-    CARD_HEIGHT,
     CARD_FRAME_LAYOUT,
     CARD_RULES_TEXT,
     CARD_WATERMARK,
     WATERMARKS_PATH,
     MPLANTIN_ITALICS,
     FRAMES_PATH,
-    RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO,
-    MANA_SYMBOL_RULES_TEXT_MARGIN,
-    POWER_TOUGHNESS_FONT_SIZE,
-    POWER_TOUGHNESS_HEIGHT,
-    POWER_TOUGHNESS_WIDTH,
-    POWER_TOUGHNESS_X,
-    POWER_TOUGHNESS_Y,
-    TITLE_BOX_HEIGHT,
-    TITLE_BOX_WIDTH,
-    TITLE_BOX_X,
-    TITLE_BOX_Y,
-    MANA_COST_SYMBOL_SHADOW_OFFSET,
-    MANA_COST_SYMBOL_SIZE,
-    MANA_COST_SYMBOL_SPACING,
-    MANA_SYMBOL_RULES_TEXT_SCALE,
     SYMBOL_PLACEHOLDER_KEY,
-    RULES_BOX_HEIGHT,
-    RULES_BOX_MAX_FONT_SIZE,
-    RULES_BOX_MIN_FONT_SIZE,
-    RULES_BOX_WIDTH,
-    RULES_BOX_X,
-    RULES_BOX_Y,
     MPLANTIN,
     PLACEHOLDER_REGEX,
     BELEREN_BOLD,
-    TITLE_MAX_FONT_SIZE,
-    TITLE_WIDTH,
-    TITLE_X,
-    TITLE_Y,
-    TYPE_BOX_HEIGHT,
-    TYPE_MAX_FONT_SIZE,
-    TYPE_MAX_WIDTH,
-    TYPE_X,
-    TYPE_Y,
-    WATERMARK_OPACITY,
-    WATERMARK_HEIGHT,
-    CARD_REVERSE_POWER_TOUGHNESS,
-    REVERSE_POWER_TOUGHNESS_WIDTH,
-    REVERSE_POWER_TOUGHNESS_HEIGHT,
-    REVERSE_POWER_TOUGHNESS_X,
-    REVERSE_POWER_TOUGHNESS_Y,
 )
 from log import log
 from model.Layer import Layer
@@ -136,22 +76,100 @@ class Card:
     def __init__(
         self,
         metadata: dict[str, str | list["Card"]] = None,
-        base_width: int = None,
-        base_height: int = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
+        footer_largest_index: int = 999,
     ):
         self.metadata = metadata if metadata is not None else {}
-        self.base_width = base_width if base_width is not None else CARD_WIDTH[self.get_frame_layout()]
-        self.base_height = base_height if base_height is not None else CARD_HEIGHT[self.get_frame_layout()]
         self.art_layer = art_layer if art_layer is not None else Layer(None)
         self.frame_layers = frame_layers if frame_layers is not None else []
         self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
         self.overlay_layers = overlay_layers if overlay_layers is not None else []
+        self.footer_largest_index = footer_largest_index
+
+        # Overall Card
+        self.CARD_WIDTH = 1500
+        self.CARD_HEIGHT = 2100
+
+        # Title Box
+        self.TITLE_BOX_X = 90
+        self.TITLE_BOX_Y = 105
+        self.TITLE_BOX_WIDTH = 1313
+        self.TITLE_BOX_HEIGHT = 114
+
+        # Mana Cost
+        self.MANA_COST_SYMBOL_SIZE = 70
+        self.MANA_COST_SYMBOL_SPACING = 6
+        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+
+        # Title Text
+        self.TITLE_X = 128
+        self.TITLE_Y = 113
+        self.TITLE_WIDTH = 1244
+        self.TITLE_MAX_FONT_SIZE = 79
+        self.TITLE_MIN_FONT_SIZE = 6
+        self.TITLE_FONT = BELEREN_BOLD
+        self.TITLE_FONT_COLOR = (0, 0, 0)
+        self.TITLE_TEXT_ALIGN = "left"
+
+        # Type Box
+        self.TYPE_BOX_HEIGHT = 114
+
+        # Type Text
+        self.TYPE_X = 128
+        self.TYPE_Y = 1190
+        self.TYPE_WIDTH = 1244
+        self.TYPE_MAX_FONT_SIZE = 67
+        self.TYPE_MIN_FONT_SIZE = 6
+        self.TYPE_FONT_COLOR = (0, 0, 0)
+
+        # Rules Text Box
+        self.RULES_BOX_X = 112
+        self.RULES_BOX_Y = 1315
+        self.RULES_BOX_WIDTH = 1278
+        self.RULES_BOX_HEIGHT = 623
+        self.RULES_BOX_MAX_FONT_SIZE = 78
+        self.RULES_BOX_MIN_FONT_SIZE = 6
+
+        # Rules Text
+        self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
+        self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
+        self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
+
+        # Power & Toughness Text
+        self.POWER_TOUGHNESS_X = 1166
+        self.POWER_TOUGHNESS_Y = 1866
+        self.POWER_TOUGHNESS_WIDTH = 252
+        self.POWER_TOUGHNESS_HEIGHT = 124
+        self.POWER_TOUGHNESS_FONT_SIZE = 80
+        self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
+
+        # Watermark
+        self.WATERMARK_HEIGHT = 480
+        self.WATERMARK_OPACITY = 0.4
+
+        # Set / Rarity Symbol
+        self.SET_SYMBOL_X = 1296
+        self.SET_SYMBOL_Y = 1198
+        self.SET_SYMBOL_WIDTH = 90
+
+        # Footer
+        # All RELATIVE values assume 0 degree rotation, the way the text would be read
+        # This means width, height, tab length, etc. but NOT x or y coordinates
+        self.FOOTER_ROTATION = 0
+        self.FOOTER_X = 96
+        self.FOOTER_Y = 1968
+        self.FOOTER_WIDTH = 1304
+        self.FOOTER_HEIGHT = 152
+        self.FOOTER_FONT_SIZE = 35
+        self.FOOTER_FONT_OUTLINE_SIZE = 3
+        self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
+        self.FOOTER_TAB_LENGTH = 25
+        self.FOOTER_ARTIST_GAP_LENGTH = 5
 
     def create_layers(
         self,
@@ -165,7 +183,6 @@ class Card:
         create_type_layer: bool = True,
         create_rules_text_layer: bool = True,
         create_power_toughness_layer: bool = True,
-        create_reverse_power_toughness_layer: bool = True,
         create_overlay_layers: bool = True,
     ):
         """
@@ -203,9 +220,6 @@ class Card:
         create_power_toughness_layer: bool, default : True
             Whether to put the power & toughness of the card on it or not.
 
-        create_reverse_power_toughness_layer: bool, default: True
-            Whether to put the reverse power & toughness of the card on it or not.
-
         create_overlay_layers: bool, default: True
             Whether to put the overlays on top of the card after everything else or not.
         """
@@ -237,8 +251,6 @@ class Card:
             self._create_rules_text_layer()
         if create_power_toughness_layer:
             self._create_power_toughness_layer()
-        if create_reverse_power_toughness_layer:
-            self._create_reverse_power_toughness_layer()
 
         # overlay layers
         if create_overlay_layers:
@@ -254,7 +266,7 @@ class Card:
             The merged image.
         """
 
-        base_image = Image.new("RGBA", (self.base_width, self.base_height), (0, 0, 0, 0))
+        base_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
         composite_image = base_image.copy()
 
         for layer in (
@@ -374,84 +386,38 @@ class Card:
                 " They were ignored."
             )
 
-    def _create_watermark_layer(
-        self,
-        watermark: Image.Image = None,
-        watermark_color: tuple[int, int, int] | list[tuple[int, int, int]] = None,
-        rules_box_x: int = None,
-        rules_box_y: int = None,
-        rules_box_width: int = None,
-        rules_box_height: int = None,
-        watermark_height: int = None,
-        watermark_opacity: float = None,
-    ):
+    def _create_watermark_layer(self):
         """
         Process a watermark image and append it to `self.collector_layers`.
         Assumes the image is in RGBA format.
-
-        Parameters
-        ----------
-        watermark: Image, optional
-            The watermark image to use. Uses the image from the card's metadata if not given.
-
-        watermark_color: tuple[int, int, int] | list[tuple[int, int, int]], optional
-            The watermark color(s) to use. Uses (or guesses) the color based on the card's metadata if not given.
-
-        rules_box_x: int, optional
-            The leftmost x position of the rules text box bounding the watermark.
-            Determined by the frame layout in the metadata if not given.
-
-        rules_box_y: int, optional
-            The topmost y position of the rules text box bounding the watermark.
-            Determined by the frame layout in the metadata if not given.
-
-        rules_box_width: int, optional
-            The width of the rules text box bounding the watermark.
-            Determined by the frame layout in the metadata if not given.
-
-        rules_box_height: int, optional
-            The height of the rules text box bounding the watermark. Determined by the frame layout in the
-            metadata if not given.
-
-        watermark_height: int, optional
-            The width of the watermark. Also determines the height, based on the relative scale of the image.
-            Determined by the frame layout in the metadata if not given.
-
-        watermark_opacity: int, optional
-            The opacity of the watermark in the range [0.0, 1.0].
-            Determined by the frame layout in the metadata if not given.
         """
 
+        watermark_name = self.get_metadata(CARD_WATERMARK)
+        if len(watermark_name) == 0:
+            return
+        watermark_path = f"{WATERMARKS_PATH}/{watermark_name}.png"
+        watermark = open_image(watermark_path)
         if watermark is None:
-            watermark_name = self.get_metadata(CARD_WATERMARK)
-            if len(watermark_name) == 0:
-                return
-            watermark_path = f"{WATERMARKS_PATH}/{watermark_name}.png"
-            watermark = open_image(watermark_path)
-            if watermark is None:
-                log(f"Could not find watermark at '{watermark_path}'.")
-                return
+            log(f"Could not find watermark at '{watermark_path}'.")
+            return
 
-        if watermark_color is None:
-            colors = self.get_metadata(CARD_WATERMARK_COLOR)
-            if len(colors) > 0:
-                watermark_color = []
-                for color in colors.splitlines():
-                    color = WATERMARK_COLORS.get(color.lower().strip())
-                    if color is not None:
-                        watermark_color.append(color)
+        colors = self.get_metadata(CARD_WATERMARK_COLOR)
+        if len(colors) > 0:
+            watermark_color = []
+            for color in colors.splitlines():
+                color = WATERMARK_COLORS.get(color.lower().strip())
+                if color is not None:
+                    watermark_color.append(color)
 
         if not watermark_color:
             watermark_color = (0, 0, 0)
 
-        rules_box_x = RULES_BOX_X[self.get_frame_layout()] if rules_box_x is None else rules_box_x
-        rules_box_y = RULES_BOX_Y[self.get_frame_layout()] if rules_box_y is None else rules_box_y
-        rules_box_width = RULES_BOX_WIDTH[self.get_frame_layout()] if rules_box_width is None else rules_box_width
-        rules_box_height = RULES_BOX_HEIGHT[self.get_frame_layout()] if rules_box_height is None else rules_box_height
-        watermark_height = WATERMARK_HEIGHT[self.get_frame_layout()] if watermark_height is None else watermark_height
-        watermark_opacity = (
-            WATERMARK_OPACITY[self.get_frame_layout()] if watermark_opacity is None else watermark_opacity
-        )
+        rules_box_x = self.RULES_BOX_X
+        rules_box_y = self.RULES_BOX_Y
+        rules_box_width = self.RULES_BOX_WIDTH
+        rules_box_height = self.RULES_BOX_HEIGHT
+        watermark_height = self.WATERMARK_HEIGHT
+        watermark_opacity = self.WATERMARK_OPACITY
 
         resized = watermark.resize((int((watermark_height / watermark.height) * watermark.width), watermark_height))
 
@@ -488,51 +454,25 @@ class Card:
             )
         )
 
-    def _create_rarity_symbol_layer(
-        self,
-        card_set: str = None,
-        rarity: str = None,
-        set_symbol_x: int = None,
-        set_symbol_y: int = None,
-        set_symbol_width: int = None,
-    ):
+    def _create_rarity_symbol_layer(self):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
         and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        card_set: str, optional
-            The set whose symbol should be used. Uses the set from the card's metadata, if any, if not given.
-
-        rarity: str, optional
-            The rarity of the symbol that should be used. Uses the rarity from the card's metadata if not given.
-
-        set_symbol_x: int, optional
-            The leftmost x position of the set symbol. Determined by the frame layout in the metadata if not given.
-
-        set_symbol_y: int, optional
-            The topmost y position of the set symbol. Determined by the frame layout in the metadata if not given.
-
-        set_symbol_width: int, optional
-            The width of the set symbol. Determined by the frame layout in the metadata if not given.
         """
 
-        if card_set is None:
-            card_set = self.get_metadata(CARD_SET).lower().replace(" ", "_")
+        card_set = self.get_metadata(CARD_SET).lower().replace(" ", "_")
         if len(card_set) == 0:
             return
 
-        if rarity is None:
-            rarity = self.get_metadata(CARD_RARITY).lower()
-            if rarity == "token":
-                rarity = "common"
+        rarity = self.get_metadata(CARD_RARITY).lower()
+        if rarity == "token":
+            rarity = "common"
         if len(rarity) == 0:
             return
 
-        set_symbol_x = SET_SYMBOL_X[self.get_frame_layout()] if set_symbol_x is None else set_symbol_x
-        set_symbol_y = SET_SYMBOL_Y[self.get_frame_layout()] if set_symbol_y is None else set_symbol_y
-        set_symbol_width = SET_SYMBOL_WIDTH[self.get_frame_layout()] if set_symbol_width is None else set_symbol_width
+        set_symbol_x = self.SET_SYMBOL_X
+        set_symbol_y = self.SET_SYMBOL_Y
+        set_symbol_width = self.SET_SYMBOL_WIDTH
 
         symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
         rarity_symbol = open_image(symbol_path)
@@ -545,174 +485,111 @@ class Card:
         )
         self.collector_layers.append(Layer(rarity_symbol, (set_symbol_x, set_symbol_y)))
 
-    def _create_footer_layer(
-        self,
-        card_set: str = None,
-        rarity: str = None,
-        creation_date: str = None,
-        language: str = None,
-        artist: str = None,
-        largest_index: str = "999",
-        add_total_card_count: bool = False,
-        footer_x: int = None,
-        footer_y: int = None,
-        footer_width: int = None,
-        footer_height: int = None,
-        footer_rotation: int = None,
-    ):
+    def _create_footer_layer(self):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
         and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        card_set: str, optional
-            The set of the card. Uses the set from the card's metadata, if any, if not given.
-
-        rarity: str, optional
-            The rarity of the card. Uses the rarity from the card's metadata if not given.
-
-        creation_date: str, optional
-            The date the card was created. Uses the creation date from the card's metadata if not given.
-
-        language: str, optional
-            The language to display next to the set name. Uses the language from the card's metadata if not given.
-
-        artist: str, default : ""
-            The artist to display on the footer. Uses the artist from the card's metadata if not given.
-
-        largest_index: str, default : "999"
-            The largest index among cards in this set, for the purposes of the collector number.
-
-        add_total_card_count: bool, default : False
-            Whether to include the card total in the collector number (i.e. "012 / 999").
-
-        footer_x: int, optional
-            The leftmost x position of the footer. Determined by the frame layout in the metadata if not given.
-
-        footer_y: int, optional
-            The topmost y position of the footer. Determined by the frame layout in the metadata if not given.
-
-        footer_width: int, optional
-            The width of the footer. Determined by the frame layout in the metadata if not given.
-
-        footer_height: int, optional
-            The height of the footer. Determined by the frame layout in the metadata if not given.
-
-        footer_rotation: {0, 90, 180, 270}, optional
-            How much to rotate the footer by clockwise before pasting it onto the card.
-            Determined by the frame layout in the metadata if not given.
         """
 
-        if card_set is None:
-            card_set = self.get_metadata(CARD_SET)
+        card_set = self.get_metadata(CARD_SET)
+        rarity = self.get_metadata(CARD_RARITY)
+        creation_date = self.get_metadata(CARD_CREATION_DATE)
+        language = self.get_metadata(CARD_LANGUAGE)
+        artist = self.get_metadata(CARD_ARTIST)
 
-        if rarity is None:
-            rarity = self.get_metadata(CARD_RARITY)
+        footer_x = self.FOOTER_X
+        footer_y = self.FOOTER_Y
+        footer_width = self.FOOTER_WIDTH
+        footer_height = self.FOOTER_HEIGHT
+        footer_rotation = self.FOOTER_ROTATION
 
-        if creation_date is None:
-            creation_date = self.get_metadata(CARD_CREATION_DATE)
-
-        if language is None:
-            language = self.get_metadata(CARD_LANGUAGE)
-
-        if artist is None:
-            artist = self.get_metadata(CARD_ARTIST)
-
-        footer_x = FOOTER_X[self.get_frame_layout()] if footer_x is None else footer_x
-        footer_y = FOOTER_Y[self.get_frame_layout()] if footer_y is None else footer_y
-        footer_width = FOOTER_WIDTH[self.get_frame_layout()] if footer_width is None else footer_width
-        footer_height = FOOTER_HEIGHT[self.get_frame_layout()] if footer_height is None else footer_height
-        footer_rotation = FOOTER_ROTATION[self.get_frame_layout()] if footer_rotation is None else footer_rotation
-
-        index = self.get_metadata(CARD_INDEX).zfill(len(largest_index))
+        index = self.get_metadata(CARD_INDEX).zfill(len(str(self.footer_largest_index)))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
 
-        footer_font = ImageFont.truetype(GOTHAM_BOLD, FOOTER_FONT_SIZE[self.get_frame_layout()])
-        artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, FOOTER_FONT_SIZE[self.get_frame_layout()])
-        legal_font = ImageFont.truetype(MPLANTIN, FOOTER_FONT_SIZE[self.get_frame_layout()])
+        footer_font = ImageFont.truetype(GOTHAM_BOLD, self.FOOTER_FONT_SIZE)
+        artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.FOOTER_FONT_SIZE)
+        legal_font = ImageFont.truetype(MPLANTIN, self.FOOTER_FONT_SIZE)
 
         image = Image.new("RGBA", (footer_width, footer_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        collector_number_text = f"{index}{f"/{largest_index}" if add_total_card_count else ""}"
+        try:
+            add_total_to_footer = int(self.get_metadata(ADD_TOTAL_TO_FOOTER)) > 0
+        except Exception:
+            add_total_to_footer = False
+        collector_number_text = f"{index}{f"/{self.footer_largest_index}" if add_total_to_footer else ""}"
         draw.text(
-            (FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()], FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()]),
+            (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE),
             collector_number_text,
             font=footer_font,
             fill="white",
-            stroke_width=FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+            stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
         top_left_bounding_box = footer_font.getbbox(collector_number_text)
         collector_number_text_height = (
-            int(top_left_bounding_box[3] - top_left_bounding_box[1]) + FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()]
+            int(top_left_bounding_box[3] - top_left_bounding_box[1]) + self.FOOTER_FONT_OUTLINE_SIZE
         )
-        set_info_y = (
-            collector_number_text_height
-            + collector_number_text_height // FOOTER_LINE_HEIGHT_TO_GAP_RATIO[self.get_frame_layout()]
-        )
+        set_info_y = collector_number_text_height + collector_number_text_height // self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO
 
         set_info_text = f"{card_set}{" • " if len(card_set) > 0 else ""}{language}"
         draw.text(
-            (FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()], set_info_y),
+            (self.FOOTER_FONT_OUTLINE_SIZE, set_info_y),
             set_info_text,
             font=footer_font,
             fill="white",
-            stroke_width=FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+            stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
         rarity_artist_x = (
             max(
-                int(footer_font.getlength(collector_number_text)) + FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
-                int(footer_font.getlength(set_info_text)) + FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+                int(footer_font.getlength(collector_number_text)) + self.FOOTER_FONT_OUTLINE_SIZE,
+                int(footer_font.getlength(set_info_text)) + self.FOOTER_FONT_OUTLINE_SIZE,
             )
-            + FOOTER_TAB_LENGTH[self.get_frame_layout()]
+            + self.FOOTER_TAB_LENGTH
         )
 
         draw.text(
-            (rarity_artist_x, FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()]),
+            (rarity_artist_x, self.FOOTER_FONT_OUTLINE_SIZE),
             rarity_initial,
             font=footer_font,
             fill="white",
-            stroke_width=FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+            stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
         artist_brush = SYMBOL_PLACEHOLDER_KEY.get("artist_brush")
-        scale = FOOTER_FONT_SIZE[self.get_frame_layout()] / artist_brush.image.height
+        scale = self.FOOTER_FONT_SIZE / artist_brush.image.height
         artist_brush_width = int(artist_brush.image.width * scale)
         artist_brush_height = int(artist_brush.image.height * scale)
         artist_brush_image = artist_brush.get_formatted_image(
-            artist_brush_width, artist_brush_height, FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()]
+            artist_brush_width, artist_brush_height, self.FOOTER_FONT_OUTLINE_SIZE
         )
 
         if len(artist) > 0:
             image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
         draw.text(
             (
-                rarity_artist_x + artist_brush_image.width + FOOTER_ARTIST_GAP_LENGTH[self.get_frame_layout()],
+                rarity_artist_x + artist_brush_image.width + self.FOOTER_ARTIST_GAP_LENGTH,
                 set_info_y,
             ),
             artist,
             font=artist_font,
             anchor="lt",
             fill="white",
-            stroke_width=FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+            stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
-        creation_date_width = (
-            int(legal_font.getlength(creation_date)) + FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()]
-        )
+        creation_date_width = int(legal_font.getlength(creation_date)) + self.FOOTER_FONT_OUTLINE_SIZE
         draw.text(
             (footer_width - creation_date_width, set_info_y),
             creation_date,
             font=legal_font,
             fill="white",
-            stroke_width=FOOTER_FONT_OUTLINE_SIZE[self.get_frame_layout()],
+            stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
@@ -724,46 +601,20 @@ class Card:
             image = image.transpose(Image.Transpose.ROTATE_270)
         self.text_layers.append(Layer(image, (footer_x, footer_y)))
 
-    def _create_mana_cost_layer(
-        self,
-        text: str = None,
-        header_x: int = None,
-        header_y: int = None,
-        header_width: int = None,
-        header_height: int = None,
-    ):
+    def _create_mana_cost_layer(self):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
         and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The mana cost text to process. Uses the mana cost text in the card's metadata if not given.
-
-        header_x: int, optional
-            The leftmost x position of the mana cost header.
-            Determined by the frame layout in the metadata if not given.
-
-        header_y: int, optional
-            The topmost y position of the mana cost header. Determined by the frame layout in the metadata if not given.
-
-        header_width: int, optional
-            The width of the frame's mana cost header. Determined by the frame layout in the metadata if not given.
-
-        header_height: int, optional
-            The height of the frame's mana cost header. Determined by the frame layout in the metadata if not given.
         """
 
-        if text is None:
-            text = self.get_metadata(CARD_MANA_COST)
+        text = self.get_metadata(CARD_MANA_COST)
         if len(text) == 0:
             return
 
-        header_x = TITLE_BOX_X[self.get_frame_layout()] if header_x is None else header_x
-        header_y = TITLE_BOX_Y[self.get_frame_layout()] if header_y is None else header_y
-        header_width = TITLE_BOX_WIDTH[self.get_frame_layout()] if header_width is None else header_width
-        header_height = TITLE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
+        header_x = self.TITLE_BOX_X
+        header_y = self.TITLE_BOX_Y
+        header_width = self.TITLE_BOX_WIDTH
+        header_height = self.TITLE_BOX_HEIGHT
 
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
@@ -818,21 +669,21 @@ class Card:
 
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
 
-        curr_x = header_width - MANA_COST_SYMBOL_SPACING[self.get_frame_layout()]
+        curr_x = header_width - self.MANA_COST_SYMBOL_SPACING
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
                 log(f"Unknown placeholder '{{{sym}}}'")
                 continue
 
-            scale = MANA_COST_SYMBOL_SIZE[self.get_frame_layout()] / symbol.image.height
+            scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
             width = int(symbol.image.width * scale)
             height = int(symbol.image.height * scale)
             symbol_image = add_drop_shadow(
-                symbol.get_formatted_image(width, height), MANA_COST_SYMBOL_SHADOW_OFFSET[self.get_frame_layout()]
+                symbol.get_formatted_image(width, height), self.MANA_COST_SYMBOL_SHADOW_OFFSET
             )
 
-            curr_x -= symbol_image.width + MANA_COST_SYMBOL_SPACING[self.get_frame_layout()]
+            curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
                 image.alpha_composite(symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2))
             else:
@@ -841,59 +692,31 @@ class Card:
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
 
-    def _create_title_layer(
-        self,
-        text: str = None,
-        header_x: int = None,
-        header_y: int = None,
-        header_width: int = None,
-        header_height: int = None,
-    ):
+    def _create_title_layer(self):
         """
         Process title text into the title and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The title text to process. Uses the title in the card's metadata if not given.
-
-        header_x: int, optional
-            The leftmost x position of the title header. Determined by the frame layout in the metadata if not given.
-
-        header_y: int, optional
-            The topmost y position of the title header. Determined by the frame layout in the metadata if not given.
-
-        header_width: int, optional
-            The width of the frame's title header. Determined by the frame layout in the metadata if not given.
-
-        header_height: int, optional
-            The height of the frame's title header box. Determined by the frame layout in the metadata if not given.
         """
 
-        if text is None:
-            text = replace_ticks(self.get_metadata(CARD_TITLE))
+        text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
 
-        header_x = TITLE_X[self.get_frame_layout()] if header_x is None else header_x
-        header_y = TITLE_Y[self.get_frame_layout()] if header_y is None else header_y
-        header_width = TITLE_WIDTH[self.get_frame_layout()] if header_width is None else header_width
-        header_height = TITLE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
+        header_x = self.TITLE_X
+        header_y = self.TITLE_Y
+        header_width = self.TITLE_WIDTH
+        header_height = self.TITLE_BOX_HEIGHT
 
-        font_size = TITLE_MAX_FONT_SIZE[self.get_frame_layout()]
-        title_font = ImageFont.truetype(TITLE_FONT[self.get_frame_layout()], font_size)
+        font_size = self.TITLE_MAX_FONT_SIZE
+        title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
         title_length = title_font.getlength(text)
-        while (
-            header_x + title_length > SET_SYMBOL_X[self.get_frame_layout()]
-            and font_size >= TITLE_MIN_FONT_SIZE[self.get_frame_layout()]
-        ):
+        while header_x + title_length > self.SET_SYMBOL_X and font_size >= self.TITLE_MIN_FONT_SIZE:
             font_size -= 1
             title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
 
         image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_align = TITLE_TEXT_ALIGN[self.get_frame_layout()]
+        text_align = self.TITLE_TEXT_ALIGN
         if text_align == "left":
             x_pos = 0
         elif text_align == "center":
@@ -904,64 +727,36 @@ class Card:
             (x_pos, (header_height - ascent) // 2),
             text,
             font=title_font,
-            fill=TITLE_FONT_COLOR[self.get_frame_layout()],
+            fill=self.TITLE_FONT_COLOR,
             anchor="lt",
-            align=TITLE_TEXT_ALIGN[self.get_frame_layout()],
+            align=self.TITLE_TEXT_ALIGN,
         )
 
         self.text_layers.append(Layer(image, (header_x, header_y)))
 
-    def _create_type_layer(
-        self,
-        text: str = None,
-        header_x: int = None,
-        header_y: int = None,
-        header_width: int = None,
-        header_height: int = None,
-    ):
+    def _create_type_layer(self):
         """
         Process type text into the type box and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The type text to process. Uses the type in the card's metadata if not given.
-
-        header_x: int, optional
-            The leftmost x position of the type header. Determined by the frame layout in the metadata if not given.
-
-        header_y: int, optional
-            The topmost y position of the type header. Determined by the frame layout in the metadata if not given.
-
-        header_width: int, optional
-            The width of the frame's type header. Determined by the frame layout in the metadata if not given.
-
-        header_height: int, optional
-            The height of the frame's type header box. Determined by the frame layout in the metadata if not given.
         """
 
-        if text is None:
-            first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
-            second_part = self.get_metadata(CARD_SUBTYPES)
-            if len(second_part) > 0:
-                text = " — ".join((first_part, second_part)).strip()
-            else:
-                text = first_part.strip()
-            text = replace_ticks(text)
+        first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
+        second_part = self.get_metadata(CARD_SUBTYPES)
+        if len(second_part) > 0:
+            text = " — ".join((first_part, second_part)).strip()
+        else:
+            text = first_part.strip()
+        text = replace_ticks(text)
         if len(text) == 0:
             return
 
-        header_x = TYPE_X[self.get_frame_layout()] if header_x is None else header_x
-        header_y = TYPE_Y[self.get_frame_layout()] if header_y is None else header_y
-        header_width = TYPE_MAX_WIDTH[self.get_frame_layout()] if header_width is None else header_width
-        header_height = TYPE_BOX_HEIGHT[self.get_frame_layout()] if header_height is None else header_height
+        header_x = self.TYPE_X
+        header_y = self.TYPE_Y
+        header_width = self.TYPE_WIDTH
+        header_height = self.TYPE_BOX_HEIGHT
 
-        font_size = TYPE_MAX_FONT_SIZE[self.get_frame_layout()]
+        font_size = self.TYPE_MAX_FONT_SIZE
         type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-        while (
-            header_x + type_font.getlength(text) > SET_SYMBOL_X[self.get_frame_layout()]
-            and font_size >= TYPE_MIN_FONT_SIZE[self.get_frame_layout()]
-        ):
+        while header_x + type_font.getlength(text) > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
 
@@ -973,7 +768,7 @@ class Card:
             (0, (header_height - ascent) // 2),
             text,
             font=type_font,
-            fill=TYPE_FONT_COLOR[self.get_frame_layout()],
+            fill=self.TYPE_FONT_COLOR,
             anchor="lt",
         )
 
@@ -989,38 +784,13 @@ class Card:
         new_text = re.sub("{-}", "—", new_text)
         return new_text
 
-    def _create_rules_text_layer(
-        self,
-        text: str = None,
-        box_x: int = None,
-        box_y: int = None,
-        box_width: int = None,
-        box_height: int = None,
-    ):
+    def _create_rules_text_layer(self):
         """
         Process MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,
         and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The rules text to process. Uses the rules text in the card's metadata if not given.
-
-        box_x: int, optional
-            The leftmost x position of the rules box. Determined by the frame layout in the metadata if not given.
-
-        box_y: int, optional
-            The topmost y position of the rules box. Determined by the frame layout in the metadata if not given.
-
-        box_width: int, optional
-            The width of the frame's rules box. Determined by the frame layout in the metadata if not given.
-
-        box_height: int, optional
-            The height of the frame's rules box. Determined by the frame layout in the metadata if not given.
         """
 
-        if text is None:
-            text = self.get_metadata(CARD_RULES_TEXT)
+        text = self.get_metadata(CARD_RULES_TEXT)
         if len(text) == 0:
             return
 
@@ -1029,10 +799,10 @@ class Card:
             centered = True
             text = text.replace("{center}", "")
 
-        box_x = RULES_BOX_X[self.get_frame_layout()] if box_x is None else box_x
-        box_y = RULES_BOX_Y[self.get_frame_layout()] if box_y is None else box_y
-        box_width = RULES_BOX_WIDTH[self.get_frame_layout()] if box_width is None else box_width
-        box_height = RULES_BOX_HEIGHT[self.get_frame_layout()] if box_height is None else box_height
+        box_x = self.RULES_BOX_X
+        box_y = self.RULES_BOX_Y
+        box_width = self.RULES_BOX_WIDTH
+        box_height = self.RULES_BOX_HEIGHT
 
         text = self._replace_text_placeholders(text)
 
@@ -1040,9 +810,7 @@ class Card:
         raw_rules_text = flavor_split[0]
         raw_flavor_texts = flavor_split[1:] if len(flavor_split) > 1 else []
 
-        for font_size in range(
-            RULES_BOX_MAX_FONT_SIZE[self.get_frame_layout()], RULES_BOX_MIN_FONT_SIZE[self.get_frame_layout()] - 1, -1
-        ):
+        for font_size in range(self.RULES_BOX_MAX_FONT_SIZE, self.RULES_BOX_MIN_FONT_SIZE - 1, -1):
             rules_font = ImageFont.truetype(MPLANTIN, font_size)
             italics_font = ImageFont.truetype(MPLANTIN_ITALICS, font_size)
 
@@ -1081,7 +849,7 @@ class Card:
                     placeholder = f"[{token}]"
                     return int(rules_font.getlength(placeholder)), font_size, None
 
-                scale = MANA_SYMBOL_RULES_TEXT_SCALE[self.get_frame_layout()] * font_size / symbol.image.height
+                scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
                 width = int(symbol.image.width * scale)
                 height = int(symbol.image.height * scale)
                 symbol = symbol.get_formatted_image(width, height)
@@ -1121,7 +889,7 @@ class Card:
                         if curr_fragment and curr_width + width > max_line_width:
                             go_to_newline()
                         curr_fragment.append(("symbol", value, curr_font))
-                        curr_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
+                        curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     else:
                         for word in re.findall(r"\S+|\s+", value):
                             word = replace_ticks(word)
@@ -1183,13 +951,13 @@ class Card:
             content_height = 0
             for line in rules_lines:
                 if line[0][0] == "newline":
-                    content_height += line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO[self.get_frame_layout()]
+                    content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                 else:
                     content_height += line_height
             for lines in flavor_lines:
                 for line in lines:
                     if line[0][0] == "newline":
-                        content_height += line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO[self.get_frame_layout()]
+                        content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                     else:
                         content_height += line_height
                 content_height += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height
@@ -1201,9 +969,7 @@ class Card:
             draw = ImageDraw.Draw(image)
 
             # check for power/toughness overlap
-            power_toughness_x = POWER_TOUGHNESS_X[self.get_frame_layout()]
-            power_toughness_y = POWER_TOUGHNESS_Y[self.get_frame_layout()]
-            if box_y + usable_height >= power_toughness_y:
+            if box_y + usable_height >= self.POWER_TOUGHNESS_Y:
                 final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
@@ -1212,8 +978,8 @@ class Card:
                             final_line_width += draw.textlength(value, font=frag_font)
                     else:
                         width, _, _ = get_symbol_metrics(value)
-                        final_line_width += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
-                if box_x + final_line_width >= power_toughness_x:
+                        final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                if box_x + final_line_width >= self.POWER_TOUGHNESS_X:
                     continue
 
             curr_y = margin + (usable_height - content_height) // 2
@@ -1227,7 +993,7 @@ class Card:
                 for line_fragments in lines:
                     if line_fragments and line_fragments[0][0] == "newline":
                         curr_y += (
-                            line_height // RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO[self.get_frame_layout()]
+                            line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                         )  # add an extra gap for user-specified newlines
                         continue
 
@@ -1239,7 +1005,7 @@ class Card:
                                     total_line_length += draw.textlength(value, font=frag_font)
                             else:
                                 width, _, _ = get_symbol_metrics(value)
-                                total_line_length += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
+                                total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                         curr_x = (box_width - total_line_length) // 2
                     else:
                         curr_x = margin
@@ -1256,13 +1022,13 @@ class Card:
                                     symbol_image,
                                     (
                                         int(curr_x),
-                                        int(curr_y + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]),
+                                        int(curr_y + self.RULES_TEXT_MANA_SYMBOL_SPACING),
                                     ),
                                 )
                             else:
                                 placeholder = f"[{value}]"
                                 draw.text((curr_x, curr_y), placeholder, font=text_font, fill="red")
-                            curr_x += width + MANA_SYMBOL_RULES_TEXT_MARGIN[self.get_frame_layout()]
+                            curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     curr_y += line_height
 
             draw_lines(rules_lines, rules_font)
@@ -1282,62 +1048,21 @@ class Card:
 
         raise ValueError("Text is too long to fit in box even at minimum font size.")
 
-    def _create_power_toughness_layer(
-        self,
-        text: str = None,
-        power_toughness_x: int = None,
-        power_toughness_y: int = None,
-        power_toughness_width: int = None,
-        power_toughness_height: int = None,
-    ):
+    def _create_power_toughness_layer(self):
         """
         Process power & toughness text into the power & toughness area and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The power & toughness text to process. Uses the power & toughness in the card's metadata if not given.
-
-        power_toughness_x: int, optional
-            The leftmost x position of the power & touchness box.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_y: int, optional
-            The topmost y position of the power & touchness box.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_width: int, optional
-            The width of the frame's power & toughness area.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_height: int, optional
-            The height of the frame's power & toughness area.
-            Determined by the frame layout in the metadata if not given.
         """
 
-        if text is None:
-            text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
+        text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
         if len(text) == 0:
             return
 
-        power_toughness_x = (
-            POWER_TOUGHNESS_X[self.get_frame_layout()] if power_toughness_x is None else power_toughness_x
-        )
-        power_toughness_y = (
-            POWER_TOUGHNESS_Y[self.get_frame_layout()] if power_toughness_y is None else power_toughness_y
-        )
-        power_toughness_width = (
-            POWER_TOUGHNESS_WIDTH[self.get_frame_layout()] if power_toughness_width is None else power_toughness_width
-        )
-        power_toughness_height = (
-            POWER_TOUGHNESS_HEIGHT[self.get_frame_layout()]
-            if power_toughness_height is None
-            else power_toughness_height
-        )
+        power_toughness_x = self.POWER_TOUGHNESS_X
+        power_toughness_y = self.POWER_TOUGHNESS_Y
+        power_toughness_width = self.POWER_TOUGHNESS_WIDTH
+        power_toughness_height = self.POWER_TOUGHNESS_HEIGHT
 
-        power_toughness_font = ImageFont.truetype(
-            BELEREN_BOLD_SMALL_CAPS, POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
-        )
+        power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)
         image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
@@ -1349,82 +1074,8 @@ class Card:
             ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
             text,
             font=power_toughness_font,
-            fill=POWER_TOUGHNESS_FONT_COLOR[self.get_frame_layout()],
+            fill=self.POWER_TOUGHNESS_FONT_COLOR,
             anchor="lt",
-        )
-
-        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
-
-    def _create_reverse_power_toughness_layer(
-        self,
-        text: str = None,
-        power_toughness_x: int = None,
-        power_toughness_y: int = None,
-        power_toughness_width: int = None,
-        power_toughness_height: int = None,
-    ):
-        """
-        Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
-
-        Parameters
-        ----------
-        text: str, optional
-            The reverse power & toughness text to process.
-            Uses the power & toughness in the card's metadata if not given.
-
-        power_toughness_x: int, optional
-            The leftmost x position of the reverse power & toughness area.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_y: int, optional
-            The topmost y position of the reverse power & toughness area.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_width: int, optional
-            The width of the frame's reverse power & toughness area.
-            Determined by the frame layout in the metadata if not given.
-
-        power_toughness_height: int, optional
-            The height of the frame's reverse power & toughness area.
-            Determined by the frame layout in the metadata if not given.
-        """
-
-        if text is None:
-            text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)
-        if len(text) == 0:
-            return
-
-        power_toughness_x = (
-            REVERSE_POWER_TOUGHNESS_X[self.get_frame_layout()] if power_toughness_x is None else power_toughness_x
-        )
-        power_toughness_y = (
-            REVERSE_POWER_TOUGHNESS_Y[self.get_frame_layout()] if power_toughness_y is None else power_toughness_y
-        )
-        power_toughness_width = (
-            REVERSE_POWER_TOUGHNESS_WIDTH[self.get_frame_layout()]
-            if power_toughness_width is None
-            else power_toughness_width
-        )
-        power_toughness_height = (
-            REVERSE_POWER_TOUGHNESS_HEIGHT[self.get_frame_layout()]
-            if power_toughness_height is None
-            else power_toughness_height
-        )
-
-        power_toughness_font = ImageFont.truetype(
-            BELEREN_BOLD_SMALL_CAPS, REVERSE_POWER_TOUGHNESS_FONT_SIZE[self.get_frame_layout()]
-        )
-        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(image)
-
-        text_width = power_toughness_font.getlength(text)
-        bounding_box = power_toughness_font.getbbox(text)
-        text_height = int(bounding_box[3] - bounding_box[1])
-        draw.text(
-            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 4),
-            text,
-            font=power_toughness_font,
-            fill=REVERSE_POWER_TOUGHNESS_FONT_COLOR[self.get_frame_layout()],
         )
 
         self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
@@ -1436,7 +1087,6 @@ class Card:
 
         card_overlays = self.get_metadata(CARD_OVERLAYS)
         if len(card_overlays) == 0:
-            log("Did this happen?")
             return
 
         for image_path in card_overlays.split("\n"):

@@ -16,15 +16,14 @@ from constants import (
     CARD_CATEGORY,
     CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
+    CARD_FRAME_LAYOUT,
     CARD_FRONTSIDE,
-    CARD_HEIGHT,
     CARD_INDEX,
     CARD_LANGUAGE,
     CARD_ORDERER,
     CARD_RARITY,
     CARD_SET,
     CARD_TITLE,
-    CARD_WIDTH,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
     OUTPUT_ART_PATH,
@@ -32,6 +31,15 @@ from constants import (
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.Card import Card
+from model.battle.Battle import Battle
+from model.battle.TransformBattle import TransformBattle
+from model.token.RegularToken import RegularToken
+from model.token.ShortToken import ShortToken
+from model.token.TallToken import TallToken
+from model.token.TextlessToken import TextlessToken
+from model.transform.TransformBackside import TransformBackside
+from model.transform.TransformBacksideNoPip import TransformBacksideNoPip
+from model.transform.TransformFrontside import TransformFrontside
 from utils import cardname_to_filename, open_image
 
 
@@ -70,6 +78,23 @@ def process_spreadsheets(
         Each spreadsheet is in the form { card_title: card }.
     """
 
+    # Frame Layout to Subclass
+    layout_to_subclass = {
+        "regular": Card,
+        # Transform
+        "transform frontside": TransformFrontside,
+        "transform backside": TransformBackside,
+        "transform backside no pip": TransformBacksideNoPip,
+        # Token
+        "regular token": RegularToken,
+        "textless token": TextlessToken,
+        "short token": ShortToken,
+        "tall token": TallToken,
+        # Battle
+        "battle": Battle,
+        "transform battle": TransformBattle,
+    }
+
     card_spreadsheets: dict[str, dict[str, Card]] = {}
 
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
@@ -95,7 +120,9 @@ def process_spreadsheets(
                 card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
                 if len(card_title) == 0:
                     continue
-                card_spreadsheets[output_path][card_key] = Card(metadata=values)
+                frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
+                subclass = layout_to_subclass.get(frame_layout, Card)
+                card_spreadsheets[output_path][card_key] = subclass(metadata=values)
 
         def str_to_int(string: str, default: int) -> int:
             try:
@@ -111,14 +138,17 @@ def process_spreadsheets(
             except Exception:
                 return default
 
-        sorted_cards = sorted(
-            card_spreadsheets[output_path].values(),
-            key=lambda card: (
-                str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                str_to_int(card.get_metadata(CARD_ORDERER), 0),
-                card.get_metadata(CARD_TITLE),
-            ),
-        )
+        def get_sorted_cards():
+            return sorted(
+                card_spreadsheets[output_path].values(),
+                key=lambda card: (
+                    str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
+                    str_to_int(card.get_metadata(CARD_ORDERER), 0),
+                    card.get_metadata(CARD_TITLE),
+                ),
+            )
+
+        sorted_cards = get_sorted_cards()
 
         # Add indices to all the cards, for collector info
         category_indices: dict[str, int] = {}
@@ -133,10 +163,16 @@ def process_spreadsheets(
             category_indices[category] += 1
             card.add_metadata(CARD_INDEX, str(category_indices[category]))
 
-        # Replace empty columns in alternates with their original card's values
+        # Set largest index to all the cards for the footers
+        for card in sorted_cards:
+            card.footer_largest_index = category_indices[card.get_metadata(CARD_CATEGORY)]
+
+        # Give each alternate card a subclass based on their frame layout (now that they have one)
+        # Also replace empty columns in alternates with their original card's values
         for card in sorted_cards:
             card_title = card.get_metadata(CARD_TITLE)
             descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = f"{card_title}{f" - {descriptor}" if len(descriptor) > 0 else ""}"
 
             # skip if this isn't an alternate
             if len(descriptor) == 0:
@@ -147,10 +183,16 @@ def process_spreadsheets(
                 for key, value in card.metadata.items():
                     if len(value) == 0:
                         card.add_metadata(key, original_card.get_metadata(key))
+                frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
+                subclass = layout_to_subclass.get(frame_layout, Card)
+                if subclass is not Card:
+                    card_spreadsheets[output_path][card_key] = subclass(metadata=card.metadata)
             else:
                 log(f"Could not find '{card_title}' as an original card of an alternate.")
 
-        # Add transform backsides to the transform cards
+        sorted_cards = get_sorted_cards()
+
+        # Add transform backsides to the transform cards and delete them from the dictionary
         # If the backside is missing any collector columns, copy them from the frontside
         for card in sorted_cards:
             frontside_title = card.get_metadata(CARD_FRONTSIDE)
@@ -177,6 +219,7 @@ def process_spreadsheets(
             del card_spreadsheets[output_path][card_key]
 
         # Remove any cards that aren't on the whitelist
+        # We have to do this last so alternates can still read their info off the original
         for card_key, card in list(card_spreadsheets[output_path].items()):
             card_category = card.get_metadata(CARD_CATEGORY)
             if (
@@ -199,7 +242,6 @@ def process_spreadsheets(
                     idx -= 1
                 idx += 1
 
-    log(card_spreadsheets[output_path])
     return card_spreadsheets
 
 
@@ -241,91 +283,22 @@ def render_cards(card_spreadsheets: dict[str, dict[str, Card]]):
         log()
 
 
-def capture_art(card_spreadsheets: dict[str, dict[str, Card]], smart: bool = True):
+def capture_art():
+    for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
+        log(f"Extracting art from '{card_path}'...")
 
-    if smart:
-        for output_path, spreadsheet in card_spreadsheets.items():
-            log(f"Processing spreadsheet at '{output_path}'...")
-            increase_log_indent()
-
-            for card in spreadsheet.values():
-                card_title = card.get_metadata(CARD_TITLE)
-                card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-                card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
-                card_filename = cardname_to_filename(card_key)
-                card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
-
-                log(f"Extracting art from '{card_path}'...")
-                increase_log_indent()
-
-                card_image = open_image(card_path)
-                if card_image is None:
-                    log(f"Couldn't find image at '{card_path}'")
-                    decrease_log_indent()
-                    continue
-
-                art_bounding_box = (
-                    ART_X[card.get_frame_layout()],
-                    ART_Y[card.get_frame_layout()],
-                    ART_X[card.get_frame_layout()] + ART_WIDTH[card.get_frame_layout()],
-                    ART_Y[card.get_frame_layout()] + ART_HEIGHT[card.get_frame_layout()],
-                )
-                art = card_image.crop(art_bounding_box)
-                base_image = Image.new("RGBA", (card.base_width, card.base_height), (0, 0, 0, 0))
-                base_image.paste(art, art_bounding_box)
-                base_image.save(f"{OUTPUT_ART_PATH}/{card_filename}.png")
-
-                for backside in card.get_metadata(CARD_BACKSIDES, []):
-                    backside_title = backside.get_metadata(CARD_TITLE)
-                    backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                    backside_key = (
-                        f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
-                    )
-                    backside_filename = cardname_to_filename(backside_key)
-                    backside_path = f"{INPUT_CARDS_PATH}/{backside_filename}.png"
-
-                    log(f"Extracting art from '{backside_path}'...")
-                    increase_log_indent()
-
-                    backside_image = open_image(backside_path)
-                    if backside_image is None:
-                        log(f"Couldn't find image at '{card_path}'")
-                        decrease_log_indent()
-                        continue
-
-                    art_bounding_box = (
-                        ART_X[backside.get_frame_layout()],
-                        ART_Y[backside.get_frame_layout()],
-                        ART_X[backside.get_frame_layout()] + ART_WIDTH[backside.get_frame_layout()],
-                        ART_Y[backside.get_frame_layout()] + ART_HEIGHT[backside.get_frame_layout()],
-                    )
-                    art = backside_image.crop(art_bounding_box)
-                    base_image = Image.new("RGBA", (backside.base_width, backside.base_height), (0, 0, 0, 0))
-                    base_image.paste(art, art_bounding_box)
-                    base_image.save(f"{OUTPUT_ART_PATH}/{backside_filename}.png")
-
-                    decrease_log_indent()
-
-                decrease_log_indent()
-
-            decrease_log_indent()
-
-    else:
-        for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
-            log(f"Extracting art from '{card_path}'...")
-
-            card_image = open_image(card_path)
-            art_bounding_box = (
-                ART_X[""],
-                ART_Y[""],
-                ART_X[""] + ART_WIDTH[""],
-                ART_Y[""] + ART_HEIGHT[""],
-            )
-            art = card_image.crop(art_bounding_box)
-            base_image = Image.new("RGBA", (CARD_WIDTH[""], CARD_HEIGHT[""]), (0, 0, 0, 0))
-            base_image.paste(art, art_bounding_box)
-            card_name = card_path[card_path.rfind("\\") + 1 :]
-            base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
+        card_image = open_image(card_path)
+        art_bounding_box = (
+            ART_X,
+            ART_Y,
+            ART_X + ART_WIDTH,
+            ART_Y + ART_HEIGHT,
+        )
+        art = card_image.crop(art_bounding_box)
+        base_image = Image.new("RGBA", (1500, 2100), (0, 0, 0, 0))
+        base_image.paste(art, art_bounding_box)
+        card_name = card_path[card_path.rfind("\\") + 1 :]
+        base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 
 def main(
@@ -370,12 +343,7 @@ def main(
         pass  # TODO
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
-        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
-        capture_art(card_spreadsheets)
-    elif action == ACTIONS[3]:
-        log("Capturing art from existing cards...")
-        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
-        capture_art(card_spreadsheets, smart=False)
+        capture_art()
 
 
 if __name__ == "__main__":
