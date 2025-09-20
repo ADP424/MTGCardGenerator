@@ -30,16 +30,17 @@ from constants import (
     OUTPUT_CARDS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
+from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
-from model.transform.TransformBackside import TransformBackside
-from model.transform.TransformBacksideNoPip import TransformBacksideNoPip
-from model.transform.TransformFrontside import TransformFrontside
+from model.transform.backside.TransformBackside import TransformBackside
+from model.transform.backside.TransformBacksideNoPip import TransformBacksideNoPip
+from model.transform.frontside.TransformFrontside import TransformFrontside
 from utils import cardname_to_filename, open_image
 
 
@@ -49,7 +50,7 @@ def process_spreadsheets(
     do_basic_lands: bool = True,
     do_alts: bool = True,
     card_names_whitelist: list[str] = None,
-) -> dict[str, dict[str, Card]]:
+) -> dict[str, dict[str, RegularCard]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
 
@@ -73,14 +74,14 @@ def process_spreadsheets(
 
     Returns
     -------
-    dict[str, dict[str, Card]]
+    dict[str, dict[str, RegularCard]]
         A dictionary of spreadsheets in the form { output_directory: spreadsheet }.
         Each spreadsheet is in the form { card_title: card }.
     """
 
     # Frame Layout to Subclass
     layout_to_subclass = {
-        "regular": Card,
+        "regular": RegularCard,
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
@@ -90,12 +91,14 @@ def process_spreadsheets(
         "textless token": TextlessToken,
         "short token": ShortToken,
         "tall token": TallToken,
+        # Planeswalker
+        "regular planeswalker": RegularPlaneswalker,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,
     }
 
-    card_spreadsheets: dict[str, dict[str, Card]] = {}
+    card_spreadsheets: dict[str, dict[str, RegularCard]] = {}
 
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
         if spreadsheet_path.rfind("-") >= 0:
@@ -121,7 +124,7 @@ def process_spreadsheets(
                 if len(card_title) == 0:
                     continue
                 frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
-                subclass = layout_to_subclass.get(frame_layout, Card)
+                subclass = layout_to_subclass.get(frame_layout, RegularCard)
                 card_spreadsheets[output_path][card_key] = subclass(metadata=values)
 
         def str_to_int(string: str, default: int) -> int:
@@ -154,14 +157,14 @@ def process_spreadsheets(
         category_indices: dict[str, int] = {}
         for card in sorted_cards:
             if len(card.get_metadata(CARD_FRONTSIDE)) > 0:
-                card.add_metadata(CARD_INDEX, "")
+                card.set_metadata(CARD_INDEX, "")
                 continue
 
             category = card.get_metadata(CARD_CATEGORY)
             if not category_indices.get(category, False):
                 category_indices[category] = 0
             category_indices[category] += 1
-            card.add_metadata(CARD_INDEX, str(category_indices[category]))
+            card.set_metadata(CARD_INDEX, str(category_indices[category]))
 
         # Set largest index to all the cards for the footers
         for card in sorted_cards:
@@ -182,10 +185,10 @@ def process_spreadsheets(
             if original_card is not None:
                 for key, value in card.metadata.items():
                     if len(value) == 0:
-                        card.add_metadata(key, original_card.get_metadata(key))
+                        card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
-                subclass = layout_to_subclass.get(frame_layout, Card)
-                if subclass is not Card:
+                subclass = layout_to_subclass.get(frame_layout, RegularCard)
+                if subclass is not RegularCard:
                     card_spreadsheets[output_path][card_key] = subclass(metadata=card.metadata)
             else:
                 log(f"Could not find '{card_title}' as an original card of an alternate.")
@@ -208,8 +211,8 @@ def process_spreadsheets(
                         key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_SET, CARD_LANGUAGE)
                         and len(value) == 0
                     ):
-                        card.add_metadata(key, frontside_card.get_metadata(key))
-                frontside_card.add_metadata(CARD_BACKSIDES, card, append=True)
+                        card.set_metadata(key, frontside_card.get_metadata(key))
+                frontside_card.set_metadata(CARD_BACKSIDES, card, append=True)
             else:
                 log(f"Could not find '{frontside_title}' as a frontside.")
 
@@ -245,7 +248,7 @@ def process_spreadsheets(
     return card_spreadsheets
 
 
-def render_cards(card_spreadsheets: dict[str, dict[str, Card]]):
+def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
     for output_path, spreadsheet in card_spreadsheets.items():
         log(f"Processing spreadsheet at '{output_path}'...")
         increase_log_indent()

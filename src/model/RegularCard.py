@@ -42,7 +42,7 @@ from model.Layer import Layer
 from utils import cardname_to_filename, open_image, replace_ticks
 
 
-class Card:
+class RegularCard:
     """
     A layered image representing a card and all the collection info on it, with all relevant card metadata.
 
@@ -75,7 +75,7 @@ class Card:
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -136,6 +136,12 @@ class Card:
         self.RULES_BOX_MIN_FONT_SIZE = 6
 
         # Rules Text
+        self.RULES_TEXT_X = 112
+        self.RULES_TEXT_Y = 1315
+        self.RULES_TEXT_WIDTH = 1278
+        self.RULES_TEXT_HEIGHT = 623
+        self.RULES_TEXT_FONT = MPLANTIN
+        self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
@@ -279,7 +285,7 @@ class Card:
 
         return composite_image
 
-    def get_metadata(self, key: str, default: str | list["Card"] = "") -> str | list["Card"]:
+    def get_metadata(self, key: str, default: str | list["RegularCard"] = "") -> str | list["RegularCard"]:
         """
         Fetch an entry from the card's metadata.
 
@@ -298,7 +304,7 @@ class Card:
 
         return self.metadata.get(key, default)
 
-    def add_metadata(self, key: str, value: str, append: bool = False):
+    def set_metadata(self, key: str, value: str, append: bool = False):
         """
         Add new metadata to the card. If `append = True`, try to append the value to the existing
         metadata entry instead.
@@ -784,142 +790,148 @@ class Card:
         new_text = re.sub("{-}", "—", new_text)
         return new_text
 
-    def _create_rules_text_layer(self):
+    def _get_symbol_metrics(
+        self, token: str, font: ImageFont.FreeTypeFont, font_size: int
+    ) -> tuple[int, int, Image.Image | None]:
         """
-        Process MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,
-        and append it to `self.text_layers`.
+        Return (width, height, Image | None) scaled to current font size.
         """
 
-        text = self.get_metadata(CARD_RULES_TEXT)
-        if len(text) == 0:
-            return
+        symbol = SYMBOL_PLACEHOLDER_KEY.get(token.lower(), None)
 
-        centered = False
-        if "{center}" in text:
-            centered = True
-            text = text.replace("{center}", "")
+        if symbol is None:
+            placeholder = f"[{token}]"
+            return int(font.getlength(placeholder)), font_size, None
 
-        box_x = self.RULES_BOX_X
-        box_y = self.RULES_BOX_Y
-        box_width = self.RULES_BOX_WIDTH
-        box_height = self.RULES_BOX_HEIGHT
+        scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
+        width = int(symbol.image.width * scale)
+        height = int(symbol.image.height * scale)
+        symbol = symbol.get_formatted_image(width, height)
+        return width, height, symbol
 
-        text = self._replace_text_placeholders(text)
+    def _get_rules_text_layout(self, text: str) -> tuple[
+        list[list[tuple[str, str, ImageFont.FreeTypeFont]]],
+        list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]],
+        int,
+        int,
+        int,
+        int,
+    ]:
+        """
+        Get all the rules text properly laid out into words, lines, and symbols.
+        Helper function for `_create_rules_text_layer`.
+
+        Returns
+        -------
+        tuple[
+            list[list[tuple[str, str, ImageFont.FreeTypeFont]]],
+            list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]],
+            int,
+            int,
+            int,
+            int,
+        ]
+            The lines of rules text, the lines of flavor text, the font size, the margin size,
+            the height of the content, and the maximum usable height of the rules box
+        """
 
         flavor_split: list[str] = re.split(r"\{flavor\}", text)
         raw_rules_text = flavor_split[0]
         raw_flavor_texts = flavor_split[1:] if len(flavor_split) > 1 else []
 
+        def parse_fragments(line: str) -> list[tuple[str, str]]:
+            """
+            Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off"), ...]
+            """
+            fragments = []
+            parts = PLACEHOLDER_REGEX.split(line)
+            for i, part in enumerate(parts):
+                if i % 2 == 0:
+                    if part:
+                        fragments.append(("text", part))
+                else:
+                    token = part.strip()
+                    if token == "I":
+                        fragments.append(("format", "italic_on"))
+                    elif token == "\\I":
+                        fragments.append(("format", "italic_off"))
+                    else:
+                        fragments.append(("symbol", token))
+            return fragments
+
+        def wrap_text_fragments(
+            frags: list[tuple[str, str]], regular_font: ImageFont.FreeTypeFont, italic_font: ImageFont.FreeTypeFont
+        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
+            """
+            Split the lines into individual words and symbols, then wrap them so that they fit within
+            `max_line_width` (based on rules box size and margins).
+            """
+
+            lines = []
+            curr_fragment = []
+            curr_width = 0
+            curr_font = regular_font
+
+            def go_to_newline():
+                nonlocal curr_fragment, curr_width
+                if curr_fragment:
+                    lines.append(curr_fragment)
+                curr_fragment, curr_width = [], 0
+
+            for kind, value in frags:
+                if kind == "format":
+                    if value == "italic_on":
+                        curr_font = italic_font
+                    elif value == "italic_off":
+                        curr_font = regular_font
+                    continue
+                elif kind == "symbol":
+                    if value.lower() == "lns":
+                        go_to_newline()
+                        continue
+                    width, _, _ = self._get_symbol_metrics(value, curr_font, font_size)
+                    if curr_fragment and curr_width + width > max_line_width:
+                        go_to_newline()
+                    curr_fragment.append(("symbol", value, curr_font))
+                    curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                else:
+                    for word in re.findall(r"\S+|\s+", value):
+                        word = replace_ticks(word)
+                        width = curr_font.getlength(word)
+
+                        if word.isspace():
+                            if not curr_fragment:
+                                continue
+                            if curr_width + width > max_line_width:
+                                go_to_newline()
+                                continue
+                            curr_fragment.append(("text", word, curr_font))
+                            curr_width += width
+                        else:
+                            if curr_fragment and curr_width + width > max_line_width:
+                                go_to_newline()
+                            if width > max_line_width:
+                                for char in word:
+                                    char_width = curr_font.getlength(char)
+                                    if curr_fragment and curr_width + char_width > max_line_width:
+                                        go_to_newline()
+                                    curr_fragment.append(("text", char, curr_font))
+                                    curr_width += char_width
+                            else:
+                                curr_fragment.append(("text", word, curr_font))
+                                curr_width += width
+
+            if curr_fragment:
+                lines.append(curr_fragment)
+            return lines
+
         for font_size in range(self.RULES_BOX_MAX_FONT_SIZE, self.RULES_BOX_MIN_FONT_SIZE - 1, -1):
-            rules_font = ImageFont.truetype(MPLANTIN, font_size)
-            italics_font = ImageFont.truetype(MPLANTIN_ITALICS, font_size)
+            rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
+            italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
 
             line_height = font_size
             margin = int(font_size * 0.25)
-            max_line_width = box_width - 2 * margin
-
-            def parse_fragments(line: str) -> list[tuple[str, str]]:
-                """
-                Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off"), ...]
-                """
-                fragments = []
-                parts = PLACEHOLDER_REGEX.split(line)
-                for i, part in enumerate(parts):
-                    if i % 2 == 0:
-                        if part:
-                            fragments.append(("text", part))
-                    else:
-                        token = part.strip()
-                        if token == "I":
-                            fragments.append(("format", "italic_on"))
-                        elif token == "\\I":
-                            fragments.append(("format", "italic_off"))
-                        else:
-                            fragments.append(("symbol", token))
-                return fragments
-
-            def get_symbol_metrics(token: str) -> tuple[int, int, Image.Image | None]:
-                """
-                Return (width, height, Image | None) scaled to current font size.
-                """
-
-                symbol = SYMBOL_PLACEHOLDER_KEY.get(token.lower(), None)
-
-                if symbol is None:
-                    placeholder = f"[{token}]"
-                    return int(rules_font.getlength(placeholder)), font_size, None
-
-                scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
-                width = int(symbol.image.width * scale)
-                height = int(symbol.image.height * scale)
-                symbol = symbol.get_formatted_image(width, height)
-                return width, height, symbol
-
-            def wrap_text_fragments(
-                frags: list[tuple[str, str]], regular_font: ImageFont.FreeTypeFont, italic_font: ImageFont.FreeTypeFont
-            ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
-                """
-                Split the lines into individual words and symbols, then wrap them so that they fit within
-                `max_line_width` (based on rules box size and margins).
-                """
-
-                lines = []
-                curr_fragment = []
-                curr_width = 0
-                curr_font = regular_font
-
-                def go_to_newline():
-                    nonlocal curr_fragment, curr_width
-                    if curr_fragment:
-                        lines.append(curr_fragment)
-                    curr_fragment, curr_width = [], 0
-
-                for kind, value in frags:
-                    if kind == "format":
-                        if value == "italic_on":
-                            curr_font = italic_font
-                        elif value == "italic_off":
-                            curr_font = regular_font
-                        continue
-                    elif kind == "symbol":
-                        if value.lower() == "lns":
-                            go_to_newline()
-                            continue
-                        width, _, _ = get_symbol_metrics(value)
-                        if curr_fragment and curr_width + width > max_line_width:
-                            go_to_newline()
-                        curr_fragment.append(("symbol", value, curr_font))
-                        curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                    else:
-                        for word in re.findall(r"\S+|\s+", value):
-                            word = replace_ticks(word)
-                            width = curr_font.getlength(word)
-
-                            if word.isspace():
-                                if not curr_fragment:
-                                    continue
-                                if curr_width + width > max_line_width:
-                                    go_to_newline()
-                                    continue
-                                curr_fragment.append(("text", word, curr_font))
-                                curr_width += width
-                            else:
-                                if curr_fragment and curr_width + width > max_line_width:
-                                    go_to_newline()
-                                if width > max_line_width:
-                                    for char in word:
-                                        char_width = curr_font.getlength(char)
-                                        if curr_fragment and curr_width + char_width > max_line_width:
-                                            go_to_newline()
-                                        curr_fragment.append(("text", char, curr_font))
-                                        curr_width += char_width
-                                else:
-                                    curr_fragment.append(("text", word, curr_font))
-                                    curr_width += width
-
-                if curr_fragment:
-                    lines.append(curr_fragment)
-                return lines
+            max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
 
             # Split the rules text into lines that fit the rules box horizontally
             rules_lines: list[list[tuple[str, str, ImageFont.FreeTypeFont]]] = []
@@ -961,92 +973,116 @@ class Card:
                     else:
                         content_height += line_height
                 content_height += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height
-            usable_height = box_height - 2 * margin
+            usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
 
-            image = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(image)
-
             # check for power/toughness overlap
-            if box_y + usable_height >= self.POWER_TOUGHNESS_Y:
+            if self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y:
                 final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
                     if kind == "text":
                         if value:
-                            final_line_width += draw.textlength(value, font=frag_font)
+                            final_line_width += frag_font.getlength(value)
                     else:
-                        width, _, _ = get_symbol_metrics(value)
+                        width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                if box_x + final_line_width >= self.POWER_TOUGHNESS_X:
+                if self.RULES_TEXT_X + final_line_width >= self.POWER_TOUGHNESS_X:
+                    continue
+            break
+        else:
+            raise ValueError("Text is too long to fit in box even at minimum font size.")
+
+        return rules_lines, flavor_lines, font_size, margin, content_height, usable_height
+
+    def _create_rules_text_layer(self):
+        """
+        Process MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,
+        and append it to `self.text_layers`.
+        """
+
+        text = self.get_metadata(CARD_RULES_TEXT)
+        if len(text) == 0:
+            return
+
+        centered = False
+        if "{center}" in text:
+            centered = True
+            text = text.replace("{center}", "")
+        text = self._replace_text_placeholders(text)
+
+        rules_lines, flavor_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
+
+        rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
+        italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
+
+        image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        line_height = font_size
+        curr_y = margin + (usable_height - content_height) // 2
+
+        def draw_lines(lines: list[list[tuple[str, str, str]]], text_font: ImageFont.ImageFont):
+            """
+            Render lines of text as images.
+            """
+
+            nonlocal curr_y
+            for line_fragments in lines:
+                if line_fragments and line_fragments[0][0] == "newline":
+                    curr_y += (
+                        line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
+                    )  # add an extra gap for user-specified newlines
                     continue
 
-            curr_y = margin + (usable_height - content_height) // 2
-
-            def draw_lines(lines: list[list[tuple[str, str, str]]], text_font: ImageFont.ImageFont):
-                """
-                Render lines of text as images.
-                """
-
-                nonlocal curr_y
-                for line_fragments in lines:
-                    if line_fragments and line_fragments[0][0] == "newline":
-                        curr_y += (
-                            line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
-                        )  # add an extra gap for user-specified newlines
-                        continue
-
-                    if centered:
-                        total_line_length = 0
-                        for kind, value, frag_font in line_fragments:
-                            if kind == "text":
-                                if value:
-                                    total_line_length += draw.textlength(value, font=frag_font)
-                            else:
-                                width, _, _ = get_symbol_metrics(value)
-                                total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                        curr_x = (box_width - total_line_length) // 2
-                    else:
-                        curr_x = margin
-
+                if centered:
+                    total_line_length = 0
                     for kind, value, frag_font in line_fragments:
                         if kind == "text":
                             if value:
-                                draw.text((curr_x, curr_y), value, font=frag_font, fill="black")
-                                curr_x += draw.textlength(value, font=frag_font)
+                                total_line_length += draw.textlength(value, font=frag_font)
                         else:
-                            width, _, symbol_image = get_symbol_metrics(value)
-                            if symbol_image is not None:
-                                image.alpha_composite(
-                                    symbol_image,
-                                    (
-                                        int(curr_x),
-                                        int(curr_y + self.RULES_TEXT_MANA_SYMBOL_SPACING),
-                                    ),
-                                )
-                            else:
-                                placeholder = f"[{value}]"
-                                draw.text((curr_x, curr_y), placeholder, font=text_font, fill="red")
-                            curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                    curr_y += line_height
+                            width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
+                            total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                    curr_x = (self.RULES_TEXT_WIDTH - total_line_length) // 2
+                else:
+                    curr_x = margin
 
-            draw_lines(rules_lines, rules_font)
-            for lines in flavor_lines:
-                curr_y += line_height // 2
-                image.alpha_composite(
-                    SYMBOL_PLACEHOLDER_KEY["flavor"].image.resize(
-                        (box_width, SYMBOL_PLACEHOLDER_KEY["flavor"].image.height)
-                    ),
-                    (0, curr_y),
-                )
-                curr_y += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height // 2
-                draw_lines(lines, italics_font)
+                for kind, value, frag_font in line_fragments:
+                    if kind == "text":
+                        if value:
+                            draw.text((curr_x, curr_y), value, font=frag_font, fill="black")
+                            curr_x += draw.textlength(value, font=frag_font)
+                    else:
+                        width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
+                        if symbol_image is not None:
+                            image.alpha_composite(
+                                symbol_image,
+                                (
+                                    int(curr_x),
+                                    int(curr_y + self.RULES_TEXT_MANA_SYMBOL_SPACING),
+                                ),
+                            )
+                        else:
+                            placeholder = f"[{value}]"
+                            draw.text((curr_x, curr_y), placeholder, font=text_font, fill="red")
+                        curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                curr_y += line_height
 
-            self.text_layers.append(Layer(image, (box_x, box_y)))
-            return
+        draw_lines(rules_lines, rules_font)
+        for lines in flavor_lines:
+            curr_y += line_height // 2
+            image.alpha_composite(
+                SYMBOL_PLACEHOLDER_KEY["flavor"].image.resize(
+                    (self.RULES_TEXT_WIDTH, SYMBOL_PLACEHOLDER_KEY["flavor"].image.height)
+                ),
+                (0, curr_y),
+            )
+            curr_y += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height // 2
+            draw_lines(lines, italics_font)
 
-        raise ValueError("Text is too long to fit in box even at minimum font size.")
+        self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
 
     def _create_power_toughness_layer(self):
         """

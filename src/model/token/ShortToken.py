@@ -1,9 +1,9 @@
-from constants import BELEREN_BOLD_SMALL_CAPS
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
+from model.token.RegularToken import RegularToken
 
 
-class ShortToken(Card):
+class ShortToken(RegularToken):
     """
     A layered image representing a short token and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +37,7 @@ class ShortToken(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -49,17 +49,16 @@ class ShortToken(Card):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Title Text
-        self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
-        self.TITLE_FONT_COLOR = (255, 255, 255)
-        self.TITLE_TEXT_ALIGN = "center"
-
         # Type Text
         self.TYPE_Y = 1424
 
         # Rules Text Box
         self.RULES_BOX_Y = 1555
         self.RULES_BOX_HEIGHT = 377
+
+        # Rules Text
+        self.RULES_TEXT_Y = 1555
+        self.RULES_TEXT_HEIGHT = 377
 
         # Watermark
         self.WATERMARK_HEIGHT = 240

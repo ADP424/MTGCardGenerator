@@ -1,9 +1,10 @@
 from constants import BELEREN_BOLD_SMALL_CAPS
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
+from model.token.RegularToken import RegularToken
 
 
-class TallToken(Card):
+class TallToken(RegularToken):
     """
     A layered image representing a tall token and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +38,7 @@ class TallToken(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -49,7 +50,19 @@ class TallToken(Card):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Title Text
-        self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
-        self.TITLE_FONT_COLOR = (255, 255, 255)
-        self.TITLE_TEXT_ALIGN = "center"
+        # Type Text
+        self.TYPE_Y = 1190
+
+        # Rules Text Box
+        self.RULES_BOX_Y = 1315
+        self.RULES_BOX_HEIGHT = 623
+
+        # Rules Text
+        self.RULES_TEXT_Y = 1315
+        self.RULES_TEXT_HEIGHT = 623
+
+        # Watermark
+        self.WATERMARK_HEIGHT = 480
+
+        # Set / Rarity Symbol
+        self.SET_SYMBOL_Y = 1198

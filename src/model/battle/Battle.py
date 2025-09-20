@@ -1,8 +1,8 @@
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
 
 
-class Battle(Card):
+class Battle(RegularCard):
     """
     A layered image representing a battle card and all the collection info on it,
     with all relevant card metadata.
@@ -36,7 +36,7 @@ class Battle(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -88,6 +88,10 @@ class Battle(Card):
         self.RULES_BOX_MIN_FONT_SIZE = 8
 
         # Rules Text
+        self.RULES_TEXT_X = 324
+        self.RULES_TEXT_Y = 1339
+        self.RULES_TEXT_WIDTH = 2291
+        self.RULES_TEXT_HEIGHT = 579
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 7
 
         # Power & Toughness Text

@@ -143,6 +143,12 @@ GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
 # Other Mana
 SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
 
+# Planeswalker
+PLANESWALKER_ABILITY_BODY_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/even.png")
+PLANESWALKER_ABILITY_BODY_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/odd.png")
+PLANESWALKER_ABILITY_TOP_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/even.png")
+PLANESWALKER_ABILITY_TOP_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/odd.png")
+
 # Other
 FLAVOR_DIVIDING_LINE = open_image("images/flavor_divider.png")
 ARTIST_BRUSH = open_image("images/collector_info/artist_brush.png")

@@ -1,11 +1,11 @@
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_REVERSE_POWER_TOUGHNESS
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
 
 
-class TransformFrontside(Card):
+class TransformFrontside(RegularCard):
     """
     A layered image representing a transform frontside and all the collection info on it,
     with all relevant card metadata.
@@ -39,7 +39,7 @@ class TransformFrontside(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

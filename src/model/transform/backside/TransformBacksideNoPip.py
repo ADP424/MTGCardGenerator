@@ -1,8 +1,9 @@
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
+from model.transform.backside.TransformBackside import TransformBackside
 
 
-class TransformBacksideNoPip(Card):
+class TransformBacksideNoPip(TransformBackside):
     """
     A layered image representing a transform backside (without a color pip) and all the
     collection info on it, with all relevant card metadata.
@@ -36,7 +37,7 @@ class TransformBacksideNoPip(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -48,13 +49,6 @@ class TransformBacksideNoPip(Card):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Title Box
-        self.TITLE_BOX_WIDTH = 1183
-
-        # Title Text
-        self.TITLE_WIDTH = 1158
-        self.TITLE_FONT_COLOR = (255, 255, 255)
-
         # Type Text
-        self.TYPE_FONT_COLOR = (255, 255, 255)
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        self.TYPE_X = 128
+        self.TYPE_WIDTH = 1244

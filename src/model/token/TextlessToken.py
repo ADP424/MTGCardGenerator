@@ -1,9 +1,9 @@
-from constants import BELEREN_BOLD_SMALL_CAPS
-from model.Card import Card
+from model.RegularCard import RegularCard
 from model.Layer import Layer
+from model.token.RegularToken import RegularToken
 
 
-class TextlessToken(Card):
+class TextlessToken(RegularToken):
     """
     A layered image representing a textless token and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +37,7 @@ class TextlessToken(Card):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["Card"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -48,11 +48,6 @@ class TextlessToken(Card):
         super().__init__(
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
-
-        # Title Text
-        self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
-        self.TITLE_FONT_COLOR = (255, 255, 255)
-        self.TITLE_TEXT_ALIGN = "center"
 
         # Type Text
         self.TYPE_Y = 1718
