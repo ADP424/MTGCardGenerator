@@ -143,11 +143,16 @@ GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
 # Other Mana
 SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
 
-# Planeswalker
+# Planeswalker Abilities
 PLANESWALKER_ABILITY_BODY_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/even.png")
 PLANESWALKER_ABILITY_BODY_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/odd.png")
 PLANESWALKER_ABILITY_TOP_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/even.png")
 PLANESWALKER_ABILITY_TOP_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/odd.png")
+
+# Planeswalker Ability Cost Borders
+PLANESWALKER_ABILITY_COST_BORDER_POSITIVE = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/positive.png")
+PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/negative.png")
+PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/neutral.png")
 
 # Other
 FLAVOR_DIVIDING_LINE = open_image("images/flavor_divider.png")

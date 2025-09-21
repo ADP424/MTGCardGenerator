@@ -21,6 +21,35 @@ def open_image(filepath: str) -> Image.Image | None:
         return Image.open(filepath).convert("RGBA")
     except Exception:
         return None
+    
+
+def paste_image(image: Image.Image, base_image: Image.Image, position: tuple[int, int]) -> Image.Image:
+    """
+    Paste an image onto the given base image.
+
+    Parameters
+    ----------
+    image: Image
+        The image to paste onto the `base_image`.
+
+    base_image: Image
+        The image to paste `image` onto at the given `position`.
+    
+    position: tuple[int, int]
+        The position to paste `image` onto `base_image` as (x, y).
+
+    Returns
+    -------
+    Image
+        The result of `image` pasted onto `base_image` at `position`.
+        Returns the base_image unchanged if `image` is None.
+    """
+
+    if image is not None:
+        temp = Image.new("RGBA", base_image.size, (0, 0, 0, 0))
+        temp.paste(image, position)
+        return Image.alpha_composite(base_image, temp)
+    return base_image
 
 
 def replace_ticks(word: str) -> str:

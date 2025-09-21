@@ -39,7 +39,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from utils import cardname_to_filename, open_image, replace_ticks
+from utils import cardname_to_filename, open_image, paste_image, replace_ticks
 
 
 class RegularCard:
@@ -278,10 +278,7 @@ class RegularCard:
         for layer in (
             [self.art_layer] + self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers
         ):
-            temp = Image.new("RGBA", composite_image.size, (0, 0, 0, 0))
-            if layer.image is not None:
-                temp.paste(layer.image, layer.position)
-                composite_image = Image.alpha_composite(composite_image, temp)
+            composite_image = paste_image(layer.image, composite_image, layer.position)
 
         return composite_image
 
@@ -1093,13 +1090,8 @@ class RegularCard:
         if len(text) == 0:
             return
 
-        power_toughness_x = self.POWER_TOUGHNESS_X
-        power_toughness_y = self.POWER_TOUGHNESS_Y
-        power_toughness_width = self.POWER_TOUGHNESS_WIDTH
-        power_toughness_height = self.POWER_TOUGHNESS_HEIGHT
-
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)
-        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
+        image = Image.new("RGBA", (self.POWER_TOUGHNESS_WIDTH, self.POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         text_width = int(power_toughness_font.getlength(text))
@@ -1107,14 +1099,14 @@ class RegularCard:
         text_height = int(bounding_box[3] - bounding_box[1])
 
         draw.text(
-            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
+            ((self.POWER_TOUGHNESS_WIDTH - text_width) // 2, (self.POWER_TOUGHNESS_HEIGHT - text_height) // 2),
             text,
             font=power_toughness_font,
             fill=self.POWER_TOUGHNESS_FONT_COLOR,
             anchor="lt",
         )
 
-        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
+        self.text_layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
 
     def _create_overlay_layers(self):
         """
