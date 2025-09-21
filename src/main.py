@@ -34,6 +34,7 @@ from model.RegularCard import RegularCard
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
+from model.saga.RegularSaga import RegularSaga
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
@@ -93,6 +94,8 @@ def process_spreadsheets(
         "tall token": TallToken,
         # Planeswalker
         "regular planeswalker": RegularPlaneswalker,
+        # Saga
+        "regular saga": RegularSaga,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,

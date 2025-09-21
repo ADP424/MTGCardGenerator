@@ -3,8 +3,10 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
     ADD_TOTAL_TO_FOOTER,
+    ARTIST_BRUSH,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
+    FLAVOR_DIVIDING_LINE,
     INPUT_ART_PATH,
     BELEREN_BOLD_SMALL_CAPS,
     CARD_CREATION_DATE,
@@ -563,11 +565,10 @@ class RegularCard:
             stroke_fill="black",
         )
 
-        artist_brush = SYMBOL_PLACEHOLDER_KEY.get("artist_brush")
-        scale = self.FOOTER_FONT_SIZE / artist_brush.image.height
-        artist_brush_width = int(artist_brush.image.width * scale)
-        artist_brush_height = int(artist_brush.image.height * scale)
-        artist_brush_image = artist_brush.get_formatted_image(
+        scale = self.FOOTER_FONT_SIZE / ARTIST_BRUSH.image.height
+        artist_brush_width = int(ARTIST_BRUSH.image.width * scale)
+        artist_brush_height = int(ARTIST_BRUSH.image.height * scale)
+        artist_brush_image = ARTIST_BRUSH.get_formatted_image(
             artist_brush_width, artist_brush_height, self.FOOTER_FONT_OUTLINE_SIZE
         )
 
@@ -850,7 +851,7 @@ class RegularCard:
                     token = part.strip()
                     if token == "I":
                         fragments.append(("format", "italic_on"))
-                    elif token == "\\I":
+                    elif token == "\\I" or token == "/I":
                         fragments.append(("format", "italic_off"))
                     else:
                         fragments.append(("symbol", token))
@@ -969,7 +970,7 @@ class RegularCard:
                         content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                     else:
                         content_height += line_height
-                content_height += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height
+                content_height += FLAVOR_DIVIDING_LINE.image.height + line_height
             usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
@@ -1068,15 +1069,15 @@ class RegularCard:
                 curr_y += line_height
 
         draw_lines(rules_lines, rules_font)
+
+        flavor_dividing_line = FLAVOR_DIVIDING_LINE.get_formatted_image()
         for lines in flavor_lines:
             curr_y += line_height // 2
             image.alpha_composite(
-                SYMBOL_PLACEHOLDER_KEY["flavor"].image.resize(
-                    (self.RULES_TEXT_WIDTH, SYMBOL_PLACEHOLDER_KEY["flavor"].image.height)
-                ),
+                flavor_dividing_line.resize((self.RULES_TEXT_WIDTH, flavor_dividing_line.height)),
                 (0, curr_y),
             )
-            curr_y += SYMBOL_PLACEHOLDER_KEY["flavor"].image.height + line_height // 2
+            curr_y += flavor_dividing_line.height + line_height // 2
             draw_lines(lines, italics_font)
 
         self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))

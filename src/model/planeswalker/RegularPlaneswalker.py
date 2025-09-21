@@ -122,6 +122,9 @@ class RegularPlaneswalker(RegularCard):
 
         # Determine the heights and y-values of each ability rules text #
         full_rules_text = self.metadata[CARD_RULES_TEXT]
+        full_rules_height = self.RULES_TEXT_HEIGHT
+
+        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT # stop text shrinking to size while measuring
 
         self.ability_texts = [text.strip() for text in self.get_metadata(CARD_RULES_TEXT).split("{end}")]
         ability_heights: list[int] = []
@@ -134,13 +137,14 @@ class RegularPlaneswalker(RegularCard):
 
         self.ability_heights: list[int] = []
         for height in ability_heights:
-            proportional_height = (height / total_height) * self.RULES_TEXT_HEIGHT
-            even_height = self.RULES_TEXT_HEIGHT / len(ability_heights)
-            alpha = 0.5 
+            proportional_height = (height / total_height) * full_rules_height
+            even_height = full_rules_height / len(ability_heights)
+            alpha = 0.5
             final_height = int(alpha * proportional_height + (1 - alpha) * even_height)
             self.ability_heights.append(final_height)
 
         self.metadata[CARD_RULES_TEXT] = full_rules_text
+        self.RULES_TEXT_HEIGHT = full_rules_height
 
     def create_layers(
         self,
@@ -174,7 +178,7 @@ class RegularPlaneswalker(RegularCard):
             Whether to put the card's frames on or not.
 
         create_ability_cost_frame_layers: bool, default : True
-            Whether to put the planeswalker's ability costs and their frames on or not.
+            Whether to put the planeswalker's ability cost frames on or not.
 
         create_watermark_layer: bool, default : True
             Whether to put the watermark on the card or not.
@@ -251,19 +255,27 @@ class RegularPlaneswalker(RegularCard):
 
             if idx == 0:
                 ability_background_top = None
-                ability_background_body = PLANESWALKER_ABILITY_BODY_EVEN.resize((self.RULES_BOX_WIDTH, body_height))
+                ability_background_body = PLANESWALKER_ABILITY_BODY_EVEN.get_formatted_image(
+                    self.RULES_BOX_WIDTH, body_height
+                )
             elif idx % 2 == 0:
-                ability_background_top = PLANESWALKER_ABILITY_TOP_EVEN.resize(
-                    (self.RULES_BOX_WIDTH, self.ABILITY_TEXT_MARGIN)
+                ability_background_top = PLANESWALKER_ABILITY_TOP_EVEN.get_formatted_image(
+                    self.RULES_BOX_WIDTH, self.ABILITY_TEXT_MARGIN
                 )
-                ability_background_body = PLANESWALKER_ABILITY_BODY_EVEN.resize((self.RULES_BOX_WIDTH, body_height))
+                ability_background_body = PLANESWALKER_ABILITY_BODY_EVEN.get_formatted_image(
+                    self.RULES_BOX_WIDTH, body_height
+                )
             else:
-                ability_background_top = PLANESWALKER_ABILITY_TOP_ODD.resize(
-                    (self.RULES_BOX_WIDTH, self.ABILITY_TEXT_MARGIN)
+                ability_background_top = PLANESWALKER_ABILITY_TOP_ODD.get_formatted_image(
+                    self.RULES_BOX_WIDTH, self.ABILITY_TEXT_MARGIN
                 )
-                ability_background_body = PLANESWALKER_ABILITY_BODY_ODD.resize((self.RULES_BOX_WIDTH, body_height))
+                ability_background_body = PLANESWALKER_ABILITY_BODY_ODD.get_formatted_image(
+                    self.RULES_BOX_WIDTH, body_height
+                )
 
-            ability_background = paste_image(ability_background_top, ability_background, (0, curr_y - self.ABILITY_TEXT_MARGIN // 2))
+            ability_background = paste_image(
+                ability_background_top, ability_background, (0, curr_y - self.ABILITY_TEXT_MARGIN // 2)
+            )
             ability_background = paste_image(ability_background_body, ability_background, (0, body_y))
 
             curr_y += height
@@ -275,7 +287,11 @@ class RegularPlaneswalker(RegularCard):
         Create the frames for the costs of each planeswalker abilities, above the rest of the frame.
         """
 
-        ability_costs_image = Image.new("RGBA", (self.RULES_BOX_WIDTH + (self.RULES_BOX_X - self.ABILITY_COST_FRAME_X), self.RULES_BOX_HEIGHT), (0, 0, 0, 0))
+        ability_costs_image = Image.new(
+            "RGBA",
+            (self.RULES_BOX_WIDTH + (self.RULES_BOX_X - self.ABILITY_COST_FRAME_X), self.RULES_BOX_HEIGHT),
+            (0, 0, 0, 0),
+        )
         curr_y = 0
 
         self.ability_text_y_axes: list[int] = []
@@ -287,12 +303,17 @@ class RegularPlaneswalker(RegularCard):
                 continue
 
             if ability_cost > 0:
-                ability_border = PLANESWALKER_ABILITY_COST_BORDER_POSITIVE
+                ability_border = PLANESWALKER_ABILITY_COST_BORDER_POSITIVE.get_formatted_image()
             elif ability_cost < 0:
-                ability_border = PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE
+                ability_border = PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE.get_formatted_image()
             else:
-                ability_border = PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL
-            ability_border = ability_border.resize((self.ABILITY_COST_FRAME_WIDTH, int((self.ABILITY_COST_FRAME_WIDTH / ability_border.width) * ability_border.height)))
+                ability_border = PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL.get_formatted_image()
+            ability_border = ability_border.resize(
+                (
+                    self.ABILITY_COST_FRAME_WIDTH,
+                    int((self.ABILITY_COST_FRAME_WIDTH / ability_border.width) * ability_border.height),
+                )
+            )
 
             paste_y = max(curr_y + (height - ability_border.height) // 2, curr_y)
             ability_costs_image = paste_image(ability_border, ability_costs_image, (0, paste_y))
@@ -300,11 +321,11 @@ class RegularPlaneswalker(RegularCard):
 
             # Text is centered around negative borders by default
             if ability_cost > 0:
-                paste_y += int(0.11 * ability_border.height) # recoil from the jank 0_0
+                paste_y += int(0.11 * ability_border.height)  # recoil from the jank 0_0
             elif ability_cost == 0:
                 paste_y += int(0.065 * ability_border.height)
             self.ability_text_y_axes.append(self.RULES_BOX_Y + paste_y + ability_border.height // 2)
-        
+
         self.frame_layers.append(Layer(ability_costs_image, (self.ABILITY_COST_FRAME_X, self.RULES_BOX_Y)))
 
     def _create_rules_text_layer(self):
@@ -352,4 +373,12 @@ class RegularPlaneswalker(RegularCard):
                 fill=self.ABILITY_COST_FONT_COLOR,
             )
 
-            self.text_layers.append(Layer(image, (self.ABILITY_COST_TEXT_X, self.ability_text_y_axes[idx] - self.ABILITY_COST_TEXT_HEIGHT // 2 - text_height // 2)))
+            self.text_layers.append(
+                Layer(
+                    image,
+                    (
+                        self.ABILITY_COST_TEXT_X,
+                        self.ability_text_y_axes[idx] - self.ABILITY_COST_TEXT_HEIGHT // 2 - text_height // 2,
+                    ),
+                )
+            )

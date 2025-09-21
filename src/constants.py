@@ -70,6 +70,7 @@ OVERLAYS_PATH = "images/art/overlay"
 # Fonts
 MPLANTIN = "fonts/mplantin.ttf"
 MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
+MPLANTIN_BOLD = "fonts/mplantin-bold.ttf"
 BELEREN_BOLD = "fonts/beleren-bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
 GOTHAM_BOLD = "fonts/gotham-bold.ttf"
@@ -143,25 +144,10 @@ GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
 # Other Mana
 SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
 
-# Planeswalker Abilities
-PLANESWALKER_ABILITY_BODY_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/even.png")
-PLANESWALKER_ABILITY_BODY_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/body/odd.png")
-PLANESWALKER_ABILITY_TOP_EVEN = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/even.png")
-PLANESWALKER_ABILITY_TOP_ODD = open_image(f"{FRAMES_PATH}/planeswalker/ability/top/odd.png")
 
-# Planeswalker Ability Cost Borders
-PLANESWALKER_ABILITY_COST_BORDER_POSITIVE = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/positive.png")
-PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/negative.png")
-PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL = open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/neutral.png")
-
-# Other
-FLAVOR_DIVIDING_LINE = open_image("images/flavor_divider.png")
-ARTIST_BRUSH = open_image("images/collector_info/artist_brush.png")
-
-
-################
-# PLACEHOLDERS #
-################
+###########
+# SYMBOLS #
+###########
 
 PLACEHOLDER_REGEX = re.compile(r"\{([^}]+)\}")
 
@@ -205,7 +191,24 @@ SYMBOL_PLACEHOLDER_KEY = {
     "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # other mana
     "s": Symbol(SNOW_MANA),
-    # Other
-    "flavor": Symbol(FLAVOR_DIVIDING_LINE),
-    "artist_brush": Symbol(ARTIST_BRUSH, 1.25),
 }
+
+# Planeswalker Abilities
+PLANESWALKER_ABILITY_BODY_EVEN = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/body/even.png"))
+PLANESWALKER_ABILITY_BODY_ODD = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/body/odd.png"))
+PLANESWALKER_ABILITY_TOP_EVEN = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/top/even.png"))
+PLANESWALKER_ABILITY_TOP_ODD = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/top/odd.png"))
+
+# Planeswalker Ability Cost Borders
+PLANESWALKER_ABILITY_COST_BORDER_POSITIVE = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/positive.png"))
+PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/negative.png"))
+PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/cost/neutral.png"))
+
+# Saga
+SAGA_CHAPTER_FRAME = Symbol(open_image(f"{FRAMES_PATH}/saga/chapter.png"))
+SAGA_CHAPTER_DIVIDING_LINE = Symbol(open_image(f"{FRAMES_PATH}/saga/divider.png"), (1.0, 0.67))
+SAGA_BANNER_STRIPE = Symbol(open_image(f"{FRAMES_PATH}/saga/banner_stripe.png"))
+
+# Other
+FLAVOR_DIVIDING_LINE = Symbol(open_image("images/flavor_divider.png"))
+ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)

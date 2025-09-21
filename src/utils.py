@@ -21,7 +21,7 @@ def open_image(filepath: str) -> Image.Image | None:
         return Image.open(filepath).convert("RGBA")
     except Exception:
         return None
-    
+
 
 def paste_image(image: Image.Image, base_image: Image.Image, position: tuple[int, int]) -> Image.Image:
     """
@@ -34,7 +34,7 @@ def paste_image(image: Image.Image, base_image: Image.Image, position: tuple[int
 
     base_image: Image
         The image to paste `image` onto at the given `position`.
-    
+
     position: tuple[int, int]
         The position to paste `image` onto `base_image` as (x, y).
 
@@ -109,3 +109,40 @@ def cardname_to_filename(card_name: str) -> str:
         file_name = file_name.replace(bad_char, CHAR_TO_TITLE_CHAR[bad_char])
 
     return file_name
+
+
+def int_to_roman_numeral(num: int) -> str:
+    """
+    Convert an integer to its Roman numeral representation. Can handle values between 1 and 3999 (inclusive).
+
+    Parameters
+    ----------
+    num: int
+        The number to convert to a Roman numeral. Returns an empty string if not 1 <= `num` <= 3999.
+    """
+
+    if not (1 <= num <= 3999):
+        return ""
+
+    numeral_map = [
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    ]
+
+    roman_numeral = ""
+    for value, symbol in numeral_map:
+        while num >= value:
+            roman_numeral += symbol
+            num -= value
+    return roman_numeral

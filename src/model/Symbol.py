@@ -10,8 +10,9 @@ class Symbol:
     image: Image
         The image of the symbol.
 
-    size_ratio: float, default : 1.0
+    size_ratio: float | tuple[float, float], default : 1.0
         The ratio of the size of this symbol to the regular size the symbol would appear as.
+        If given as a tuple of (width, height), width and height ratios are computed separately.
     """
 
     def __init__(
@@ -20,7 +21,7 @@ class Symbol:
         size_ratio: float = 1.0,
     ):
         self.image = image
-        self.size_ratio = size_ratio
+        self.size_ratio = size_ratio if isinstance(size_ratio, tuple) else (size_ratio, size_ratio)
 
     def get_formatted_image(
         self,
@@ -60,7 +61,7 @@ class Symbol:
 
         # resize
         resized_image = self.image.resize(
-            (int(new_width * self.size_ratio), int(new_height * self.size_ratio)), Image.LANCZOS
+            (int(new_width * self.size_ratio[0]), int(new_height * self.size_ratio[1])), Image.LANCZOS
         )
 
         # add outline
