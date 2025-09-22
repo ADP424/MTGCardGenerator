@@ -19,7 +19,7 @@ def open_image(filepath: str) -> Image.Image | None:
 
     try:
         return Image.open(filepath).convert("RGBA")
-    except Exception:
+    except FileNotFoundError:
         return None
 
 
@@ -102,6 +102,7 @@ def cardname_to_filename(card_name: str) -> str:
         "|": "{B}",
         "?": "{QS}",
         "*": "{A}",
+        "\n": "{N}"
     }
 
     file_name = card_name

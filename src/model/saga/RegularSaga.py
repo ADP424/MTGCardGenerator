@@ -3,7 +3,6 @@ from PIL import Image, ImageDraw, ImageFont
 from constants import (
     CARD_RULES_TEXT,
     MPLANTIN,
-    MPLANTIN_BOLD,
     SAGA_BANNER_STRIPE,
     SAGA_CHAPTER_DIVIDING_LINE,
     SAGA_CHAPTER_FRAME,
@@ -15,7 +14,7 @@ from utils import int_to_roman_numeral, paste_image
 
 class RegularSaga(RegularCard):
     """
-    A layered image representing a regular saga and all the collection info on it,
+    A layered image representing a regular enchantment saga and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -108,7 +107,7 @@ class RegularSaga(RegularCard):
         full_rules_text = self.metadata[CARD_RULES_TEXT]
         full_rules_height = self.RULES_TEXT_HEIGHT
 
-        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT # stop text shrinking to size while measuring
+        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
         texts = self.get_metadata(CARD_RULES_TEXT).split("{end}")
         self.static_text = texts[0].strip()
@@ -135,7 +134,9 @@ class RegularSaga(RegularCard):
             proportional_height = (height / total_height) * (
                 full_rules_height - (self.STATIC_TEXT_HEIGHT + self.STATIC_CHAPTER_TEXT_GAP)
             )
-            even_height = (full_rules_height - (self.STATIC_TEXT_HEIGHT + self.STATIC_CHAPTER_TEXT_GAP)) / ( len(chapter_heights) - chapter_heights.count(0))
+            even_height = (full_rules_height - (self.STATIC_TEXT_HEIGHT + self.STATIC_CHAPTER_TEXT_GAP)) / (
+                len(chapter_heights) - chapter_heights.count(0)
+            )
             alpha = 0.5
             final_height = int(alpha * proportional_height + (1 - alpha) * even_height)
             self.chapter_heights.append(final_height)
@@ -233,7 +234,8 @@ class RegularSaga(RegularCard):
 
     def _create_banner_stripe_layer(self):
         """
-        Create the stripe over the banner on the left of the saga, above the rest of the frame, below the chapter frames.
+        Create the stripe over the banner on the left of the saga, above the rest of the frame,
+        below the chapter frames.
         """
 
         banner_stripe = SAGA_BANNER_STRIPE.get_formatted_image(self.BANNER_STRIPE_WIDTH, self.BANNER_STRIPE_HEIGHT)

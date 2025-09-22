@@ -124,7 +124,7 @@ class RegularPlaneswalker(RegularCard):
         full_rules_text = self.metadata[CARD_RULES_TEXT]
         full_rules_height = self.RULES_TEXT_HEIGHT
 
-        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT # stop text shrinking to size while measuring
+        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
         self.ability_texts = [text.strip() for text in self.get_metadata(CARD_RULES_TEXT).split("{end}")]
         ability_heights: list[int] = []
@@ -298,7 +298,7 @@ class RegularPlaneswalker(RegularCard):
         for idx, height in enumerate(self.ability_heights):
             try:
                 ability_cost = int(self.ability_costs[idx])
-            except:
+            except ValueError:
                 log(f"Can't parse '{self.ability_costs[idx]}' as an ability cost.")
                 continue
 

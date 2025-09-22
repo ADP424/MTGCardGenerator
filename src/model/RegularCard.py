@@ -144,6 +144,7 @@ class RegularCard:
         self.RULES_TEXT_HEIGHT = 623
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
+        self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
@@ -178,6 +179,9 @@ class RegularCard:
         self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
         self.FOOTER_TAB_LENGTH = 25
         self.FOOTER_ARTIST_GAP_LENGTH = 5
+
+        # set when mana cost layer is made to help with title spacing
+        self.mana_cost_x = float("inf")
 
     def create_layers(
         self,
@@ -417,14 +421,7 @@ class RegularCard:
         if not watermark_color:
             watermark_color = (0, 0, 0)
 
-        rules_box_x = self.RULES_BOX_X
-        rules_box_y = self.RULES_BOX_Y
-        rules_box_width = self.RULES_BOX_WIDTH
-        rules_box_height = self.RULES_BOX_HEIGHT
-        watermark_height = self.WATERMARK_HEIGHT
-        watermark_opacity = self.WATERMARK_OPACITY
-
-        resized = watermark.resize((int((watermark_height / watermark.height) * watermark.width), watermark_height))
+        resized = watermark.resize((int((self.WATERMARK_HEIGHT / watermark.height) * watermark.width), self.WATERMARK_HEIGHT))
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
             alpha = image.getchannel("A")
@@ -446,15 +443,15 @@ class RegularCard:
                 recolored = Image.composite(left_color, right_color, mask)
 
         r, g, b, alpha = recolored.split()
-        alpha = ImageEnhance.Brightness(alpha).enhance(watermark_opacity)
+        alpha = ImageEnhance.Brightness(alpha).enhance(self.WATERMARK_OPACITY)
         made_translucent = Image.merge("RGBA", (r, g, b, alpha))
 
         self.collector_layers.append(
             Layer(
                 made_translucent,
                 (
-                    rules_box_x + (rules_box_width - recolored.width) // 2,
-                    rules_box_y + (rules_box_height - recolored.height) // 2,
+                    self.RULES_BOX_X + (self.RULES_BOX_WIDTH - recolored.width) // 2,
+                    self.RULES_BOX_Y + (self.RULES_BOX_HEIGHT - recolored.height) // 2,
                 ),
             )
         )
@@ -475,10 +472,6 @@ class RegularCard:
         if len(rarity) == 0:
             return
 
-        set_symbol_x = self.SET_SYMBOL_X
-        set_symbol_y = self.SET_SYMBOL_Y
-        set_symbol_width = self.SET_SYMBOL_WIDTH
-
         symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
         rarity_symbol = open_image(symbol_path)
         if rarity_symbol is None:
@@ -486,9 +479,9 @@ class RegularCard:
             return
 
         rarity_symbol = rarity_symbol.resize(
-            (set_symbol_width, int((set_symbol_width / rarity_symbol.width) * rarity_symbol.height))
+            (self.SET_SYMBOL_WIDTH, int((self.SET_SYMBOL_WIDTH / rarity_symbol.width) * rarity_symbol.height))
         )
-        self.collector_layers.append(Layer(rarity_symbol, (set_symbol_x, set_symbol_y)))
+        self.collector_layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
 
     def _create_footer_layer(self):
         """
@@ -520,7 +513,7 @@ class RegularCard:
 
         try:
             add_total_to_footer = int(self.get_metadata(ADD_TOTAL_TO_FOOTER)) > 0
-        except Exception:
+        except ValueError:
             add_total_to_footer = False
         collector_number_text = f"{index}{f"/{self.footer_largest_index}" if add_total_to_footer else ""}"
         draw.text(
@@ -633,7 +626,7 @@ class RegularCard:
             symbol_image: Image
                 The image of the mana symbol.
 
-            offset: tuple[float, float], default : `MANA_COST_SYMBOL_SHADOW_OFFSET`
+            offset: tuple[float, float]
                 Offset of the shadow relative to the symbol in the form (x, y).
 
             Returns
@@ -694,6 +687,7 @@ class RegularCard:
                 log("The mana cost is too long and has been cut off.")
                 break
 
+        self.mana_cost_x = header_x + curr_x - self.MANA_COST_SYMBOL_SPACING
         self.text_layers.append(Layer(image, (header_x, header_y)))
 
     def _create_title_layer(self):
@@ -705,30 +699,26 @@ class RegularCard:
         if len(text) == 0:
             return
 
-        header_x = self.TITLE_X
-        header_y = self.TITLE_Y
-        header_width = self.TITLE_WIDTH
-        header_height = self.TITLE_BOX_HEIGHT
-
         font_size = self.TITLE_MAX_FONT_SIZE
         title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
         title_length = title_font.getlength(text)
-        while header_x + title_length > self.SET_SYMBOL_X and font_size >= self.TITLE_MIN_FONT_SIZE:
+        while self.TITLE_X + title_length > min(self.mana_cost_x, self.TITLE_X + self.TITLE_WIDTH) and font_size >= self.TITLE_MIN_FONT_SIZE:
             font_size -= 1
             title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+            title_length = title_font.getlength(text)
 
-        image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
+        image = Image.new("RGBA", (self.TITLE_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         text_align = self.TITLE_TEXT_ALIGN
         if text_align == "left":
             x_pos = 0
         elif text_align == "center":
-            x_pos = (header_width - title_length) // 2
+            x_pos = (self.TITLE_WIDTH - title_length) // 2
 
         ascent = title_font.getmetrics()[0]
         draw.text(
-            (x_pos, (header_height - ascent) // 2),
+            (x_pos, (self.TITLE_BOX_HEIGHT - ascent) // 2),
             text,
             font=title_font,
             fill=self.TITLE_FONT_COLOR,
@@ -736,7 +726,7 @@ class RegularCard:
             align=self.TITLE_TEXT_ALIGN,
         )
 
-        self.text_layers.append(Layer(image, (header_x, header_y)))
+        self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_Y)))
 
     def _create_type_layer(self):
         """
@@ -976,7 +966,7 @@ class RegularCard:
                 continue
 
             # check for power/toughness overlap
-            if self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y:
+            if len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0 and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y:
                 final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
@@ -1050,7 +1040,7 @@ class RegularCard:
                 for kind, value, frag_font in line_fragments:
                     if kind == "text":
                         if value:
-                            draw.text((curr_x, curr_y), value, font=frag_font, fill="black")
+                            draw.text((curr_x, curr_y), value, font=frag_font, fill=self.RULES_TEXT_FONT_COLOR)
                             curr_x += draw.textlength(value, font=frag_font)
                     else:
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)

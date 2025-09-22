@@ -34,6 +34,7 @@ from model.RegularCard import RegularCard
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
+from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
@@ -99,6 +100,8 @@ def process_spreadsheets(
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,
+        # Room
+        "regular room": RegularRoom,
     }
 
     card_spreadsheets: dict[str, dict[str, RegularCard]] = {}
@@ -121,7 +124,8 @@ def process_spreadsheets(
             columns = next(cards_sheet_reader)
             for row in cards_sheet_reader:
                 values = dict(zip(columns, [element.strip() for element in row]))
-                card_title = values.get(CARD_TITLE, "")
+                card_title = values.get(CARD_TITLE, "").replace("\n", "{N}")
+                values[CARD_TITLE] = card_title
                 card_descriptor = values.get(CARD_DESCRIPTOR, "")
                 card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
                 if len(card_title) == 0:
@@ -133,15 +137,13 @@ def process_spreadsheets(
         def str_to_int(string: str, default: int) -> int:
             try:
                 return int(string)
-            except Exception:
+            except ValueError:
                 return default
 
         def str_to_datetime(string: str, default: datetime) -> datetime:
             try:
-                return datetime.strptime(card.get_metadata(CARD_CREATION_DATE, datetime(MINYEAR, 1, 1)), "%m/%d/%Y")(
-                    string
-                )
-            except Exception:
+                return datetime.strptime(string, "%m/%d/%Y")
+            except ValueError:
                 return default
 
         def get_sorted_cards():
@@ -395,7 +397,7 @@ if __name__ == "__main__":
         "-c",
         "--cards",
         nargs="+",
-        help="Only process the cards with these names (including tokens, alt arts, etc.).",
+        help="Only process the cards with these names (including tokens, alt arts, etc.). Use '{N}' in place of newlines.",
         dest="card_names_whitelist",
     )
 
