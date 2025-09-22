@@ -110,39 +110,106 @@ RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M",
 # IMAGES #
 ##########
 
-# Standard Mana
-WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/white.png")
-BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/blue.png")
-BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/black.png")
-RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/red.png")
-GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green.png")
-COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/colorless.png")
+# Mono-Colored Mana
+WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/white.png")
+BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/blue.png")
+BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/black.png")
+RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/red.png")
+GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/green.png")
+COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/colorless.png")
+PURPLE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/purple.png")
 
-# Standard Numbered Mana
-ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/1.png")
-TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/2.png")
-THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/3.png")
+# Numbered Mana
+ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/0.png")
+ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/1.png")
+TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/2.png")
+THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/3.png")
+FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/4.png")
+FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/5.png")
+SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/6.png")
+SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/7.png")
+EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/8.png")
+NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/9.png")
+TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/10.png")
+ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/11.png")
+TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/12.png")
+THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/13.png")
+FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/14.png")
+FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/15.png")
+SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/16.png")
+SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/17.png")
+EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/18.png")
+NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/19.png")
+TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/20.png")
+HALF_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/half.png")
+INFINITY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/infinity.png")
 
 # Tapping
-TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap.png")
-UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/untap.png")
-OLD_TAP = open_image(f"{MANA_SYMBOLS_PATH}/old_tap.png")
-ORIGINAL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/original_tap.png")
+TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/tap.png")
+UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/untap.png")
+OLD_TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/old_tap.png")
+ORIGINAL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/original_tap.png")
 
 # Standard Hybrid Mana
-WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/white_blue.png")
-WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/white_black.png")
-BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/blue_black.png")
-BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/blue_red.png")
-BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/black_red.png")
-BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/black_green.png")
-RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/red_green.png")
-RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/red_white.png")
-GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_white.png")
-GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/green_blue.png")
+WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/white_blue.png")
+WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/white_black.png")
+BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/blue_black.png")
+BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/blue_red.png")
+BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/black_red.png")
+BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/black_green.png")
+RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/red_green.png")
+RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/red_white.png")
+GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/green_white.png")
+GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/green_blue.png")
+COLORLESS_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_white.png")
+COLORLESS_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_white.png")
+COLORLESS_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_white.png")
+COLORLESS_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_white.png")
+COLORLESS_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_white.png")
+PURPLE_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/purple_white.png")
+PURPLE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/purple_blue.png")
+PURPLE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/purple_black.png")
+PURPLE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/purple_red.png")
+PURPLE_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/purple_green.png")
 
-# Other Mana
+# Phyrexian Mana
+WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/white.png")
+BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/blue.png")
+BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/black.png")
+RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/red.png")
+GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/green.png")
+COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/colorless.png")
+PURPLE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/phyrexian/purple.png")
+
+# Hybrid Generic Mana
+TWO_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/white.png")
+TWO_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/blue.png")
+TWO_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/black.png")
+TWO_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/red.png")
+TWO_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/green.png")
+TWO_PURPLE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/purple.png")
+
+# Hybrid Phyrexian Mana
+WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/white_blue.png")
+WHITE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/white_black.png")
+BLUE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/blue_black.png")
+BLUE_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/blue_red.png")
+BLACK_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/black_red.png")
+BLACK_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/black_green.png")
+RED_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/red_green.png")
+RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/red_white.png")
+GREEN_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_white.png")
+GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_blue.png")
+
+# Variable Mana
+X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/x.png")
+Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/y.png")
+Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/z.png")
+
+# Other
 SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
+ENERGY = open_image(f"{MANA_SYMBOLS_PATH}/energy.png")
+TICKET = open_image(f"{MANA_SYMBOLS_PATH}/ticket.png")
 
 
 ###########
@@ -152,17 +219,39 @@ SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
 PLACEHOLDER_REGEX = re.compile(r"\{([^}]+)\}")
 
 SYMBOL_PLACEHOLDER_KEY = {
-    # Standard Mana
+    # Mono-Colored Mana
     "w": Symbol(WHITE_MANA),
     "u": Symbol(BLUE_MANA),
     "b": Symbol(BLACK_MANA),
     "r": Symbol(RED_MANA),
     "g": Symbol(GREEN_MANA),
     "c": Symbol(COLORLESS_MANA),
-    # Standard Numbered Mana
+    "p": Symbol(PURPLE_MANA),
+    # Numbered Mana
+    "0": Symbol(ZERO_MANA),
     "1": Symbol(ONE_MANA),
     "2": Symbol(TWO_MANA),
     "3": Symbol(THREE_MANA),
+    "4": Symbol(FOUR_MANA),
+    "5": Symbol(FIVE_MANA),
+    "6": Symbol(SIX_MANA),
+    "7": Symbol(SEVEN_MANA),
+    "8": Symbol(EIGHT_MANA),
+    "9": Symbol(NINE_MANA),
+    "10": Symbol(TEN_MANA),
+    "11": Symbol(ELEVEN_MANA),
+    "12": Symbol(TWELVE_MANA),
+    "13": Symbol(THIRTEEN_MANA),
+    "14": Symbol(FOURTEEN_MANA),
+    "15": Symbol(FIFTEEN_MANA),
+    "16": Symbol(SIXTEEN_MANA),
+    "17": Symbol(SEVENTEEN_MANA),
+    "18": Symbol(EIGHTEEN_MANA),
+    "19": Symbol(NINETEEN_MANA),
+    "20": Symbol(TWENTY_MANA),
+    "1/2": Symbol(HALF_MANA),
+    "inf": Symbol(INFINITY_MANA),
+    "infinity": Symbol(INFINITY_MANA),
     # Tapping
     "t": Symbol(TAP),
     "untap": Symbol(UNTAP),
@@ -189,8 +278,74 @@ SYMBOL_PLACEHOLDER_KEY = {
     "w/g": Symbol(GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "g/u": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "u/g": Symbol(GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
-    # other mana
+    "p/w": Symbol(PURPLE_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/p": Symbol(PURPLE_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "p/u": Symbol(PURPLE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/p": Symbol(PURPLE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "p/b": Symbol(PURPLE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/p": Symbol(PURPLE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "p/r": Symbol(PURPLE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/p": Symbol(PURPLE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "p/g": Symbol(PURPLE_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/p": Symbol(PURPLE_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/w": Symbol(COLORLESS_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/c": Symbol(COLORLESS_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/u": Symbol(COLORLESS_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/c": Symbol(COLORLESS_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/b": Symbol(COLORLESS_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/c": Symbol(COLORLESS_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/r": Symbol(COLORLESS_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/c": Symbol(COLORLESS_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/g": Symbol(COLORLESS_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/c": Symbol(COLORLESS_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Phyrexian Mana
+    "wp": Symbol(WHITE_PHYREXIAN_MANA),
+    "up": Symbol(BLUE_PHYREXIAN_MANA),
+    "bp": Symbol(BLACK_PHYREXIAN_MANA),
+    "rp": Symbol(RED_PHYREXIAN_MANA),
+    "gp": Symbol(GREEN_PHYREXIAN_MANA),
+    "cp": Symbol(COLORLESS_PHYREXIAN_MANA),
+    "pp": Symbol(PURPLE_PHYREXIAN_MANA),
+    # Hybrid Generic Mana
+    "2/w": Symbol(TWO_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/2": Symbol(TWO_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/u": Symbol(TWO_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/2": Symbol(TWO_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/b": Symbol(TWO_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/2": Symbol(TWO_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/r": Symbol(TWO_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/2": Symbol(TWO_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/g": Symbol(TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/2": Symbol(TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Hybrid Phyrexian Mana
+    "wp/up": Symbol(WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/wp": Symbol(WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/bp": Symbol(WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/wp": Symbol(WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/bp": Symbol(BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/up": Symbol(BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/rp": Symbol(BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/up": Symbol(BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/rp": Symbol(BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/bp": Symbol(BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/gp": Symbol(BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/bp": Symbol(BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/gp": Symbol(RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/rp": Symbol(RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/wp": Symbol(RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/rp": Symbol(RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/wp": Symbol(GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/gp": Symbol(GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/up": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/gp": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Variable Mana
+    "x": Symbol(X_MANA),
+    "y": Symbol(Y_MANA),
+    "z": Symbol(Z_MANA),
+    # Other
     "s": Symbol(SNOW_MANA),
+    "e": Symbol(ENERGY),
+    "ticket": Symbol(TICKET),
 }
 
 # Planeswalker Abilities

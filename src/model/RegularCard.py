@@ -421,7 +421,9 @@ class RegularCard:
         if not watermark_color:
             watermark_color = (0, 0, 0)
 
-        resized = watermark.resize((int((self.WATERMARK_HEIGHT / watermark.height) * watermark.width), self.WATERMARK_HEIGHT))
+        resized = watermark.resize(
+            (int((self.WATERMARK_HEIGHT / watermark.height) * watermark.width), self.WATERMARK_HEIGHT)
+        )
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
             alpha = image.getchannel("A")
@@ -702,7 +704,10 @@ class RegularCard:
         font_size = self.TITLE_MAX_FONT_SIZE
         title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
         title_length = title_font.getlength(text)
-        while self.TITLE_X + title_length > min(self.mana_cost_x, self.TITLE_X + self.TITLE_WIDTH) and font_size >= self.TITLE_MIN_FONT_SIZE:
+        while (
+            self.TITLE_X + title_length > min(self.mana_cost_x, self.TITLE_X + self.TITLE_WIDTH)
+            and font_size >= self.TITLE_MIN_FONT_SIZE
+        ):
             font_size -= 1
             title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
             title_length = title_font.getlength(text)
@@ -966,7 +971,10 @@ class RegularCard:
                 continue
 
             # check for power/toughness overlap
-            if len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0 and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y:
+            if (
+                len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
+                and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y
+            ):
                 final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:

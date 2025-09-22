@@ -102,7 +102,7 @@ def cardname_to_filename(card_name: str) -> str:
         "|": "{B}",
         "?": "{QS}",
         "*": "{A}",
-        "\n": "{N}"
+        "\n": "{N}",
     }
 
     file_name = card_name
