@@ -120,18 +120,18 @@ class RegularPlaneswalker(RegularCard):
         self.ability_costs = [ability_cost.strip() for ability_cost in costs[1:]]
         self.set_metadata(CARD_MANA_COST, costs[0].strip())
 
-        # Determine the heights and y-values of each ability rules text #
-        full_rules_text = self.metadata[CARD_RULES_TEXT]
+        # Determine the heights and y-values of each ability rules text
+        full_rules_text = self.get_metadata(CARD_RULES_TEXT)
         full_rules_height = self.RULES_TEXT_HEIGHT
 
         self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
-        self.ability_texts = [text.strip() for text in self.get_metadata(CARD_RULES_TEXT).split("{end}")]
+        self.ability_texts = [text.strip() for text in full_rules_text.split("{end}")]
         ability_heights: list[int] = []
         total_height = 0
         for text in self.ability_texts:
             self.metadata[CARD_RULES_TEXT] = text
-            _, _, _, _, content_height, _ = self._get_rules_text_layout(text)
+            _, _, _, content_height, _ = self._get_rules_text_layout(text)
             ability_heights.append(content_height)
             total_height += content_height
 
@@ -336,7 +336,7 @@ class RegularPlaneswalker(RegularCard):
 
         full_rules_y = self.RULES_TEXT_Y
         full_rules_height = self.RULES_TEXT_HEIGHT
-        full_rules_text = self.metadata[CARD_RULES_TEXT]
+        full_rules_text = self.get_metadata(CARD_RULES_TEXT)
 
         curr_y = full_rules_y
         for idx, text in enumerate(self.ability_texts):

@@ -60,8 +60,5 @@ class ShortToken(RegularToken):
         self.RULES_TEXT_Y = 1555
         self.RULES_TEXT_HEIGHT = 377
 
-        # Watermark
-        self.WATERMARK_HEIGHT = 240
-
         # Set / Rarity Symbol
         self.SET_SYMBOL_Y = 1432

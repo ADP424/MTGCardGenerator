@@ -364,6 +364,9 @@ SAGA_CHAPTER_FRAME = Symbol(open_image(f"{FRAMES_PATH}/saga/chapter.png"))
 SAGA_CHAPTER_DIVIDING_LINE = Symbol(open_image(f"{FRAMES_PATH}/saga/divider.png"), (1.0, 0.67))
 SAGA_BANNER_STRIPE = Symbol(open_image(f"{FRAMES_PATH}/saga/banner_stripe.png"))
 
+# Class
+CLASS_HEADER = Symbol(open_image(f"{FRAMES_PATH}/class/header.png"))
+
 # Other
-FLAVOR_DIVIDING_LINE = Symbol(open_image("images/flavor_divider.png"))
+RULES_DIVIDING_LINE = Symbol(open_image("images/divider.png"))
 ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)

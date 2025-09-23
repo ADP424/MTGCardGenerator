@@ -141,9 +141,6 @@ class RegularRoom(RegularCard):
         self.SECOND_RULES_TEXT_WIDTH = 1095
         self.SECOND_RULES_TEXT_HEIGHT = 506
 
-        # Watermark
-        self.WATERMARK_HEIGHT = 446
-
         # Set / Rarity Symbol
         self.SET_SYMBOL_X = 2588
         self.SET_SYMBOL_Y = 1105
@@ -249,11 +246,17 @@ class RegularRoom(RegularCard):
         """
 
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
+        full_title = self.get_metadata(CARD_TITLE)
 
         titles = full_rules_text.split("{end}")
         shared_rules_text = titles[0].strip()
         first_rules_text = titles[1].strip() if len(titles) > 1 else ""
         second_rules_text = titles[2].strip() if len(titles) > 2 else ""
+
+        # do titles correctly so that {cardname} placeholder works as expected
+        titles = full_title.split("{N}")
+        first_title = titles[0].strip()
+        second_title = titles[1].strip() if len(titles) > 1 else ""
 
         self.RULES_TEXT_X = self.SHARED_RULES_TEXT_X
         self.RULES_TEXT_Y = self.SHARED_RULES_TEXT_Y
@@ -261,6 +264,7 @@ class RegularRoom(RegularCard):
         self.RULES_TEXT_HEIGHT = self.SHARED_RULES_TEXT_HEIGHT
         self.RULES_TEXT_FONT_COLOR = self.SHARED_RULES_TEXT_FONT_COLOR
         self.set_metadata(CARD_RULES_TEXT, shared_rules_text)
+        self.set_metadata(CARD_TITLE, f"{first_title} // {second_title}")
         super()._create_rules_text_layer()
 
         self.RULES_TEXT_X = self.FIRST_RULES_TEXT_X
@@ -269,6 +273,7 @@ class RegularRoom(RegularCard):
         self.RULES_TEXT_HEIGHT = self.FIRST_RULES_TEXT_HEIGHT
         self.RULES_TEXT_FONT_COLOR = self.FIRST_RULES_TEXT_FONT_COLOR
         self.set_metadata(CARD_RULES_TEXT, first_rules_text)
+        self.set_metadata(CARD_TITLE, first_title)
         super()._create_rules_text_layer()
 
         self.RULES_TEXT_X = self.SECOND_RULES_TEXT_X
@@ -277,6 +282,8 @@ class RegularRoom(RegularCard):
         self.RULES_TEXT_HEIGHT = self.SECOND_RULES_TEXT_HEIGHT
         self.RULES_TEXT_FONT_COLOR = self.SECOND_RULES_TEXT_FONT_COLOR
         self.set_metadata(CARD_RULES_TEXT, second_rules_text)
+        self.set_metadata(CARD_TITLE, second_title)
         super()._create_rules_text_layer()
 
         self.set_metadata(CARD_RULES_TEXT, full_rules_text)
+        self.set_metadata(CARD_TITLE, full_title)

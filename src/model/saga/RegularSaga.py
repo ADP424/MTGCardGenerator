@@ -103,13 +103,13 @@ class RegularSaga(RegularCard):
         self.SET_SYMBOL_Y = 1795
         self.SET_SYMBOL_WIDTH = 80
 
-        # Determine the heights and y-values of each ability rules text #
-        full_rules_text = self.metadata[CARD_RULES_TEXT]
+        # Determine the heights and y-values of each ability rules text
+        full_rules_text = self.get_metadata(CARD_RULES_TEXT)
         full_rules_height = self.RULES_TEXT_HEIGHT
 
         self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
-        texts = self.get_metadata(CARD_RULES_TEXT).split("{end}")
+        texts = full_rules_text.split("{end}")
         self.static_text = texts[0].strip()
         self.chapter_texts = [text.strip() for text in texts[1:]]
 
@@ -121,7 +121,7 @@ class RegularSaga(RegularCard):
                 chapter_heights[idx - 1] = 0
                 continue
             self.metadata[CARD_RULES_TEXT] = text
-            _, _, _, _, content_height, _ = self._get_rules_text_layout(text)
+            _, _, _, content_height, _ = self._get_rules_text_layout(text)
             chapter_heights.append(content_height)
             total_height += content_height
 
@@ -307,7 +307,7 @@ class RegularSaga(RegularCard):
         full_rules_y = self.RULES_TEXT_Y
         full_rules_width = self.RULES_TEXT_WIDTH
         full_rules_height = self.RULES_TEXT_HEIGHT
-        full_rules_text = self.metadata[CARD_RULES_TEXT]
+        full_rules_text = self.get_metadata(CARD_RULES_TEXT)
 
         saga_chapter_dividing_line = SAGA_CHAPTER_DIVIDING_LINE.get_formatted_image()
         dividing_lines_image = Image.new("RGBA", (self.RULES_BOX_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))

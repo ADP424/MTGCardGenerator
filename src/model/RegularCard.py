@@ -6,7 +6,7 @@ from constants import (
     ARTIST_BRUSH,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
-    FLAVOR_DIVIDING_LINE,
+    RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
     BELEREN_BOLD_SMALL_CAPS,
     CARD_CREATION_DATE,
@@ -158,7 +158,7 @@ class RegularCard:
         self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
 
         # Watermark
-        self.WATERMARK_HEIGHT = 480
+        self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE = 0.77
         self.WATERMARK_OPACITY = 0.4
 
         # Set / Rarity Symbol
@@ -421,8 +421,9 @@ class RegularCard:
         if not watermark_color:
             watermark_color = (0, 0, 0)
 
+        watermark_height = int(self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE * self.RULES_BOX_HEIGHT)
         resized = watermark.resize(
-            (int((self.WATERMARK_HEIGHT / watermark.height) * watermark.width), self.WATERMARK_HEIGHT)
+            (int((watermark_height / watermark.height) * watermark.width), watermark_height)
         )
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
@@ -610,11 +611,6 @@ class RegularCard:
         if len(text) == 0:
             return
 
-        header_x = self.TITLE_BOX_X
-        header_y = self.TITLE_BOX_Y
-        header_width = self.TITLE_BOX_WIDTH
-        header_height = self.TITLE_BOX_HEIGHT
-
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -666,9 +662,9 @@ class RegularCard:
 
             return result
 
-        image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
+        image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
-        curr_x = header_width - self.MANA_COST_SYMBOL_SPACING
+        curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
@@ -684,13 +680,13 @@ class RegularCard:
 
             curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
-                image.alpha_composite(symbol_image, (int(curr_x), (header_height - symbol_image.height) // 2))
+                image.alpha_composite(symbol_image, (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2))
             else:
                 log("The mana cost is too long and has been cut off.")
                 break
 
-        self.mana_cost_x = header_x + curr_x - self.MANA_COST_SYMBOL_SPACING
-        self.text_layers.append(Layer(image, (header_x, header_y)))
+        self.mana_cost_x = self.TITLE_BOX_X + curr_x - self.MANA_COST_SYMBOL_SPACING
+        self.text_layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
 
     def _create_title_layer(self):
         """
@@ -700,6 +696,11 @@ class RegularCard:
         text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
+        
+        centered = False
+        if "{center}" in text:
+            centered = True
+            text = text.replace("{center}", "")
 
         font_size = self.TITLE_MAX_FONT_SIZE
         title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
@@ -715,7 +716,7 @@ class RegularCard:
         image = Image.new("RGBA", (self.TITLE_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_align = self.TITLE_TEXT_ALIGN
+        text_align = self.TITLE_TEXT_ALIGN if not centered else "center"
         if text_align == "left":
             x_pos = 0
         elif text_align == "center":
@@ -728,7 +729,7 @@ class RegularCard:
             font=title_font,
             fill=self.TITLE_FONT_COLOR,
             anchor="lt",
-            align=self.TITLE_TEXT_ALIGN,
+            align=text_align,
         )
 
         self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_Y)))
@@ -779,7 +780,7 @@ class RegularCard:
         """
 
         new_text = text
-        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE), new_text, flags=re.IGNORECASE)
+        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE).split("{N}")[0], new_text, flags=re.IGNORECASE)
         new_text = re.sub("{-}", "—", new_text)
         return new_text
 
@@ -803,8 +804,7 @@ class RegularCard:
         return width, height, symbol
 
     def _get_rules_text_layout(self, text: str) -> tuple[
-        list[list[tuple[str, str, ImageFont.FreeTypeFont]]],
-        list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]],
+        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]],
         int,
         int,
         int,
@@ -817,20 +817,31 @@ class RegularCard:
         Returns
         -------
         tuple[
-            list[list[tuple[str, str, ImageFont.FreeTypeFont]]],
             list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]],
             int,
             int,
             int,
             int,
         ]
-            The lines of rules text, the lines of flavor text, the font size, the margin size,
+            The lines of rules/flavor text, the font size, the margin size,
             the height of the content, and the maximum usable height of the rules box
         """
 
-        flavor_split: list[str] = re.split(r"\{flavor\}", text)
-        raw_rules_text = flavor_split[0]
-        raw_flavor_texts = flavor_split[1:] if len(flavor_split) > 1 else []
+        sections = re.split(r"(\{flavor\}|\{divider\})", text)
+        rules_text_blocks: list[tuple[str, str]] = []
+        current_type = "rules"
+        for part in sections:
+            if part == "{flavor}":
+                current_type = "flavor"
+                continue
+            elif part == "{divider}":
+                current_type = "rules"
+                continue
+            elif part.strip() == "":
+                continue
+            else:
+                rules_text_blocks.append((current_type, part))
+                current_type = "rules"  # reset to rules unless flavor continues
 
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
@@ -848,6 +859,8 @@ class RegularCard:
                         fragments.append(("format", "italic_on"))
                     elif token == "\\I" or token == "/I":
                         fragments.append(("format", "italic_off"))
+                    elif token == "bullet":
+                        fragments.append(("bullet", "•"))
                     else:
                         fragments.append(("symbol", token))
             return fragments
@@ -865,11 +878,15 @@ class RegularCard:
             curr_width = 0
             curr_font = regular_font
 
+            indent = 0
+
             def go_to_newline():
                 nonlocal curr_fragment, curr_width
                 if curr_fragment:
                     lines.append(curr_fragment)
-                curr_fragment, curr_width = [], 0
+                curr_fragment, curr_width = [], indent
+                if indent > 0:
+                    curr_fragment.append(("indent", indent, curr_font))
 
             for kind, value in frags:
                 if kind == "format":
@@ -880,6 +897,7 @@ class RegularCard:
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
+                        indent = 0
                         go_to_newline()
                         continue
                     width, _, _ = self._get_symbol_metrics(value, curr_font, font_size)
@@ -887,10 +905,15 @@ class RegularCard:
                         go_to_newline()
                     curr_fragment.append(("symbol", value, curr_font))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                elif kind == "bullet":
+                    bullet_width = int(curr_font.getlength(f"{value} "))
+                    curr_fragment.append(("text", f"{value} ", curr_font))
+                    curr_width += bullet_width
+                    indent = bullet_width
                 else:
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
-                        width = curr_font.getlength(word)
+                        width = int(curr_font.getlength(word))
 
                         if word.isspace():
                             if not curr_fragment:
@@ -905,7 +928,7 @@ class RegularCard:
                                 go_to_newline()
                             if width > max_line_width:
                                 for char in word:
-                                    char_width = curr_font.getlength(char)
+                                    char_width = int(curr_font.getlength(char))
                                     if curr_fragment and curr_width + char_width > max_line_width:
                                         go_to_newline()
                                     curr_fragment.append(("text", char, curr_font))
@@ -926,46 +949,34 @@ class RegularCard:
             margin = int(font_size * 0.25)
             max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
 
-            # Split the rules text into lines that fit the rules box horizontally
-            rules_lines: list[list[tuple[str, str, ImageFont.FreeTypeFont]]] = []
-            for line in raw_rules_text.splitlines():
-                rules_fragments = parse_fragments(line)
-                rules_lines += (
-                    wrap_text_fragments(rules_fragments, rules_font, italics_font)
-                    if rules_fragments
-                    else [[("text", "")]]
-                )
-                rules_lines.append([("newline", None)])
-            rules_lines.pop()  # remove the ending newline
-
-            # Split the flavor text into lines that fit the rules box horizontally
-            flavor_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]] = []
-            for raw_flavor_text in raw_flavor_texts:
-                flavor_lines.append([])
-                for line in raw_flavor_text.splitlines():
+            # Split the text into lines that fit the rules box horizontally
+            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]] = []
+            for text_type, raw_text in rules_text_blocks:
+                rules_lines.append([])
+                if text_type == "flavor":
+                    target_font = italics_font
+                else:
+                    target_font = rules_font
+                for line in raw_text.splitlines():
                     flavor_fragments = parse_fragments(line)
-                    flavor_lines[-1] += (
-                        wrap_text_fragments(flavor_fragments, italics_font, italics_font)
+                    rules_lines[-1] += (
+                        wrap_text_fragments(flavor_fragments, target_font, italics_font)
                         if flavor_fragments
-                        else [[("text", "")]]
+                        else [[("text", "", target_font)]]
                     )
-                    flavor_lines[-1].append([("newline", None)])
-                flavor_lines[-1].pop()  # remove the ending newline
+                    rules_lines[-1].append([("newline", None)])
+                rules_lines[-1].pop()  # remove the ending newline
 
             # If the lines of text are too tall, try the process again with a different font
             content_height = 0
-            for line in rules_lines:
-                if line[0][0] == "newline":
-                    content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
-                else:
-                    content_height += line_height
-            for lines in flavor_lines:
+            for idx, lines in enumerate(rules_lines):
                 for line in lines:
                     if line[0][0] == "newline":
                         content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
                     else:
                         content_height += line_height
-                content_height += FLAVOR_DIVIDING_LINE.image.height + line_height
+                if idx < len(rules_lines) - 1:
+                    content_height += RULES_DIVIDING_LINE.image.height + line_height
             usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
@@ -975,7 +986,7 @@ class RegularCard:
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
                 and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y
             ):
-                final_line = flavor_lines[-1][-1] if len(flavor_lines) > 0 else rules_lines[-1]
+                final_line = rules_lines[-1][-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
                     if kind == "text":
@@ -990,7 +1001,7 @@ class RegularCard:
         else:
             raise ValueError("Text is too long to fit in box even at minimum font size.")
 
-        return rules_lines, flavor_lines, font_size, margin, content_height, usable_height
+        return rules_lines, font_size, margin, content_height, usable_height
 
     def _create_rules_text_layer(self):
         """
@@ -1008,10 +1019,7 @@ class RegularCard:
             text = text.replace("{center}", "")
         text = self._replace_text_placeholders(text)
 
-        rules_lines, flavor_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
-
-        rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
-        italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
+        rules_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
 
         image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -1019,7 +1027,7 @@ class RegularCard:
         line_height = font_size
         curr_y = margin + (usable_height - content_height) // 2
 
-        def draw_lines(lines: list[list[tuple[str, str, str]]], text_font: ImageFont.ImageFont):
+        def draw_lines(lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]):
             """
             Render lines of text as images.
             """
@@ -1038,7 +1046,7 @@ class RegularCard:
                         if kind == "text":
                             if value:
                                 total_line_length += draw.textlength(value, font=frag_font)
-                        else:
+                        elif kind == "symbol":
                             width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                             total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     curr_x = (self.RULES_TEXT_WIDTH - total_line_length) // 2
@@ -1050,7 +1058,7 @@ class RegularCard:
                         if value:
                             draw.text((curr_x, curr_y), value, font=frag_font, fill=self.RULES_TEXT_FONT_COLOR)
                             curr_x += draw.textlength(value, font=frag_font)
-                    else:
+                    elif kind == "symbol":
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
                         if symbol_image is not None:
                             image.alpha_composite(
@@ -1062,21 +1070,22 @@ class RegularCard:
                             )
                         else:
                             placeholder = f"[{value}]"
-                            draw.text((curr_x, curr_y), placeholder, font=text_font, fill="red")
+                            draw.text((curr_x, curr_y), placeholder, font=frag_font, fill="red")
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                    elif kind == "indent":
+                        curr_x += value
                 curr_y += line_height
 
-        draw_lines(rules_lines, rules_font)
-
-        flavor_dividing_line = FLAVOR_DIVIDING_LINE.get_formatted_image()
-        for lines in flavor_lines:
-            curr_y += line_height // 2
-            image.alpha_composite(
-                flavor_dividing_line.resize((self.RULES_TEXT_WIDTH, flavor_dividing_line.height)),
-                (0, curr_y),
-            )
-            curr_y += flavor_dividing_line.height + line_height // 2
-            draw_lines(lines, italics_font)
+        dividing_line = RULES_DIVIDING_LINE.get_formatted_image(self.RULES_TEXT_WIDTH, RULES_DIVIDING_LINE.image.height)
+        for idx, lines in enumerate(rules_lines):
+            if idx > 0:
+                curr_y += line_height // 2
+                image.alpha_composite(
+                    dividing_line,
+                    (0, curr_y),
+                )
+                curr_y += dividing_line.height + line_height // 2
+            draw_lines(lines)
 
         self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
 

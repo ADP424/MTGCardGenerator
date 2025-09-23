@@ -60,8 +60,5 @@ class TallToken(RegularToken):
         self.RULES_TEXT_Y = 1315
         self.RULES_TEXT_HEIGHT = 623
 
-        # Watermark
-        self.WATERMARK_HEIGHT = 480
-
         # Set / Rarity Symbol
         self.SET_SYMBOL_Y = 1198

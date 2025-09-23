@@ -103,9 +103,6 @@ class Battle(RegularCard):
         self.POWER_TOUGHNESS_FONT_SIZE = 107
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
 
-        # Watermark
-        self.WATERMARK_HEIGHT = 446
-
         # Set / Rarity Symbol
         self.SET_SYMBOL_X = 2490
         self.SET_SYMBOL_Y = 1182

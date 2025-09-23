@@ -33,6 +33,7 @@ from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.RegularCard import RegularCard
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
+from model.mtg_class.RegularClass import RegularClass
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
@@ -97,6 +98,8 @@ def process_spreadsheets(
         "regular planeswalker": RegularPlaneswalker,
         # Saga
         "regular saga": RegularSaga,
+        # Class
+        "regular class": RegularClass,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,

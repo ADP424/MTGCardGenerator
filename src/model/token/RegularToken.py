@@ -65,8 +65,5 @@ class RegularToken(RegularCard):
         self.RULES_TEXT_Y = 1496
         self.RULES_TEXT_HEIGHT = 437
 
-        # Watermark
-        self.WATERMARK_HEIGHT = 320
-
         # Set / Rarity Symbol
         self.SET_SYMBOL_Y = 1373
