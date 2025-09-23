@@ -188,7 +188,7 @@ class RegularRoom(RegularCard):
 
         full_mana_cost = self.get_metadata(CARD_MANA_COST)
 
-        mana_costs = full_mana_cost.splitlines()
+        mana_costs = full_mana_cost.split("\n")
         first_mana_cost = mana_costs[0]
         second_mana_cost = mana_costs[1] if len(mana_costs) > 1 else ""
 
@@ -253,7 +253,7 @@ class RegularRoom(RegularCard):
         first_rules_text = titles[1].strip() if len(titles) > 1 else ""
         second_rules_text = titles[2].strip() if len(titles) > 2 else ""
 
-        # do titles correctly so that {cardname} placeholder works as expected
+        # Do titles correctly so that {cardname} placeholder works as expected
         titles = full_title.split("{N}")
         first_title = titles[0].strip()
         second_title = titles[1].strip() if len(titles) > 1 else ""

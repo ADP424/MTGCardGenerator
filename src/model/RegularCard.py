@@ -110,7 +110,7 @@ class RegularCard:
 
         # Title Text
         self.TITLE_X = 128
-        self.TITLE_Y = 113
+        self.TITLE_Y = 112
         self.TITLE_WIDTH = 1244
         self.TITLE_MAX_FONT_SIZE = 79
         self.TITLE_MIN_FONT_SIZE = 6
@@ -413,7 +413,7 @@ class RegularCard:
         colors = self.get_metadata(CARD_WATERMARK_COLOR)
         if len(colors) > 0:
             watermark_color = []
-            for color in colors.splitlines():
+            for color in colors.split("\n"):
                 color = WATERMARK_COLORS.get(color.lower().strip())
                 if color is not None:
                     watermark_color.append(color)
@@ -749,30 +749,25 @@ class RegularCard:
         if len(text) == 0:
             return
 
-        header_x = self.TYPE_X
-        header_y = self.TYPE_Y
-        header_width = self.TYPE_WIDTH
-        header_height = self.TYPE_BOX_HEIGHT
-
         font_size = self.TYPE_MAX_FONT_SIZE
         type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-        while header_x + type_font.getlength(text) > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
+        while self.TYPE_X + type_font.getlength(text) > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
 
-        image = Image.new("RGBA", (header_width, header_height), (0, 0, 0, 0))
+        image = Image.new("RGBA", (self.TYPE_WIDTH, self.TYPE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         ascent = type_font.getmetrics()[0]
         draw.text(
-            (0, (header_height - ascent) // 2),
+            (0, (self.TYPE_BOX_HEIGHT - ascent) // 2),
             text,
             font=type_font,
             fill=self.TYPE_FONT_COLOR,
             anchor="lt",
         )
 
-        self.text_layers.append(Layer(image, (header_x, header_y)))
+        self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_Y)))
 
     def _replace_text_placeholders(self, text: str) -> str:
         """
@@ -957,7 +952,7 @@ class RegularCard:
                     target_font = italics_font
                 else:
                     target_font = rules_font
-                for line in raw_text.splitlines():
+                for line in raw_text.split("\n"):
                     flavor_fragments = parse_fragments(line)
                     rules_lines[-1] += (
                         wrap_text_fragments(flavor_fragments, target_font, italics_font)

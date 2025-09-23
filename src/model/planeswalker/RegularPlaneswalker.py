@@ -116,7 +116,7 @@ class RegularPlaneswalker(RegularCard):
         self.SET_SYMBOL_WIDTH = 80
 
         # Separate mana and ability costs
-        costs = self.get_metadata(CARD_MANA_COST).splitlines()
+        costs = self.get_metadata(CARD_MANA_COST).split("\n")
         self.ability_costs = [ability_cost.strip() for ability_cost in costs[1:]]
         self.set_metadata(CARD_MANA_COST, costs[0].strip())
 

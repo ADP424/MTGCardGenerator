@@ -92,7 +92,7 @@ class RegularClass(RegularCard):
         self.level_titles = [level_title.strip() for level_title in titles[1:]]
 
         # Separate the card mana cost from the level mana costs
-        costs = self.get_metadata(CARD_MANA_COST).splitlines()
+        costs = self.get_metadata(CARD_MANA_COST).split("\n")
         self.level_costs = [level_cost.strip() for level_cost in costs[1:]]
         self.set_metadata(CARD_MANA_COST, costs[0].strip())
 

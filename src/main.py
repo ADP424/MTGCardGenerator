@@ -31,6 +31,7 @@ from constants import (
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.RegularCard import RegularCard
+from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.mtg_class.RegularClass import RegularClass
@@ -100,6 +101,8 @@ def process_spreadsheets(
         "regular saga": RegularSaga,
         # Class
         "regular class": RegularClass,
+        # Adventure
+        "regular adventure": RegularAdventure,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,

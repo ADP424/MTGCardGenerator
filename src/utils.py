@@ -1,3 +1,4 @@
+import re
 from PIL import Image
 
 
@@ -67,12 +68,25 @@ def replace_ticks(word: str) -> str:
         The converted word.
     """
 
-    if word.endswith('"'):
-        word = word[:-1] + "”"
-    word = word.replace('"', "“")
-    if word.startswith("'"):
+    if '"' in word:
+
+        # Handle trailing punctuation
+        match = re.match(r'^(.*?)(["\'])(\W*)$', word)
+        if match:
+            core, quote, punct = match.groups()
+            if quote == '"':
+                word = core + "”" + punct
+            else:
+                word = core + "’" + punct
+        else:
+            word = word.replace('"', "“").replace("'", "‘")
+
+    if word.startswith('"'):
+        word = "“" + word[1:]
+    elif word.startswith("'"):
         word = "‘" + word[1:]
-    word = word.replace("'", "’")
+
+    word = word.replace('"', "”").replace("'", "’")
 
     return word
 
