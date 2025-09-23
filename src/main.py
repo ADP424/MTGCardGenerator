@@ -234,6 +234,17 @@ def process_spreadsheets(
 
         # Remove any cards that aren't on the whitelist
         # We have to do this last so alternates can still read their info off the original
+
+        def card_on_the_whitelist(card: RegularCard):
+            if card_names_whitelist is None:
+                return True
+            card_title = card.get_metadata(CARD_TITLE)
+            card_titles = [title.strip() for title in card_title.split("{N}")]
+            for title in card_titles + [card_title]:
+                if title in card_names_whitelist:
+                    return True
+            return False
+
         for card_key, card in list(card_spreadsheets[output_path].items()):
             card_category = card.get_metadata(CARD_CATEGORY)
             if (
@@ -241,17 +252,14 @@ def process_spreadsheets(
                 or (not do_tokens and card_category.lower() == "token")
                 or (not do_basic_lands and card_category.lower() == "basic land")
                 or (not do_alts and card_category.lower() == "alternate")
-                or (card_names_whitelist is not None and card_key not in card_names_whitelist)
+                or not card_on_the_whitelist(card)
             ):
                 del card_spreadsheets[output_path][card_key]
 
             backsides = card.get_metadata(CARD_BACKSIDES, [])
             idx = 0
             while idx < len(backsides):
-                backside_title = backsides[idx].get_metadata(CARD_TITLE)
-                backside_descriptor = backsides[idx].get_metadata(CARD_DESCRIPTOR)
-                backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
-                if card_names_whitelist is not None and backside_key not in card_names_whitelist:
+                if not card_on_the_whitelist(backsides[idx]):
                     backsides.pop(idx)
                     idx -= 1
                 idx += 1
