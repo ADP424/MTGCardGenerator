@@ -301,6 +301,9 @@ class RegularPlaneswalker(RegularCard):
             except ValueError:
                 log(f"Can't parse '{self.ability_costs[idx]}' as an ability cost.")
                 continue
+            except IndexError:
+                log(f"No cost provided for Ability {idx + 1}.")
+                continue
 
             if ability_cost > 0:
                 ability_border = PLANESWALKER_ABILITY_COST_BORDER_POSITIVE.get_formatted_image()

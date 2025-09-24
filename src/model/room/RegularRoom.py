@@ -164,8 +164,8 @@ class RegularRoom(RegularCard):
 
     def _create_watermark_layer(self):
         """
-        Process two watermark images and append them to `self.collector_layers` (one for each rules text box because it's a room).
-        Assumes the image is in RGBA format.
+        Process two watermark images and append them to `self.collector_layers`
+        (one for each rules text box because it's a room). Assumes the image is in RGBA format.
         """
 
         self.RULES_BOX_X = self.FIRST_RULES_BOX_X

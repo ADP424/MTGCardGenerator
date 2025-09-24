@@ -422,9 +422,7 @@ class RegularCard:
             watermark_color = (0, 0, 0)
 
         watermark_height = int(self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE * self.RULES_BOX_HEIGHT)
-        resized = watermark.resize(
-            (int((watermark_height / watermark.height) * watermark.width), watermark_height)
-        )
+        resized = watermark.resize((int((watermark_height / watermark.height) * watermark.width), watermark_height))
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
             alpha = image.getchannel("A")
@@ -696,7 +694,7 @@ class RegularCard:
         text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
-        
+
         centered = False
         if "{center}" in text:
             centered = True
@@ -953,13 +951,12 @@ class RegularCard:
                 else:
                     target_font = rules_font
                 for line in raw_text.split("\n"):
-                    flavor_fragments = parse_fragments(line)
-                    rules_lines[-1] += (
-                        wrap_text_fragments(flavor_fragments, target_font, italics_font)
-                        if flavor_fragments
-                        else [[("text", "", target_font)]]
-                    )
-                    rules_lines[-1].append([("newline", None)])
+                    fragments = parse_fragments(line)
+                    if fragments:
+                        rules_lines[-1] += (
+                            wrap_text_fragments(fragments, target_font, italics_font)
+                        )
+                        rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
 
             # If the lines of text are too tall, try the process again with a different font

@@ -297,6 +297,26 @@ class RegularSaga(RegularCard):
             )
         )
 
+    def _create_watermark_layer(self):
+        """
+        Process a watermark image and append it to `self.collector_layers`.
+        Assumes the image is in RGBA format.
+        """
+
+        full_rules_box_y = self.RULES_BOX_Y
+        full_rules_box_height = self.RULES_BOX_HEIGHT
+
+        target_y = (
+            self.RULES_BOX_Y + sum(self.chapter_heights[: (len(self.chapter_heights) - 1) // 2])
+        )
+        target_height = self.chapter_heights[(len(self.chapter_heights) - 1) // 2]
+        self.RULES_BOX_Y = target_y
+        self.RULES_BOX_HEIGHT = target_height
+        super()._create_watermark_layer()
+
+        self.RULES_BOX_Y = full_rules_box_y
+        self.RULES_BOX_HEIGHT = full_rules_box_height
+
     def _create_rules_text_layer(self):
         """
         Process MTG rules text in the rules text box, exchanging placeholders for symbols and text formatting,

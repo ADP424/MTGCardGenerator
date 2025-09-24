@@ -112,6 +112,18 @@ def process_spreadsheets(
 
     card_spreadsheets: dict[str, dict[str, RegularCard]] = {}
 
+    def card_on_the_whitelist(card_title: str, card_descriptor: str):
+        if card_names_whitelist is None:
+            return True
+        card_titles = [title.strip() for title in card_title.split("{N}")]
+        for title in card_titles + [card_title]:
+            if len(card_descriptor) > 0:
+                if f"{title} - {card_descriptor}" in card_names_whitelist:
+                    return True
+            elif title in card_names_whitelist:
+                return True
+        return False
+
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
         if spreadsheet_path.rfind("-") >= 0:
             output_path = (
@@ -124,7 +136,10 @@ def process_spreadsheets(
                 f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
             )
         os.makedirs(output_path, exist_ok=True)
+        
         card_spreadsheets[output_path] = {}
+        raw_cards: dict[str, dict[str, str]] = {}
+
         with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
             cards_sheet_reader = csv.reader(cards_sheet)
             columns = next(cards_sheet_reader)
@@ -132,13 +147,14 @@ def process_spreadsheets(
                 values = dict(zip(columns, [element.strip() for element in row]))
                 card_title = values.get(CARD_TITLE, "").replace("\n", "{N}")
                 values[CARD_TITLE] = card_title
+                values[CARD_FRONTSIDE] = values.get(CARD_FRONTSIDE, "").replace("\n", "{N}")
                 card_descriptor = values.get(CARD_DESCRIPTOR, "")
-                card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+                card_key = f"{card_title}{f' - {card_descriptor}' if len(card_descriptor) > 0 else ''}"
+
                 if len(card_title) == 0:
                     continue
-                frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
-                subclass = layout_to_subclass.get(frame_layout, RegularCard)
-                card_spreadsheets[output_path][card_key] = subclass(metadata=values)
+
+                raw_cards[card_key] = values
 
         def str_to_int(string: str, default: int) -> int:
             try:
@@ -152,6 +168,60 @@ def process_spreadsheets(
             except ValueError:
                 return default
 
+        def get_sorted_keys():
+            return sorted(
+                raw_cards.keys(),
+                key=lambda key: (
+                    str_to_datetime(raw_cards[key].get(CARD_CREATION_DATE, ""), datetime(MINYEAR, 1, 1)),
+                    str_to_int(raw_cards[key].get(CARD_ORDERER, ""), 0),
+                    raw_cards[key].get(CARD_TITLE, ""),
+                ),
+            )
+
+        sorted_keys = get_sorted_keys()
+
+        # Add indices to all the cards, for collector info
+        category_indices: dict[str, int] = {}
+        for key in sorted_keys:
+            card = raw_cards[key]
+            if len(card.get(CARD_FRONTSIDE, "")) > 0:
+                card[CARD_INDEX] = ""
+                continue
+            category = card.get(CARD_CATEGORY)
+            if not category_indices.get(category, False):
+                category_indices[category] = 0
+            category_indices[category] += 1
+            card[CARD_INDEX] = str(category_indices[category])
+
+        # Set largest index of all the cards for the footers
+        for key in sorted_keys:
+            card = raw_cards[key]
+            category = card.get(CARD_CATEGORY)
+            card["footer_largest_index"] = category_indices[category]
+
+        # Cull any cards not on the whitelist
+        filtered_cards: dict[str, dict[str, str]] = {}
+        for key, metadata in raw_cards.items():
+            card_title = metadata.get(CARD_TITLE)
+            card_descriptor = metadata.get(CARD_DESCRIPTOR, "")
+            if not card_on_the_whitelist(card_title, card_descriptor):
+                continue
+            card_category = metadata.get(CARD_CATEGORY, "").lower()
+            if (
+                (not do_cards and card_category == "regular")
+                or (not do_tokens and card_category == "token")
+                or (not do_basic_lands and card_category == "basic land")
+                or (not do_alts and card_category == "alternate")
+            ):
+                continue
+            filtered_cards[key] = metadata
+
+        # Give each card a class depending on its frame layout
+        for key, metadata in filtered_cards.items():
+            frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
+            subclass = layout_to_subclass.get(frame_layout, RegularCard)
+            card_spreadsheets[output_path][key] = subclass(metadata=metadata)
+
         def get_sorted_cards():
             return sorted(
                 card_spreadsheets[output_path].values(),
@@ -163,23 +233,6 @@ def process_spreadsheets(
             )
 
         sorted_cards = get_sorted_cards()
-
-        # Add indices to all the cards, for collector info
-        category_indices: dict[str, int] = {}
-        for card in sorted_cards:
-            if len(card.get_metadata(CARD_FRONTSIDE)) > 0:
-                card.set_metadata(CARD_INDEX, "")
-                continue
-
-            category = card.get_metadata(CARD_CATEGORY)
-            if not category_indices.get(category, False):
-                category_indices[category] = 0
-            category_indices[category] += 1
-            card.set_metadata(CARD_INDEX, str(category_indices[category]))
-
-        # Set largest index to all the cards for the footers
-        for card in sorted_cards:
-            card.footer_largest_index = category_indices[card.get_metadata(CARD_CATEGORY)]
 
         # Give each alternate card a subclass based on their frame layout (now that they have one)
         # Also replace empty columns in alternates with their original card's values
@@ -195,7 +248,7 @@ def process_spreadsheets(
             original_card = card_spreadsheets[output_path].get(card_title)
             if original_card is not None:
                 for key, value in card.metadata.items():
-                    if len(value) == 0:
+                    if not isinstance(value, int) and len(value) == 0:
                         card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
@@ -231,38 +284,6 @@ def process_spreadsheets(
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
             del card_spreadsheets[output_path][card_key]
-
-        # Remove any cards that aren't on the whitelist
-        # We have to do this last so alternates can still read their info off the original
-
-        def card_on_the_whitelist(card: RegularCard):
-            if card_names_whitelist is None:
-                return True
-            card_title = card.get_metadata(CARD_TITLE)
-            card_titles = [title.strip() for title in card_title.split("{N}")]
-            for title in card_titles + [card_title]:
-                if title in card_names_whitelist:
-                    return True
-            return False
-
-        for card_key, card in list(card_spreadsheets[output_path].items()):
-            card_category = card.get_metadata(CARD_CATEGORY)
-            if (
-                (not do_cards and card_category.lower() == "regular")
-                or (not do_tokens and card_category.lower() == "token")
-                or (not do_basic_lands and card_category.lower() == "basic land")
-                or (not do_alts and card_category.lower() == "alternate")
-                or not card_on_the_whitelist(card)
-            ):
-                del card_spreadsheets[output_path][card_key]
-
-            backsides = card.get_metadata(CARD_BACKSIDES, [])
-            idx = 0
-            while idx < len(backsides):
-                if not card_on_the_whitelist(backsides[idx]):
-                    backsides.pop(idx)
-                    idx -= 1
-                idx += 1
 
     return card_spreadsheets
 
@@ -411,7 +432,10 @@ if __name__ == "__main__":
         "-c",
         "--cards",
         nargs="+",
-        help="Only process the cards with these names (including tokens, alt arts, etc.). Use '{N}' in place of newlines.",
+        help=(
+            "Only process the cards with these names (including tokens, alt arts, etc.)."
+            "Use '{N}' in place of newlines."
+        ),
         dest="card_names_whitelist",
     )
 

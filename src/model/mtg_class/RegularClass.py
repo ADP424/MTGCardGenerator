@@ -216,7 +216,9 @@ class RegularClass(RegularCard):
         full_rules_box_y = self.RULES_BOX_Y
         full_rules_box_height = self.RULES_BOX_HEIGHT
 
-        target_y = self.RULES_BOX_Y + sum(self.level_heights[:(len(self.level_heights) - 1) // 2]) + CLASS_HEADER.image.height
+        target_y = (
+            self.RULES_BOX_Y + sum(self.level_heights[: (len(self.level_heights) - 1) // 2]) + CLASS_HEADER.image.height
+        )
         target_height = self.level_heights[(len(self.level_heights) - 1) // 2]
         self.RULES_BOX_Y = target_y
         self.RULES_BOX_HEIGHT = target_height
@@ -224,7 +226,6 @@ class RegularClass(RegularCard):
 
         self.RULES_BOX_Y = full_rules_box_y
         self.RULES_BOX_HEIGHT = full_rules_box_height
-
 
     def _create_level_header_frame_layer(self):
         """
@@ -242,7 +243,6 @@ class RegularClass(RegularCard):
                 ),
             )
         self.frame_layers.append(Layer(class_header_image, (self.RULES_BOX_X, self.RULES_BOX_Y)))
-
 
     def _create_title_layer(self):
         """
@@ -285,7 +285,9 @@ class RegularClass(RegularCard):
         """
 
         level_font = ImageFont.truetype(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
-        colon_font = ImageFont.truetype(self.LEVEL_FONT, int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE))
+        colon_font = ImageFont.truetype(
+            self.LEVEL_FONT, int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE)
+        )
 
         for idx, level_y in enumerate(self.level_header_y_axes):
             image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, CLASS_HEADER.image.height), (0, 0, 0, 0))
@@ -320,7 +322,13 @@ class RegularClass(RegularCard):
 
                 colon_bounding_box = level_font.getbbox(":")
                 colon_height = int(colon_bounding_box[3] - colon_bounding_box[1])
-                draw.text((curr_x, (CLASS_HEADER.image.height - colon_height) // 2), ":", font=colon_font, fill="black", anchor="lt")
+                draw.text(
+                    (curr_x, (CLASS_HEADER.image.height - colon_height) // 2),
+                    ":",
+                    font=colon_font,
+                    fill="black",
+                    anchor="lt",
+                )
 
             # Draw the level title
             level_title = self.level_titles[idx] if idx < len(self.level_titles) else f"Level {idx + 1}"
