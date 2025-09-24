@@ -953,9 +953,7 @@ class RegularCard:
                 for line in raw_text.split("\n"):
                     fragments = parse_fragments(line)
                     if fragments:
-                        rules_lines[-1] += (
-                            wrap_text_fragments(fragments, target_font, italics_font)
-                        )
+                        rules_lines[-1] += wrap_text_fragments(fragments, target_font, italics_font)
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
 

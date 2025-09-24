@@ -136,7 +136,7 @@ def process_spreadsheets(
                 f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
             )
         os.makedirs(output_path, exist_ok=True)
-        
+
         card_spreadsheets[output_path] = {}
         raw_cards: dict[str, dict[str, str]] = {}
 
@@ -197,7 +197,7 @@ def process_spreadsheets(
         for key in sorted_keys:
             card = raw_cards[key]
             category = card.get(CARD_CATEGORY)
-            card["footer_largest_index"] = category_indices[category]
+            card["footer_largest_index"] = category_indices.get(category, 0)
 
         # Cull any cards not on the whitelist
         filtered_cards: dict[str, dict[str, str]] = {}

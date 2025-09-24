@@ -306,10 +306,14 @@ class RegularSaga(RegularCard):
         full_rules_box_y = self.RULES_BOX_Y
         full_rules_box_height = self.RULES_BOX_HEIGHT
 
+        filtered_chapter_heights = [height for height in self.chapter_heights if height > 0]
         target_y = (
-            self.RULES_BOX_Y + sum(self.chapter_heights[: (len(self.chapter_heights) - 1) // 2])
+            self.RULES_BOX_Y
+            + self.STATIC_TEXT_HEIGHT
+            + self.STATIC_CHAPTER_TEXT_GAP
+            + sum(filtered_chapter_heights[: (len(filtered_chapter_heights) - 1) // 2])
         )
-        target_height = self.chapter_heights[(len(self.chapter_heights) - 1) // 2]
+        target_height = filtered_chapter_heights[(len(filtered_chapter_heights) - 1) // 2]
         self.RULES_BOX_Y = target_y
         self.RULES_BOX_HEIGHT = target_height
         super()._create_watermark_layer()
