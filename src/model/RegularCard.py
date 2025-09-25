@@ -4,6 +4,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 from constants import (
     ADD_TOTAL_TO_FOOTER,
     ARTIST_BRUSH,
+    CARD_ADDITIONAL_TITLES,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
     RULES_DIVIDING_LINE,
@@ -41,7 +42,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from utils import cardname_to_filename, open_image, paste_image, replace_ticks
+from utils import cardname_to_filename, get_card_key, open_image, paste_image, replace_ticks
 
 
 class RegularCard:
@@ -347,8 +348,9 @@ class RegularCard:
         """
 
         card_title = self.get_metadata(CARD_TITLE)
+        card_additional_titles = self.get_metadata(self.get_metadata(CARD_ADDITIONAL_TITLES))
         card_descriptor = self.get_metadata(CARD_DESCRIPTOR)
-        card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+        card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
         art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(card_key)}.png"
         self.art_layer = Layer(open_image(art_path))
 
@@ -962,7 +964,7 @@ class RegularCard:
         """
 
         new_text = text
-        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE).split("{N}")[0], new_text, flags=re.IGNORECASE)
+        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE), new_text, flags=re.IGNORECASE)
         new_text = re.sub("{-}", "—", new_text)
         return new_text
 
@@ -985,8 +987,8 @@ class RegularCard:
 
         Returns
         -------
-        tuple[int, int, Image | None]
-            A suple in the form (width, height, image | None). Image is None if no symbol image was
+        tuple[int, int, int, Image | None]
+            A tuple in the form (width, height, image | None). Image is None if no symbol image was
             found for the given token and a text placeholder was used instead.
         """
 
@@ -999,8 +1001,8 @@ class RegularCard:
         scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
         width = int(symbol.image.width * scale)
         height = int(symbol.image.height * scale)
-        symbol = symbol.get_formatted_image(width, height)
-        return width, height, symbol
+        symbol_image = symbol.get_formatted_image(width, height)
+        return symbol_image.width, symbol_image.height, symbol_image
 
     def _get_rules_text_layout(self, text: str) -> tuple[
         list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]],

@@ -35,6 +35,7 @@ CARD_LANGUAGE = "Language"
 CARD_ARTIST = "Artist"
 ADD_TOTAL_TO_FOOTER = "Add Total to Footer?"
 
+CARD_ADDITIONAL_TITLES = "Additional Title(s)"
 CARD_DESCRIPTOR = "Descriptor"
 CARD_ORDERER = "Orderer"
 CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"

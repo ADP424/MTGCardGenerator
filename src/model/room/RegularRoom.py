@@ -1,4 +1,4 @@
-from constants import CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE
+from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE
 from model.RegularCard import RegularCard
 from model.Layer import Layer
 
@@ -215,17 +215,13 @@ class RegularRoom(RegularCard):
         Process title text into the titles for each door of the room and append them to `self.text_layers`.
         """
 
-        full_title = self.get_metadata(CARD_TITLE)
-
-        titles = full_title.split("{N}")
-        first_title = titles[0].strip()
-        second_title = titles[1].strip() if len(titles) > 1 else ""
+        first_title = self.get_metadata(CARD_TITLE)
+        second_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
         self.TITLE_X = self.FIRST_TITLE_X
         self.TITLE_Y = self.FIRST_TITLE_Y
         self.TITLE_WIDTH = self.FIRST_TITLE_WIDTH
         self.TITLE_BOX_HEIGHT = self.FIRST_TITLE_BOX_HEIGHT
-        self.set_metadata(CARD_TITLE, first_title)
         self.mana_cost_x = self.first_mana_cost_x
         super()._create_title_layer()
 
@@ -237,7 +233,7 @@ class RegularRoom(RegularCard):
         self.mana_cost_x = self.second_mana_cost_x
         super()._create_title_layer()
 
-        self.set_metadata(CARD_TITLE, full_title)
+        self.set_metadata(CARD_TITLE, first_title)
 
     def _create_rules_text_layer(self):
         """
@@ -246,17 +242,15 @@ class RegularRoom(RegularCard):
         """
 
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
-        full_title = self.get_metadata(CARD_TITLE)
 
-        titles = full_rules_text.split("{end}")
-        shared_rules_text = titles[0].strip()
-        first_rules_text = titles[1].strip() if len(titles) > 1 else ""
-        second_rules_text = titles[2].strip() if len(titles) > 2 else ""
+        rules_texts = full_rules_text.split("{end}")
+        shared_rules_text = rules_texts[0].strip()
+        first_rules_text = rules_texts[1].strip() if len(rules_texts) > 1 else ""
+        second_rules_text = rules_texts[2].strip() if len(rules_texts) > 2 else ""
 
         # Do titles correctly so that {cardname} placeholder works as expected
-        titles = full_title.split("{N}")
-        first_title = titles[0].strip()
-        second_title = titles[1].strip() if len(titles) > 1 else ""
+        first_title = self.get_metadata(CARD_TITLE)
+        second_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
         self.RULES_TEXT_X = self.SHARED_RULES_TEXT_X
         self.RULES_TEXT_Y = self.SHARED_RULES_TEXT_Y
@@ -286,4 +280,4 @@ class RegularRoom(RegularCard):
         super()._create_rules_text_layer()
 
         self.set_metadata(CARD_RULES_TEXT, full_rules_text)
-        self.set_metadata(CARD_TITLE, full_title)
+        self.set_metadata(CARD_TITLE, first_title)

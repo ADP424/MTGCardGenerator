@@ -2,6 +2,7 @@ import re
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
+    CARD_ADDITIONAL_TITLES,
     CARD_MANA_COST,
     CARD_RULES_TEXT,
     CARD_TITLE,
@@ -86,10 +87,6 @@ class RegularClass(RegularCard):
         self.SET_SYMBOL_X = 1305
         self.SET_SYMBOL_Y = 1795
         self.SET_SYMBOL_WIDTH = 80
-
-        # Extract level names from the card title
-        titles = self.get_metadata(CARD_TITLE).split("{N}")
-        self.level_titles = [level_title.strip() for level_title in titles[1:]]
 
         # Separate the card mana cost from the level mana costs
         costs = self.get_metadata(CARD_MANA_COST).split("\n")
@@ -291,6 +288,8 @@ class RegularClass(RegularCard):
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.LEVEL_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.LEVEL_FONT_SIZE)
 
+        level_titles = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")
+
         for idx, level_y in enumerate(self.level_header_y_axes):
             image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, CLASS_HEADER.image.height), (0, 0, 0, 0))
             draw = ImageDraw.Draw(image)
@@ -333,7 +332,7 @@ class RegularClass(RegularCard):
                 )
 
             # Draw the level title
-            level_title = self.level_titles[idx] if idx < len(self.level_titles) else f"Level {idx + 1}"
+            level_title = level_titles[idx] if idx < len(level_titles) else f"Level {idx + 1}"
             centered = len(cost) == 0
             title_length = self._get_ucs_chunks_length(level_title, level_font, symbol_backup_font, emoji_backup_font)
             if not centered:

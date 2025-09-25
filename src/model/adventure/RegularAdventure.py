@@ -1,4 +1,4 @@
-from constants import CARD_MANA_COST, CARD_RULES_TEXT, CARD_SUBTYPES, CARD_SUPERTYPES, CARD_TITLE, CARD_TYPES
+from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_SUBTYPES, CARD_SUPERTYPES, CARD_TITLE, CARD_TYPES
 from model.RegularCard import RegularCard
 from model.Layer import Layer
 
@@ -158,15 +158,12 @@ class RegularAdventure(RegularCard):
         full_title_width = self.TITLE_WIDTH
         full_title_box_height = self.TITLE_BOX_HEIGHT
         full_title_font_color = self.TITLE_FONT_COLOR
+        main_title = self.get_metadata(CARD_TITLE)
+        main_mana_cost_x = self.mana_cost_x
 
-        full_title = self.get_metadata(CARD_TITLE)
-
-        titles = full_title.split("{N}")
-        primary_title = titles[0].strip()
-        adventure_title = titles[1].strip() if len(titles) > 1 else ""
-
-        self.set_metadata(CARD_TITLE, primary_title)
         super()._create_title_layer()
+
+        adventure_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
         self.TITLE_X = self.ADVENTURE_TITLE_X
         self.TITLE_Y = self.ADVENTURE_TITLE_Y
@@ -177,13 +174,13 @@ class RegularAdventure(RegularCard):
         self.mana_cost_x = self.adventure_mana_cost_x
         super()._create_title_layer()
 
-        self.set_metadata(CARD_TITLE, full_title)
-
         self.TITLE_X = full_title_x
         self.TITLE_Y = full_title_y
         self.TITLE_WIDTH = full_title_width
         self.TITLE_BOX_HEIGHT = full_title_box_height
         self.TITLE_FONT_COLOR = full_title_font_color
+        self.set_metadata(CARD_TITLE, main_title)
+        self.mana_cost_x = main_mana_cost_x
 
     def _create_type_layer(self):
         """
@@ -254,13 +251,9 @@ class RegularAdventure(RegularCard):
         full_rules_text_width = self.RULES_TEXT_WIDTH
         full_rules_text_height = self.RULES_TEXT_HEIGHT
 
-        titles = full_rules_text.split("{end}")
-        primary_rules_text = titles[0].strip()
-        adventure_rules_text = titles[1].strip() if len(titles) > 1 else ""
-
-        # Do titles correctly so that {cardname} placeholder works as expected
-        primary_title = full_title.split("{N}")[0].strip()
-        self.set_metadata(CARD_TITLE, primary_title)
+        rules_texts = full_rules_text.split("{end}")
+        primary_rules_text = rules_texts[0].strip()
+        adventure_rules_text = rules_texts[1].strip() if len(rules_texts) > 1 else ""
 
         self.set_metadata(CARD_RULES_TEXT, primary_rules_text)
         super()._create_rules_text_layer()

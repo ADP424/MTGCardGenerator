@@ -12,6 +12,7 @@ from constants import (
     ART_WIDTH,
     ART_X,
     ART_Y,
+    CARD_ADDITIONAL_TITLES,
     CARD_ARTIST,
     CARD_BACKSIDES,
     CARD_CATEGORY,
@@ -46,7 +47,7 @@ from model.token.TextlessToken import TextlessToken
 from model.transform.backside.TransformBackside import TransformBackside
 from model.transform.backside.TransformBacksideNoPip import TransformBacksideNoPip
 from model.transform.frontside.TransformFrontside import TransformFrontside
-from utils import cardname_to_filename, open_image
+from utils import cardname_to_filename, get_card_key, open_image
 
 
 def process_spreadsheets(
@@ -113,15 +114,15 @@ def process_spreadsheets(
 
     card_spreadsheets: dict[str, dict[str, RegularCard]] = {}
 
-    def card_on_the_whitelist(card_title: str, card_descriptor: str):
+    def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
         if card_names_whitelist is None:
             return True
-        card_titles = [title.strip() for title in card_title.split("{N}")]
+        card_titles = [title.strip() for title in card_additional_titles.split("\n")]
         for title in card_titles + [card_title]:
             if len(card_descriptor) > 0:
-                if f"{title} - {card_descriptor}" in card_names_whitelist:
+                if f"{title} - {card_descriptor}" in card_names_whitelist or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist:
                     return True
-            elif title in card_names_whitelist:
+            elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
                 return True
         return False
 
@@ -146,11 +147,10 @@ def process_spreadsheets(
             columns = next(cards_sheet_reader)
             for row in cards_sheet_reader:
                 values = dict(zip(columns, [element.strip() for element in row]))
-                card_title = values.get(CARD_TITLE, "").replace("\n", "{N}")
-                values[CARD_TITLE] = card_title
-                values[CARD_FRONTSIDE] = values.get(CARD_FRONTSIDE, "").replace("\n", "{N}")
+                card_title = values.get(CARD_TITLE, "")
+                card_additional_titles = values.get(CARD_ADDITIONAL_TITLES, "")
                 card_descriptor = values.get(CARD_DESCRIPTOR, "")
-                card_key = f"{card_title}{f' - {card_descriptor}' if len(card_descriptor) > 0 else ''}"
+                card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
                 if len(card_title) == 0:
                     continue
@@ -204,8 +204,9 @@ def process_spreadsheets(
         filtered_cards: dict[str, dict[str, str]] = {}
         for key, metadata in raw_cards.items():
             card_title = metadata.get(CARD_TITLE)
+            card_additional_titles = metadata.get(CARD_ADDITIONAL_TITLES)
             card_descriptor = metadata.get(CARD_DESCRIPTOR, "")
-            if not card_on_the_whitelist(card_title, card_descriptor):
+            if not card_on_the_whitelist(card_title, card_additional_titles, card_descriptor):
                 continue
             card_category = metadata.get(CARD_CATEGORY, "").lower()
             if (
@@ -216,6 +217,8 @@ def process_spreadsheets(
             ):
                 continue
             filtered_cards[key] = metadata
+
+        # print([s_card.get_metadata(CARD_TITLE) + s_card.get_metadata(CARD_DESCRIPTOR) for s_card in sorted_cards])
 
         # Give each card a class depending on its frame layout
         for key, metadata in filtered_cards.items():
@@ -239,11 +242,12 @@ def process_spreadsheets(
         # Also replace empty columns in alternates with their original card's values
         for card in sorted_cards:
             card_title = card.get_metadata(CARD_TITLE)
-            descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = f"{card_title}{f" - {descriptor}" if len(descriptor) > 0 else ""}"
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
             # skip if this isn't an alternate
-            if len(descriptor) == 0:
+            if len(card_descriptor) == 0:
                 continue
 
             original_card = card_spreadsheets[output_path].get(card_title)
@@ -282,8 +286,9 @@ def process_spreadsheets(
                 log(f"Could not find '{frontside_title}' as a frontside.")
 
             card_title = card.get_metadata(CARD_TITLE)
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_spreadsheets[output_path][card_key]
 
     return card_spreadsheets
@@ -296,8 +301,9 @@ def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
 
         for card in spreadsheet.values():
             card_title = card.get_metadata(CARD_TITLE)
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = f"{card_title}{f" - {card_descriptor}" if len(card_descriptor) > 0 else ""}"
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
             log(f"Processing '{card_key}'...")
             increase_log_indent()
@@ -308,8 +314,9 @@ def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
 
             for backside in card.get_metadata(CARD_BACKSIDES, []):
                 backside_title = backside.metadata.get(CARD_TITLE, "")
+                backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                backside_key = f"{backside_title}{f" - {backside_descriptor}" if len(backside_descriptor) > 0 else ""}"
+                backside_key = get_card_key(backside_title, backside_additional_titles, backside_descriptor)
 
                 log(f"Processing '{backside_key}'...")
                 increase_log_indent()
@@ -435,7 +442,6 @@ if __name__ == "__main__":
         nargs="+",
         help=(
             "Only process the cards with these names (including tokens, alt arts, etc.)."
-            "Use '{N}' in place of newlines."
         ),
         dest="card_names_whitelist",
     )

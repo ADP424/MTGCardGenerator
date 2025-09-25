@@ -126,6 +126,40 @@ def cardname_to_filename(card_name: str) -> str:
     return file_name
 
 
+def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "") -> str:
+    """
+    Return a card's unique identifier based on its title, additional titles, and descriptor.
+
+    Parameters
+    ----------
+    card_title: str
+        The primary title of the card.
+
+    card_additional_titles: str | list[str], optional
+        Any additional titles the card has, either as a list of string with titles separated with newlines.
+
+    card_descriptor: str, optional
+        The extra descriptor of the card, if it has one.
+
+    Returns
+    -------
+    str
+        The completed key, with the title/additional titles(s)/descriptor all separated by hyphens.
+    """
+
+    if isinstance(card_additional_titles, str):
+        card_additional_titles = card_additional_titles.split("\n")
+
+    card_key = card_title
+    for title in card_additional_titles:
+        title = title.strip()
+        if len(title) > 0:
+            card_key += f" - {title}"
+    card_key += f" - {card_descriptor}" if len(card_descriptor) > 0 else ""
+    
+    return card_key
+
+
 def int_to_roman_numeral(num: int) -> str:
     """
     Convert an integer to its Roman numeral representation. Can handle values between 1 and 3999 (inclusive).
