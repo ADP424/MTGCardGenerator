@@ -180,6 +180,10 @@ class RegularCard:
         self.FOOTER_TAB_LENGTH = 25
         self.FOOTER_ARTIST_GAP_LENGTH = 5
 
+        # Other
+        self.SYMBOL_FONT = "fonts/noto-kurrent.ttf"  # for international languages
+        self.EMOJI_FONT = "fonts/noto-emoji.ttf"  # for emojis
+
         # set when mana cost layer is made to help with title spacing
         self.mana_cost_x = float("inf")
 
@@ -484,6 +488,150 @@ class RegularCard:
         )
         self.collector_layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
 
+    def _split_ucs_chunks(
+        self,
+        text: str,
+        primary_font: ImageFont.FreeTypeFont,
+        symbol_font: ImageFont.FreeTypeFont,
+        emoji_font: ImageFont.FreeTypeFont,
+    ) -> list[tuple[str, ImageFont.FreeTypeFont]]:
+        """
+        Split text into normal and UCS chunks (UCS being unicode characters unsupported by the
+        limited MTG fonts in the program). Also splits for handling emojis.
+
+        Parameters
+        ----------
+        text: str
+            The input string with optional {UCS} / {EMOJI} ... {/UCS} / {/EMOJI} sections.
+
+        primary_font: FreeTypeFont
+            The font to use if there isn't a UCS or EMOJI chunk.
+
+        symbol_font: FreeTypeFont
+            The font to use in the case a UCS chunk is encountered.
+
+        emoji_font: FreeTypeFont
+            The font to use in the case an EMOJI chunk is encountered.
+
+        Returns
+        -------
+        list[tuple[str, FreeTypeFont]]
+            A list of tuples in the form (chunk, font).
+        """
+
+        # A {UCS} or {EMOJI} tag without a corresponding ending tag means the rest of the text should use that font
+        if text.count("{UCS}") > (text.count("{/UCS}") + text.count("{\\UCS}")):
+            text += "{/UCS}"
+        if text.count("{EMOJI}") > (text.count("{/EMOJI}") + text.count("{\\EMOJI}")):
+            text += "{/EMOJI}"
+
+        pattern = re.compile(
+            r"(\{UCS\}.*?(?:\{\/UCS\}|\{\\UCS\})|\{EMOJI\}.*?(?:\{\/EMOJI\}|\{\\EMOJI\}))",
+            re.DOTALL,
+        )
+
+        chunks: list[tuple[str, str]] = []
+        last_index = 0
+        for match in pattern.finditer(text):
+            start, end = match.span()
+
+            if start > last_index:
+                chunks.append((text[last_index:start], primary_font))
+
+            block = match.group(0)
+
+            if block.startswith("{UCS}"):
+                chunks.append((block[5:-6], symbol_font))
+            elif block.startswith("{EMOJI}"):
+                chunks.append((block[7:-8], emoji_font))
+
+            last_index = end
+
+        if last_index < len(text):
+            chunks.append((text[last_index:], primary_font))
+
+        return chunks
+
+    def _draw_ucs_chunks(
+        self,
+        draw: ImageDraw.ImageDraw,
+        position: tuple[int, int],
+        text: str,
+        primary_font: ImageFont.FreeTypeFont,
+        symbol_font: ImageFont.FreeTypeFont,
+        emoji_font: ImageFont.FreeTypeFont,
+        **kwargs,
+    ):
+        """
+        Draw text with mixed fonts on a single line, to handle international and emoji characters.
+
+        Parameters
+        ----------
+        draw: ImageDraw.ImageDraw
+            The Pillow drawing context.
+
+        position: tuple[int, int]
+            The (x, y) starting position.
+
+        text: str
+            The text to draw in the given fonts.
+
+        primary_font: FreeTypeFont
+            The main font to use.
+
+        symbol_font: FreeTypeFont
+            The font to use as a fallback for international language symbols.
+
+        emoji_font: FreeTypeFont
+            The font to use as a fallback for emojis.
+
+        kwargs: dict
+            Additional arguments passed to draw.text (fill, stroke_width, stroke_fill, etc.).
+        """
+
+        chunks = self._split_ucs_chunks(text, primary_font, symbol_font, emoji_font)
+        x, y = position
+        for text, font in chunks:
+            draw.text((x, y), text, font=font, **kwargs)
+            x += font.getlength(text)
+
+    def _get_ucs_chunks_length(
+        self,
+        text: str,
+        primary_font: ImageFont.FreeTypeFont,
+        symbol_font: ImageFont.FreeTypeFont,
+        emoji_font: ImageFont.FreeTypeFont,
+    ):
+        """
+        Get the total pixel length (like FreeTypeFont.getlength) of the text written in the font
+        after having the {SYMBOL} and {EMOJI} chunks converted.
+
+        Parameters
+        ----------
+        text: str
+            The text to get the length of in the given fonts.
+
+        primary_font: FreeTypeFont
+            The main font to use.
+
+        symbol_font: FreeTypeFont
+            The font to use in the case of a {SYMBOL} chunk.
+
+        emoji_font: FreeTypeFont
+            The font to use in the case of an {EMOJI} chunk.
+
+        Returns
+        -------
+        int
+            The length of the text after being split into UCS chunks and written in the given fonts.
+        """
+
+        chunks = self._split_ucs_chunks(text, primary_font, symbol_font, emoji_font)
+        total_length = 0
+        for text, font in chunks:
+            total_length += font.getlength(text)
+        return int(total_length)
+
     def _create_footer_layer(self):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
@@ -509,6 +657,9 @@ class RegularCard:
         artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.FOOTER_FONT_SIZE)
         legal_font = ImageFont.truetype(MPLANTIN, self.FOOTER_FONT_SIZE)
 
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
+
         image = Image.new("RGBA", (footer_width, footer_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
@@ -517,10 +668,13 @@ class RegularCard:
         except ValueError:
             add_total_to_footer = False
         collector_number_text = f"{index}{f"/{self.footer_largest_index}" if add_total_to_footer else ""}"
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE),
             collector_number_text,
-            font=footer_font,
+            footer_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -533,10 +687,13 @@ class RegularCard:
         set_info_y = collector_number_text_height + collector_number_text_height // self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO
 
         set_info_text = f"{card_set}{" • " if len(card_set) > 0 else ""}{language}"
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (self.FOOTER_FONT_OUTLINE_SIZE, set_info_y),
             set_info_text,
-            font=footer_font,
+            footer_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -544,16 +701,21 @@ class RegularCard:
 
         rarity_artist_x = (
             max(
-                int(footer_font.getlength(collector_number_text)) + self.FOOTER_FONT_OUTLINE_SIZE,
-                int(footer_font.getlength(set_info_text)) + self.FOOTER_FONT_OUTLINE_SIZE,
+                self._get_ucs_chunks_length(collector_number_text, footer_font, symbol_backup_font, emoji_backup_font)
+                + self.FOOTER_FONT_OUTLINE_SIZE,
+                self._get_ucs_chunks_length(set_info_text, footer_font, symbol_backup_font, emoji_backup_font)
+                + self.FOOTER_FONT_OUTLINE_SIZE,
             )
             + self.FOOTER_TAB_LENGTH
         )
 
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (rarity_artist_x, self.FOOTER_FONT_OUTLINE_SIZE),
             rarity_initial,
-            font=footer_font,
+            footer_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -568,24 +730,33 @@ class RegularCard:
 
         if len(artist) > 0:
             image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (
                 rarity_artist_x + artist_brush_image.width + self.FOOTER_ARTIST_GAP_LENGTH,
                 set_info_y,
             ),
             artist,
-            font=artist_font,
+            artist_font,
+            symbol_backup_font,
+            emoji_backup_font,
             anchor="lt",
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
 
-        creation_date_width = int(legal_font.getlength(creation_date)) + self.FOOTER_FONT_OUTLINE_SIZE
-        draw.text(
+        creation_date_width = (
+            self._get_ucs_chunks_length(creation_date, legal_font, symbol_backup_font, emoji_backup_font)
+            + self.FOOTER_FONT_OUTLINE_SIZE
+        )
+        self._draw_ucs_chunks(
+            draw,
             (footer_width - creation_date_width, set_info_y),
             creation_date,
-            font=legal_font,
+            legal_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -702,14 +873,18 @@ class RegularCard:
 
         font_size = self.TITLE_MAX_FONT_SIZE
         title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
-        title_length = title_font.getlength(text)
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+        title_length = self._get_ucs_chunks_length(text, title_font, symbol_backup_font, emoji_backup_font)
         while (
             self.TITLE_X + title_length > min(self.mana_cost_x, self.TITLE_X + self.TITLE_WIDTH)
             and font_size >= self.TITLE_MIN_FONT_SIZE
         ):
             font_size -= 1
             title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-            title_length = title_font.getlength(text)
+            symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+            emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            title_length = self._get_ucs_chunks_length(text, title_font, symbol_backup_font, emoji_backup_font)
 
         image = Image.new("RGBA", (self.TITLE_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -721,10 +896,13 @@ class RegularCard:
             x_pos = (self.TITLE_WIDTH - title_length) // 2
 
         ascent = title_font.getmetrics()[0]
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (x_pos, (self.TITLE_BOX_HEIGHT - ascent) // 2),
             text,
-            font=title_font,
+            title_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill=self.TITLE_FONT_COLOR,
             anchor="lt",
             align=text_align,
@@ -749,18 +927,29 @@ class RegularCard:
 
         font_size = self.TYPE_MAX_FONT_SIZE
         type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
-        while self.TYPE_X + type_font.getlength(text) > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+        while (
+            self.TYPE_X + self._get_ucs_chunks_length(text, type_font, symbol_backup_font, emoji_backup_font)
+            > self.SET_SYMBOL_X
+            and font_size >= self.TYPE_MIN_FONT_SIZE
+        ):
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+            symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+            emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
         image = Image.new("RGBA", (self.TYPE_WIDTH, self.TYPE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         ascent = type_font.getmetrics()[0]
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             (0, (self.TYPE_BOX_HEIGHT - ascent) // 2),
             text,
-            font=type_font,
+            type_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill=self.TYPE_FONT_COLOR,
             anchor="lt",
         )
@@ -781,7 +970,24 @@ class RegularCard:
         self, token: str, font: ImageFont.FreeTypeFont, font_size: int
     ) -> tuple[int, int, Image.Image | None]:
         """
-        Return (width, height, Image | None) scaled to current font size.
+        Return the width, height, and image scaled to current font size for the given token.
+
+        Parameters
+        ----------
+        token: str
+            The token to convert to an image via `SYMBOL_PLACEHOLDER_KEY`.
+
+        font: FreeTypeFont
+            The font to write the placeholder with, should no symbol be found.
+
+        font_size: int
+            The font size to scale the symbols to.
+
+        Returns
+        -------
+        tuple[int, int, Image | None]
+            A suple in the form (width, height, image | None). Image is None if no symbol image was
+            found for the given token and a text placeholder was used instead.
         """
 
         symbol = SYMBOL_PLACEHOLDER_KEY.get(token.lower(), None)
@@ -806,6 +1012,11 @@ class RegularCard:
         """
         Get all the rules text properly laid out into words, lines, and symbols.
         Helper function for `_create_rules_text_layer`.
+
+        Parameters
+        ----------
+        text: str
+            The text to lay out into properly formatted lines.
 
         Returns
         -------
@@ -838,7 +1049,7 @@ class RegularCard:
 
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
-            Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off"), ...]
+            Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
             """
             fragments = []
             parts = PLACEHOLDER_REGEX.split(line)
@@ -850,8 +1061,16 @@ class RegularCard:
                     token = part.strip()
                     if token == "I":
                         fragments.append(("format", "italic_on"))
-                    elif token == "\\I" or token == "/I":
+                    elif token in ("\\I", "/I"):
                         fragments.append(("format", "italic_off"))
+                    elif token == "UCS":
+                        fragments.append(("format", "ucs_on"))
+                    elif token in ("\\UCS", "/UCS"):
+                        fragments.append(("format", "ucs_off"))
+                    elif token == "EMOJI":
+                        fragments.append(("format", "emoji_on"))
+                    elif token in ("\\EMOJI", "/EMOJI"):
+                        fragments.append(("format", "emoji_off"))
                     elif token == "bullet":
                         fragments.append(("bullet", "•"))
                     else:
@@ -859,7 +1078,11 @@ class RegularCard:
             return fragments
 
         def wrap_text_fragments(
-            frags: list[tuple[str, str]], regular_font: ImageFont.FreeTypeFont, italic_font: ImageFont.FreeTypeFont
+            frags: list[tuple[str, str]],
+            regular_font: ImageFont.FreeTypeFont,
+            italic_font: ImageFont.FreeTypeFont,
+            symbol_font: ImageFont.FreeTypeFont,
+            emoji_font: ImageFont.FreeTypeFont,
         ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
             """
             Split the lines into individual words and symbols, then wrap them so that they fit within
@@ -869,7 +1092,8 @@ class RegularCard:
             lines = []
             curr_fragment = []
             curr_width = 0
-            curr_font = regular_font
+            curr_main_font = regular_font  # regular vs italics
+            curr_font = regular_font  # regular vs italics vs symbol vs emoji
 
             indent = 0
 
@@ -884,9 +1108,19 @@ class RegularCard:
             for kind, value in frags:
                 if kind == "format":
                     if value == "italic_on":
+                        curr_main_font = italic_font
                         curr_font = italic_font
                     elif value == "italic_off":
+                        curr_main_font = regular_font
                         curr_font = regular_font
+                    elif value == "ucs_on":
+                        curr_font = symbol_font
+                    elif value == "ucs_off":
+                        curr_font = curr_main_font
+                    elif value == "emoji_on":
+                        curr_font = emoji_font
+                    elif value == "emoji_off":
+                        curr_font = curr_main_font
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
@@ -937,6 +1171,8 @@ class RegularCard:
         for font_size in range(self.RULES_BOX_MAX_FONT_SIZE, self.RULES_BOX_MIN_FONT_SIZE - 1, -1):
             rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
             italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
+            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
             line_height = font_size
             margin = int(font_size * 0.25)
@@ -953,7 +1189,9 @@ class RegularCard:
                 for line in raw_text.split("\n"):
                     fragments = parse_fragments(line)
                     if fragments:
-                        rules_lines[-1] += wrap_text_fragments(fragments, target_font, italics_font)
+                        rules_lines[-1] += wrap_text_fragments(
+                            fragments, target_font, italics_font, symbol_font, emoji_font
+                        )
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
 
@@ -1089,17 +1327,23 @@ class RegularCard:
             return
 
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
+
         image = Image.new("RGBA", (self.POWER_TOUGHNESS_WIDTH, self.POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_width = int(power_toughness_font.getlength(text))
+        text_width = self._get_ucs_chunks_length(text, power_toughness_font, symbol_backup_font, emoji_backup_font)
         bounding_box = power_toughness_font.getbbox(text)
         text_height = int(bounding_box[3] - bounding_box[1])
 
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             ((self.POWER_TOUGHNESS_WIDTH - text_width) // 2, (self.POWER_TOUGHNESS_HEIGHT - text_height) // 2),
             text,
-            font=power_toughness_font,
+            power_toughness_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill=self.POWER_TOUGHNESS_FONT_COLOR,
             anchor="lt",
         )

@@ -156,16 +156,21 @@ class TransformFrontside(RegularCard):
         power_toughness_height = self.REVERSE_POWER_TOUGHNESS_HEIGHT
 
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
         image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_width = power_toughness_font.getlength(text)
+        text_width = self._get_ucs_chunks_length(text, power_toughness_font, symbol_backup_font, emoji_backup_font)
         bounding_box = power_toughness_font.getbbox(text)
         text_height = int(bounding_box[3] - bounding_box[1])
-        draw.text(
+        self._draw_ucs_chunks(
+            draw,
             ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
             text,
-            font=power_toughness_font,
+            power_toughness_font,
+            symbol_backup_font,
+            emoji_backup_font,
             fill=self.REVERSE_POWER_TOUGHNESS_FONT_COLOR,
             anchor="lt",
         )

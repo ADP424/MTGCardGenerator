@@ -288,6 +288,8 @@ class RegularClass(RegularCard):
         colon_font = ImageFont.truetype(
             self.LEVEL_FONT, int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE)
         )
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.LEVEL_FONT_SIZE)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.LEVEL_FONT_SIZE)
 
         for idx, level_y in enumerate(self.level_header_y_axes):
             image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, CLASS_HEADER.image.height), (0, 0, 0, 0))
@@ -333,17 +335,20 @@ class RegularClass(RegularCard):
             # Draw the level title
             level_title = self.level_titles[idx] if idx < len(self.level_titles) else f"Level {idx + 1}"
             centered = len(cost) == 0
-            title_length = level_font.getlength(level_title)
+            title_length = self._get_ucs_chunks_length(level_title, level_font, symbol_backup_font, emoji_backup_font)
             if not centered:
                 x_pos = self.RULES_TEXT_WIDTH - title_length - self.LEVEL_FONT_SIZE // 2
             else:
                 x_pos = (self.RULES_TEXT_WIDTH - title_length) // 2
 
             ascent = level_font.getmetrics()[0]
-            draw.text(
+            self._draw_ucs_chunks(
+                draw,
                 (x_pos, (CLASS_HEADER.image.height - ascent) // 2),
                 level_title,
-                font=level_font,
+                level_font,
+                symbol_backup_font,
+                emoji_backup_font,
                 fill="black",
                 anchor="lt",
                 align="right" if not centered else "center",

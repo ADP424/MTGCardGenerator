@@ -12,6 +12,7 @@ from constants import (
     ART_WIDTH,
     ART_X,
     ART_Y,
+    CARD_ARTIST,
     CARD_BACKSIDES,
     CARD_CATEGORY,
     CARD_CREATION_DATE,
@@ -248,7 +249,7 @@ def process_spreadsheets(
             original_card = card_spreadsheets[output_path].get(card_title)
             if original_card is not None:
                 for key, value in card.metadata.items():
-                    if not isinstance(value, int) and len(value) == 0:
+                    if not isinstance(value, int) and key not in (CARD_ARTIST,) and len(value) == 0:
                         card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
