@@ -1,4 +1,12 @@
-from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_SUBTYPES, CARD_SUPERTYPES, CARD_TITLE, CARD_TYPES
+from constants import (
+    CARD_ADDITIONAL_TITLES,
+    CARD_MANA_COST,
+    CARD_RULES_TEXT,
+    CARD_SUBTYPES,
+    CARD_SUPERTYPES,
+    CARD_TITLE,
+    CARD_TYPES,
+)
 from model.RegularCard import RegularCard
 from model.Layer import Layer
 

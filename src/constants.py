@@ -369,5 +369,6 @@ SAGA_BANNER_STRIPE = Symbol(open_image(f"{FRAMES_PATH}/saga/banner_stripe.png"))
 CLASS_HEADER = Symbol(open_image(f"{FRAMES_PATH}/class/header.png"))
 
 # Other
-RULES_DIVIDING_LINE = Symbol(open_image("images/divider.png"))
+RULES_DIVIDING_LINE = Symbol(open_image("images/other/divider.png"))
 ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)
+DICE_SECTION = Symbol(open_image("images/other/dice_section.png"))

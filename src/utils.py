@@ -68,6 +68,11 @@ def replace_ticks(word: str) -> str:
         The converted word.
     """
 
+    if word.startswith('"'):
+        word = "“" + word[1:]
+    elif word.startswith("'"):
+        word = "‘" + word[1:]
+
     if '"' in word:
 
         # Handle trailing punctuation
@@ -80,11 +85,6 @@ def replace_ticks(word: str) -> str:
                 word = core + "’" + punct
         else:
             word = word.replace('"', "“").replace("'", "‘")
-
-    if word.startswith('"'):
-        word = "“" + word[1:]
-    elif word.startswith("'"):
-        word = "‘" + word[1:]
 
     word = word.replace('"', "”").replace("'", "’")
 
@@ -156,7 +156,7 @@ def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], 
         if len(title) > 0:
             card_key += f" - {title}"
     card_key += f" - {card_descriptor}" if len(card_descriptor) > 0 else ""
-    
+
     return card_key
 
 

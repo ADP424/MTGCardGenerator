@@ -7,6 +7,7 @@ from constants import (
     CARD_ADDITIONAL_TITLES,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
+    DICE_SECTION,
     RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
     BELEREN_BOLD_SMALL_CAPS,
@@ -141,7 +142,7 @@ class RegularCard:
         # Rules Text
         self.RULES_TEXT_X = 112
         self.RULES_TEXT_Y = 1315
-        self.RULES_TEXT_WIDTH = 1278
+        self.RULES_TEXT_WIDTH = 1272
         self.RULES_TEXT_HEIGHT = 623
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
@@ -1053,28 +1054,36 @@ class RegularCard:
             """
             Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
             """
+
             fragments = []
             parts = PLACEHOLDER_REGEX.split(line)
+
             for i, part in enumerate(parts):
                 if i % 2 == 0:
                     if part:
                         fragments.append(("text", part))
                 else:
-                    token = part.strip()
-                    if token == "I":
+                    token = part.strip().lower()
+                    if token == "i":
                         fragments.append(("format", "italic_on"))
-                    elif token in ("\\I", "/I"):
+                    elif token in ("\\i", "/i"):
                         fragments.append(("format", "italic_off"))
-                    elif token == "UCS":
+                    elif token == "ucs":
                         fragments.append(("format", "ucs_on"))
-                    elif token in ("\\UCS", "/UCS"):
+                    elif token in ("\\ucs", "/ucs"):
                         fragments.append(("format", "ucs_off"))
-                    elif token == "EMOJI":
+                    elif token == "emoji":
                         fragments.append(("format", "emoji_on"))
-                    elif token in ("\\EMOJI", "/EMOJI"):
+                    elif token in ("\\emoji", "/emoji"):
                         fragments.append(("format", "emoji_off"))
+                    elif token == "dice":
+                        fragments.append(("format", "dice_on"))
+                    elif token in ("\\dice", "/dice"):
+                        fragments.append(("format", "dice_off"))
                     elif token == "bullet":
                         fragments.append(("bullet", "•"))
+                    elif re.search(r"\d+-\d+", part):
+                        fragments.append(("dice", token))
                     else:
                         fragments.append(("symbol", token))
             return fragments
@@ -1123,6 +1132,10 @@ class RegularCard:
                         curr_font = emoji_font
                     elif value == "emoji_off":
                         curr_font = curr_main_font
+                    elif value == "dice_on":
+                        curr_fragment.append(("dice_start", None, curr_font))
+                    elif value == "dice_off":
+                        curr_fragment.append(("dice_end", None, curr_font))
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
@@ -1139,6 +1152,10 @@ class RegularCard:
                     curr_fragment.append(("text", f"{value} ", curr_font))
                     curr_width += bullet_width
                     indent = bullet_width
+                elif kind == "dice":
+                    dice_section_width = int(curr_font.getlength(f"{value} | "))
+                    curr_fragment.append(("dice", f"{value} | ", curr_font))
+                    curr_width += dice_section_width
                 else:
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
@@ -1225,7 +1242,7 @@ class RegularCard:
                     else:
                         width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                if self.RULES_TEXT_X + final_line_width >= self.POWER_TOUGHNESS_X:
+                if self.RULES_TEXT_X + final_line_width + margin >= self.POWER_TOUGHNESS_X:
                     continue
             break
         else:
@@ -1251,6 +1268,7 @@ class RegularCard:
 
         rules_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
 
+        background_image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
@@ -1263,6 +1281,9 @@ class RegularCard:
             """
 
             nonlocal curr_y
+            dice_row_toggle = True
+            dice_section_y = -1
+
             for line_fragments in lines:
                 if line_fragments and line_fragments[0][0] == "newline":
                     curr_y += (
@@ -1270,10 +1291,14 @@ class RegularCard:
                     )  # add an extra gap for user-specified newlines
                     continue
 
+                if line_fragments[0][0] == "dice_start":
+                    dice_row_toggle = True
+                    dice_section_y = curr_y
+
                 if centered:
                     total_line_length = 0
                     for kind, value, frag_font in line_fragments:
-                        if kind == "text":
+                        if kind in ("text", "dice"):
                             if value:
                                 total_line_length += draw.textlength(value, font=frag_font)
                         elif kind == "symbol":
@@ -1304,7 +1329,37 @@ class RegularCard:
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         curr_x += value
+                    elif kind == "dice":
+                        if dice_section_y > -1:
+                            if not dice_row_toggle:
+                                ascent, descent = frag_font.getmetrics()
+                                text_height = (ascent - descent + line_height) // 2
+                                dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
+                                dice_section = DICE_SECTION.get_formatted_image(
+                                    self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
+                                )
+                                background_image.alpha_composite(dice_section, (margin // 2, dice_section_y - 2 * dice_margins))
+                                dice_row_toggle = True
+                            else:
+                                dice_row_toggle = False
+                            dice_section_y = curr_y
+                        draw.text((curr_x, curr_y), value, font=frag_font, fill=self.RULES_TEXT_FONT_COLOR)
+                        curr_x += draw.textlength(value, font=frag_font)
+
                 curr_y += line_height
+
+                if line_fragments[-1][0] == "dice_end":
+                    if dice_section_y > -1:
+                        if not dice_row_toggle:
+                            last_font = line_fragments[-1][2]
+                            ascent, descent = last_font.getmetrics()
+                            text_height = (ascent - descent + line_height) // 2
+                            dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
+                            dice_section = DICE_SECTION.get_formatted_image(
+                                self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
+                            )
+                            background_image.alpha_composite(dice_section, (margin // 2, dice_section_y - 2 * dice_margins))
+                    dice_section_y = -1
 
         dividing_line = RULES_DIVIDING_LINE.get_formatted_image(self.RULES_TEXT_WIDTH, RULES_DIVIDING_LINE.image.height)
         for idx, lines in enumerate(rules_lines):
@@ -1317,6 +1372,7 @@ class RegularCard:
                 curr_y += dividing_line.height + line_height // 2
             draw_lines(lines)
 
+        self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
         self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
 
     def _create_power_toughness_layer(self):

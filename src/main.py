@@ -23,6 +23,7 @@ from constants import (
     CARD_INDEX,
     CARD_LANGUAGE,
     CARD_ORDERER,
+    CARD_OVERLAYS,
     CARD_RARITY,
     CARD_SET,
     CARD_TITLE,
@@ -47,6 +48,7 @@ from model.token.TextlessToken import TextlessToken
 from model.transform.backside.TransformBackside import TransformBackside
 from model.transform.backside.TransformBacksideNoPip import TransformBacksideNoPip
 from model.transform.frontside.TransformFrontside import TransformFrontside
+from model.vehicle.RegularVehicle import RegularVehicle
 from utils import cardname_to_filename, get_card_key, open_image
 
 
@@ -99,6 +101,8 @@ def process_spreadsheets(
         "tall token": TallToken,
         # Planeswalker
         "regular planeswalker": RegularPlaneswalker,
+        # Vehicle
+        "regular vehicle": RegularVehicle,
         # Saga
         "regular saga": RegularSaga,
         # Class
@@ -120,7 +124,10 @@ def process_spreadsheets(
         card_titles = [title.strip() for title in card_additional_titles.split("\n")]
         for title in card_titles + [card_title]:
             if len(card_descriptor) > 0:
-                if f"{title} - {card_descriptor}" in card_names_whitelist or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist:
+                if (
+                    f"{title} - {card_descriptor}" in card_names_whitelist
+                    or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist
+                ):
                     return True
             elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
                 return True
@@ -218,8 +225,6 @@ def process_spreadsheets(
                 continue
             filtered_cards[key] = metadata
 
-        # print([s_card.get_metadata(CARD_TITLE) + s_card.get_metadata(CARD_DESCRIPTOR) for s_card in sorted_cards])
-
         # Give each card a class depending on its frame layout
         for key, metadata in filtered_cards.items():
             frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
@@ -253,7 +258,7 @@ def process_spreadsheets(
             original_card = card_spreadsheets[output_path].get(card_title)
             if original_card is not None:
                 for key, value in card.metadata.items():
-                    if not isinstance(value, int) and key not in (CARD_ARTIST,) and len(value) == 0:
+                    if not isinstance(value, int) and key not in (CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY) and len(value) == 0:
                         card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
@@ -440,9 +445,7 @@ if __name__ == "__main__":
         "-c",
         "--cards",
         nargs="+",
-        help=(
-            "Only process the cards with these names (including tokens, alt arts, etc.)."
-        ),
+        help=("Only process the cards with these names (including tokens, alt arts, etc.)."),
         dest="card_names_whitelist",
     )
 

@@ -288,7 +288,9 @@ class RegularClass(RegularCard):
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.LEVEL_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.LEVEL_FONT_SIZE)
 
-        level_titles = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")
+        level_titles = [
+            title for title in self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n") if len(title.strip()) > 0
+        ]
 
         for idx, level_y in enumerate(self.level_header_y_axes):
             image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, CLASS_HEADER.image.height), (0, 0, 0, 0))
@@ -335,15 +337,18 @@ class RegularClass(RegularCard):
             level_title = level_titles[idx] if idx < len(level_titles) else f"Level {idx + 1}"
             centered = len(cost) == 0
             title_length = self._get_ucs_chunks_length(level_title, level_font, symbol_backup_font, emoji_backup_font)
+
+            ascent = level_font.getmetrics()[0]
+            y_pos = (CLASS_HEADER.image.height - ascent) // 2
             if not centered:
                 x_pos = self.RULES_TEXT_WIDTH - title_length - self.LEVEL_FONT_SIZE // 2
             else:
+                y_pos += 4  # margin for down arrow on level header
                 x_pos = (self.RULES_TEXT_WIDTH - title_length) // 2
 
-            ascent = level_font.getmetrics()[0]
             self._draw_ucs_chunks(
                 draw,
-                (x_pos, (CLASS_HEADER.image.height - ascent) // 2),
+                (x_pos, y_pos),
                 level_title,
                 level_font,
                 symbol_backup_font,
