@@ -19,6 +19,7 @@ from constants import (
     CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
     CARD_FRAME_LAYOUT,
+    CARD_FRAMES,
     CARD_FRONTSIDE,
     CARD_INDEX,
     CARD_LANGUAGE,
@@ -258,7 +259,11 @@ def process_spreadsheets(
             original_card = card_spreadsheets[output_path].get(card_title)
             if original_card is not None:
                 for key, value in card.metadata.items():
-                    if not isinstance(value, int) and key not in (CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY) and len(value) == 0:
+                    if (
+                        not isinstance(value, int)
+                        and key not in (CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY)
+                        and len(value) == 0
+                    ):
                         card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
@@ -339,22 +344,108 @@ def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
         log()
 
 
-def capture_art():
-    for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
-        log(f"Extracting art from '{card_path}'...")
+def capture_art(card_spreadsheets: dict[str, dict[str, RegularCard]]):
+    if card_spreadsheets is not None:
 
-        card_image = open_image(card_path)
-        art_bounding_box = (
-            ART_X,
-            ART_Y,
-            ART_X + ART_WIDTH,
-            ART_Y + ART_HEIGHT,
+        frame_layout_map = {
+            "regular": "regular",
+            "regular adventure": "regular",
+            "transform frontside": "regular",
+            "transform backside": "regular",
+            "transform backside no pip": "regular",
+            "regular vehicle": "regular",
+            "regular class": "class",
+            "regular saga": "saga",
+        }
+
+        blacklisted_frames = (
+            "regular/eldrazi",
+            "adventure/storybook/",
+            "battle/",
+            "planeswalker/",
+            "room/",
+            "showcase/draconic/",
+            "token/",
         )
-        art = card_image.crop(art_bounding_box)
-        base_image = Image.new("RGBA", (1500, 2100), (0, 0, 0, 0))
-        base_image.paste(art, art_bounding_box)
-        card_name = card_path[card_path.rfind("\\") + 1 :]
-        base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
+
+        def frame_supported(frame_path: str) -> bool:
+            for unsupported_path in blacklisted_frames:
+                if frame_path[:len(unsupported_path)].strip() == unsupported_path.strip():
+                    return False
+            return True
+
+        for output_path, spreadsheet in card_spreadsheets.items():
+            output_path = f"{OUTPUT_ART_PATH}/{output_path[output_path.rfind("/") + 1:]}"
+            log(f"Processing spreadsheet at '{output_path}'...")
+            os.makedirs(output_path, exist_ok=True)
+            increase_log_indent()
+
+            def extract_card_art(card: RegularCard):
+                card_title = card.get_metadata(CARD_TITLE)
+                card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+                card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+                card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+
+                card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
+                art_layout = frame_layout_map.get(card_frame_layout, "")
+                if len(art_layout) == 0:
+                    log(f"Unsupported frame layout for card extraction: '{card_frame_layout}'. Skipping '{card_key}'...")
+                    return
+
+                card_frames = card.get_metadata(CARD_FRAMES)
+
+                if not all(frame_supported(frame) for frame in card_frames.split("\n")):
+                    log(f"Card uses unsupported frame for card extraction. Skipping '{card_key}'...")
+                    return
+
+                art_bounding_box = (
+                    ART_X[art_layout],
+                    ART_Y[art_layout],
+                    ART_X[art_layout] + ART_WIDTH[art_layout],
+                    ART_Y[art_layout] + ART_HEIGHT[art_layout],
+                )
+
+                card_filename = cardname_to_filename(card_key)
+                card_path = f"{INPUT_CARDS_PATH}/{card_filename}.png"
+                card_image = open_image(card_path)
+                if card_image is None:
+                    log(f"Couldn't find '{card_filename}' in '{card_path}'. Skipping '{card_key}'...")
+                    return
+
+                art = card_image.crop(art_bounding_box)
+                base_image = Image.new("RGBA", (1500, 2100), (0, 0, 0, 0))
+                base_image.paste(art, art_bounding_box)
+                base_image.save(f"{output_path}/{card_filename}.png")
+                log(f"Successfully extracted art from '{card_key}'.")
+
+            for card in spreadsheet.values():
+                extract_card_art(card)
+
+                increase_log_indent()
+                for backside in card.get_metadata(CARD_BACKSIDES, []):
+                    extract_card_art(backside)
+                decrease_log_indent()
+
+            decrease_log_indent()
+
+            log()
+
+    else:
+        art_bounding_box = (
+            ART_X["regular"],
+            ART_Y["regular"],
+            ART_X["regular"] + ART_WIDTH["regular"],
+            ART_Y["regular"] + ART_HEIGHT["regular"],
+        )
+        
+        for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
+            log(f"Extracting art from '{card_path}'...")
+            card_image = open_image(card_path)
+            art = card_image.crop(art_bounding_box)
+            base_image = Image.new("RGBA", (1500, 2100), (0, 0, 0, 0))
+            base_image.paste(art, art_bounding_box)
+            card_name = card_path[card_path.rfind("\\") + 1 :]
+            base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 
 def main(
@@ -364,6 +455,7 @@ def main(
     do_basic_lands: bool = True,
     do_alts: bool = True,
     card_names_whitelist: list[str] = None,
+    ignore_sheet: bool = False,
 ):
     """
     Run the program.
@@ -388,6 +480,9 @@ def main(
     card_names_whitelist: list[str], optional
         The names of the cards to perform the action on (including descriptors when applicable).
         By default, perform the action on all cards.
+
+    ignore_sheet: bool, default : False
+        During art capture, whether to capture only art of regular cards from the sheet or ignore it entirely.
     """
 
     reset_log()
@@ -399,7 +494,10 @@ def main(
         pass  # TODO
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
-        capture_art()
+        card_spreadsheets = None
+        if not ignore_sheet:
+            card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
+        capture_art(card_spreadsheets)
 
 
 if __name__ == "__main__":
@@ -447,6 +545,13 @@ if __name__ == "__main__":
         nargs="+",
         help=("Only process the cards with these names (including tokens, alt arts, etc.)."),
         dest="card_names_whitelist",
+    )
+    parser.add_argument(
+        "-is",
+        "--ignore-sheet",
+        action="store_false",
+        help="Skip processing the alternate arts of cards.",
+        dest="alt_arts",
     )
 
     args = parser.parse_args()

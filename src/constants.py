@@ -82,10 +82,26 @@ GOTHAM_BOLD = "fonts/gotham-bold.ttf"
 ###########################
 
 # Card Art
-ART_WIDTH = 1270
-ART_HEIGHT = 929
-ART_X = 115
-ART_Y = 237
+ART_WIDTH = {
+    "regular": 1270,
+    "class": 633,
+    "saga": 633,
+}
+ART_HEIGHT = {
+    "regular": 929,
+    "class": 1522,
+    "saga": 1522,
+}
+ART_X = {
+    "regular": 115,
+    "class": 115,
+    "saga": 752,
+}
+ART_Y = {
+    "regular": 237,
+    "class": 237,
+    "saga": 237,
+}
 
 # Mana Symbols
 HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25

@@ -447,7 +447,7 @@ class RegularCard:
             else:
                 left_color = recolor(resized, watermark_color[0]).convert("RGBA")
                 right_color = recolor(resized, watermark_color[1]).convert("RGBA")
-                mask = Image.open(f"{FRAMES_PATH}/mask/left.png").resize(resized.size).getchannel("A")
+                mask = Image.open(f"{FRAMES_PATH}/regular/mask/left.png").resize(resized.size).getchannel("A")
                 recolored = Image.composite(left_color, right_color, mask)
 
         r, g, b, alpha = recolored.split()
@@ -1338,7 +1338,9 @@ class RegularCard:
                                 dice_section = DICE_SECTION.get_formatted_image(
                                     self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
                                 )
-                                background_image.alpha_composite(dice_section, (margin // 2, dice_section_y - 2 * dice_margins))
+                                background_image.alpha_composite(
+                                    dice_section, (margin // 2, dice_section_y - 2 * dice_margins)
+                                )
                                 dice_row_toggle = True
                             else:
                                 dice_row_toggle = False
@@ -1358,7 +1360,9 @@ class RegularCard:
                             dice_section = DICE_SECTION.get_formatted_image(
                                 self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
                             )
-                            background_image.alpha_composite(dice_section, (margin // 2, dice_section_y - 2 * dice_margins))
+                            background_image.alpha_composite(
+                                dice_section, (margin // 2, dice_section_y - 2 * dice_margins)
+                            )
                     dice_section_y = -1
 
         dividing_line = RULES_DIVIDING_LINE.get_formatted_image(self.RULES_TEXT_WIDTH, RULES_DIVIDING_LINE.image.height)
