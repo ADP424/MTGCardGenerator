@@ -117,39 +117,10 @@ def process_spreadsheets(
         "regular room": RegularRoom,
     }
 
-    card_spreadsheets: dict[str, dict[str, RegularCard]] = {}
+    card_sets: dict[str, dict[str, RegularCard]] = {}
 
-    def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
-        if card_names_whitelist is None:
-            return True
-        card_titles = [title.strip() for title in card_additional_titles.split("\n")]
-        for title in card_titles + [card_title]:
-            if len(card_descriptor) > 0:
-                if (
-                    f"{title} - {card_descriptor}" in card_names_whitelist
-                    or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist
-                ):
-                    return True
-            elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
-                return True
-        return False
-
+    raw_cards: dict[str, dict[str, str]] = {}
     for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
-        if spreadsheet_path.rfind("-") >= 0:
-            output_path = (
-                f"{OUTPUT_CARDS_PATH}/"
-                f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind("-") - 1]}"
-            )
-        else:
-            output_path = (
-                f"{OUTPUT_CARDS_PATH}/"
-                f"{spreadsheet_path[spreadsheet_path.rfind("\\") + 1 : spreadsheet_path.rfind(".")]}"
-            )
-        os.makedirs(output_path, exist_ok=True)
-
-        card_spreadsheets[output_path] = {}
-        raw_cards: dict[str, dict[str, str]] = {}
-
         with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
             cards_sheet_reader = csv.reader(cards_sheet)
             columns = next(cards_sheet_reader)
@@ -165,84 +136,111 @@ def process_spreadsheets(
 
                 raw_cards[card_key] = values
 
-        def str_to_int(string: str, default: int) -> int:
-            try:
-                return int(string)
-            except ValueError:
-                return default
+    def str_to_int(string: str, default: int) -> int:
+        try:
+            return int(string)
+        except ValueError:
+            return default
 
-        def str_to_datetime(string: str, default: datetime) -> datetime:
-            try:
-                return datetime.strptime(string, "%m/%d/%Y")
-            except ValueError:
-                return default
+    def str_to_datetime(string: str, default: datetime) -> datetime:
+        try:
+            return datetime.strptime(string, "%m/%d/%Y")
+        except ValueError:
+            return default
 
-        def get_sorted_keys():
-            return sorted(
-                raw_cards.keys(),
-                key=lambda key: (
-                    str_to_datetime(raw_cards[key].get(CARD_CREATION_DATE, ""), datetime(MINYEAR, 1, 1)),
-                    str_to_int(raw_cards[key].get(CARD_ORDERER, ""), 0),
-                    raw_cards[key].get(CARD_TITLE, ""),
-                ),
-            )
+    def get_sorted_keys():
+        return sorted(
+            raw_cards.keys(),
+            key=lambda key: (
+                str_to_datetime(raw_cards[key].get(CARD_CREATION_DATE, ""), datetime(MINYEAR, 1, 1)),
+                str_to_int(raw_cards[key].get(CARD_ORDERER, ""), 0),
+                raw_cards[key].get(CARD_TITLE, ""),
+            ),
+        )
 
-        sorted_keys = get_sorted_keys()
+    sorted_keys = get_sorted_keys()
 
-        # Add indices to all the cards, for collector info
-        category_indices: dict[str, int] = {}
-        for key in sorted_keys:
-            card = raw_cards[key]
-            if len(card.get(CARD_FRONTSIDE, "")) > 0:
-                card[CARD_INDEX] = ""
-                continue
-            category = card.get(CARD_CATEGORY)
-            if not category_indices.get(category, False):
-                category_indices[category] = 0
-            category_indices[category] += 1
-            card[CARD_INDEX] = str(category_indices[category])
+    # Add indices to all the cards, for collector info
+    category_indices: dict[str: dict[str, int]] = {}
+    for key in sorted_keys:
+        card = raw_cards[key]
+        if len(card.get(CARD_FRONTSIDE, "")) > 0:
+            card[CARD_INDEX] = ""
+            continue
+        card_set = card.get(CARD_SET, "")
+        category = card.get(CARD_CATEGORY, "")
+        if not category_indices.get(card_set, False):
+            category_indices[card_set] = {}
+        if not category_indices[card_set].get(category, False):
+            category_indices[card_set][category] = 0
+        category_indices[card_set][category] += 1
+        card[CARD_INDEX] = str(category_indices[card_set][category])
 
-        # Set largest index of all the cards for the footers
-        for key in sorted_keys:
-            card = raw_cards[key]
-            category = card.get(CARD_CATEGORY)
-            card["footer_largest_index"] = category_indices.get(category, 0)
+    # Set largest index of all the cards for the footers
+    for key in sorted_keys:
+        card = raw_cards[key]
+        category = card.get(CARD_CATEGORY, "")
+        card_set = card.get(CARD_SET, "")
+        if len(card_set) > 0 and len(category) > 0:
+            card["footer_largest_index"] = category_indices[card_set][category]
 
-        # Cull any cards not on the whitelist
-        filtered_cards: dict[str, dict[str, str]] = {}
-        for key, metadata in raw_cards.items():
-            card_title = metadata.get(CARD_TITLE)
-            card_additional_titles = metadata.get(CARD_ADDITIONAL_TITLES)
-            card_descriptor = metadata.get(CARD_DESCRIPTOR, "")
-            if not card_on_the_whitelist(card_title, card_additional_titles, card_descriptor):
-                continue
-            card_category = metadata.get(CARD_CATEGORY, "").lower()
-            if (
-                (not do_cards and card_category == "regular")
-                or (not do_tokens and card_category == "token")
-                or (not do_basic_lands and card_category == "basic land")
-                or (not do_alts and card_category == "alternate")
-            ):
-                continue
-            filtered_cards[key] = metadata
+    # Cull any cards not on the whitelist
+    def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
+        if card_names_whitelist is None:
+            return True
+        card_titles = [title.strip() for title in card_additional_titles.split("\n")]
+        for title in card_titles + [card_title]:
+            if len(card_descriptor) > 0:
+                if (
+                    f"{title} - {card_descriptor}" in card_names_whitelist
+                    or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist
+                ):
+                    return True
+            elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
+                return True
+        return False
+    
+    filtered_cards: dict[str, dict[str, str]] = {}
+    for key, metadata in raw_cards.items():
+        card_title = metadata.get(CARD_TITLE, "")
+        card_additional_titles = metadata.get(CARD_ADDITIONAL_TITLES, "")
+        card_descriptor = metadata.get(CARD_DESCRIPTOR, "")
+        if not card_on_the_whitelist(card_title, card_additional_titles, card_descriptor):
+            continue
+        card_category = metadata.get(CARD_CATEGORY, "").lower()
+        if (
+            (not do_cards and card_category == "regular")
+            or (not do_tokens and card_category == "token")
+            or (not do_basic_lands and card_category == "basic land")
+            or (not do_alts and card_category == "alternate")
+        ):
+            continue
+        filtered_cards[key] = metadata
 
-        # Give each card a class depending on its frame layout
-        for key, metadata in filtered_cards.items():
-            frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
-            subclass = layout_to_subclass.get(frame_layout, RegularCard)
-            card_spreadsheets[output_path][key] = subclass(metadata=metadata)
+    # Give each card a class depending on its frame layout
+    for key, metadata in filtered_cards.items():
+        frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
+        subclass = layout_to_subclass.get(frame_layout, RegularCard)
 
-        def get_sorted_cards():
-            return sorted(
-                card_spreadsheets[output_path].values(),
-                key=lambda card: (
-                    str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                    str_to_int(card.get_metadata(CARD_ORDERER), 0),
-                    card.get_metadata(CARD_TITLE),
-                ),
-            )
+        card_set = metadata.get(CARD_SET, "")
+        if card_set not in card_sets:
+            os.makedirs(f"{OUTPUT_CARDS_PATH}/{card_set}", exist_ok=True)
+            card_sets[card_set] = {}
 
-        sorted_cards = get_sorted_cards()
+        card_sets[card_set][key] = subclass(metadata=metadata)
+
+    def get_sorted_cards(card_set: str):
+        return sorted(
+            card_sets[card_set].values(),
+            key=lambda card: (
+                str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
+                str_to_int(card.get_metadata(CARD_ORDERER), 0),
+                card.get_metadata(CARD_TITLE),
+            ),
+        )
+
+    for card_set in card_sets:
+        sorted_cards = get_sorted_cards(card_set)
 
         # Give each alternate card a subclass based on their frame layout (now that they have one)
         # Also replace empty columns in alternates with their original card's values
@@ -256,23 +254,24 @@ def process_spreadsheets(
             if len(card_descriptor) == 0:
                 continue
 
-            original_card = card_spreadsheets[output_path].get(card_title)
+            original_card = card_sets[card_set].get(card_title, "")
             if original_card is not None:
                 for key, value in card.metadata.items():
                     if (
                         not isinstance(value, int)
-                        and key not in (CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY)
+                        and key not in (CARD_SET, CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY)
                         and len(value) == 0
                     ):
                         card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
                 if subclass is not RegularCard:
-                    card_spreadsheets[output_path][card_key] = subclass(metadata=card.metadata)
+                    card_sets[card_set][card_key] = subclass(metadata=card.metadata)
             else:
                 log(f"Could not find '{card_title}' as an original card of an alternate.")
 
-        sorted_cards = get_sorted_cards()
+    for card_set in card_sets:
+        sorted_cards = get_sorted_cards(card_set)
 
         # Add transform backsides to the transform cards and delete them from the dictionary
         # If the backside is missing any collector columns, copy them from the frontside
@@ -283,11 +282,11 @@ def process_spreadsheets(
             if len(frontside_title) == 0:
                 continue
 
-            frontside_card = card_spreadsheets[output_path].get(frontside_title)
+            frontside_card = card_sets[card_set].get(frontside_title)
             if frontside_card is not None:
                 for key, value in card.metadata.items():
                     if (
-                        key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_SET, CARD_LANGUAGE)
+                        key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE)
                         and len(value) == 0
                     ):
                         card.set_metadata(key, frontside_card.get_metadata(key))
@@ -299,13 +298,14 @@ def process_spreadsheets(
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
-            del card_spreadsheets[output_path][card_key]
+            del card_sets[card_set][card_key]
 
-    return card_spreadsheets
+    return card_sets
 
 
-def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
-    for output_path, spreadsheet in card_spreadsheets.items():
+def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
+    for card_set, spreadsheet in card_sets.items():
+        output_path = f"{OUTPUT_CARDS_PATH}/{card_set}"
         log(f"Processing spreadsheet at '{output_path}'...")
         increase_log_indent()
 
@@ -323,7 +323,7 @@ def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
             final_card.save(f"{output_path}/{cardname_to_filename(card_key)}.png")
 
             for backside in card.get_metadata(CARD_BACKSIDES, []):
-                backside_title = backside.metadata.get(CARD_TITLE, "")
+                backside_title = backside.get_metadata(CARD_TITLE)
                 backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
                 backside_key = get_card_key(backside_title, backside_additional_titles, backside_descriptor)
@@ -344,8 +344,8 @@ def render_cards(card_spreadsheets: dict[str, dict[str, RegularCard]]):
         log()
 
 
-def capture_art(card_spreadsheets: dict[str, dict[str, RegularCard]]):
-    if card_spreadsheets is not None:
+def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
+    if card_sets is not None:
 
         frame_layout_map = {
             "regular": "regular",
@@ -374,7 +374,7 @@ def capture_art(card_spreadsheets: dict[str, dict[str, RegularCard]]):
                     return False
             return True
 
-        for output_path, spreadsheet in card_spreadsheets.items():
+        for output_path, spreadsheet in card_sets.items():
             output_path = f"{OUTPUT_ART_PATH}/{output_path[output_path.rfind("/") + 1:]}"
             log(f"Processing spreadsheet at '{output_path}'...")
             os.makedirs(output_path, exist_ok=True)
@@ -488,16 +488,16 @@ def main(
     reset_log()
     if action == ACTIONS[0]:
         log("Rendering cards...")
-        card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
-        render_cards(card_spreadsheets)
+        card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
+        render_cards(card_sets)
     elif action == ACTIONS[1]:
         pass  # TODO
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
-        card_spreadsheets = None
+        card_sets = None
         if not ignore_sheet:
-            card_spreadsheets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
-        capture_art(card_spreadsheets)
+            card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
+        capture_art(card_sets)
 
 
 if __name__ == "__main__":

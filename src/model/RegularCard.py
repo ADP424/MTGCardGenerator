@@ -349,11 +349,24 @@ class RegularCard:
         """
 
         card_title = self.get_metadata(CARD_TITLE)
-        card_additional_titles = self.get_metadata(self.get_metadata(CARD_ADDITIONAL_TITLES))
+        card_additional_titles = self.get_metadata(CARD_ADDITIONAL_TITLES)
         card_descriptor = self.get_metadata(CARD_DESCRIPTOR)
         card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
-        art_path = f"{INPUT_ART_PATH}/{cardname_to_filename(card_key)}.png"
-        self.art_layer = Layer(open_image(art_path))
+        filename = cardname_to_filename(card_key)
+        card_set = self.get_metadata(CARD_SET)
+
+        art_path = f"{INPUT_ART_PATH}/{card_set}/{filename}.png"
+        art_image = open_image(art_path)
+        if art_image is None:
+            base_art_path = f"{INPUT_ART_PATH}/{filename}.png"
+            log(f"Couldn't find art under '{art_path}'. Trying under '{base_art_path}'.")
+            art_image = open_image(base_art_path)
+        if art_image is None:
+            log(f"Couldn't find an image with this card's name, '{filename}', in the art directory.")
+            log(card_key)
+            log(f"{card_title} {card_additional_titles} {card_descriptor}")
+
+        self.art_layer = Layer(art_image)
 
     def _create_frame_layers(self):
         """
