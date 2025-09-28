@@ -7,7 +7,7 @@ from constants import (
     CARD_ADDITIONAL_TITLES,
     CARD_DESCRIPTOR,
     CARD_OVERLAYS,
-    DICE_SECTION,
+    DICE_SECTION_PATH,
     RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
     BELEREN_BOLD_SMALL_CAPS,
@@ -1063,6 +1063,7 @@ class RegularCard:
                 rules_text_blocks.append((current_type, part))
                 current_type = "rules"  # reset to rules unless flavor continues
 
+        dice_on = False
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
             Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
@@ -1070,6 +1071,7 @@ class RegularCard:
 
             fragments = []
             parts = PLACEHOLDER_REGEX.split(line)
+            nonlocal dice_on
 
             for i, part in enumerate(parts):
                 if i % 2 == 0:
@@ -1089,13 +1091,17 @@ class RegularCard:
                         fragments.append(("format", "emoji_on"))
                     elif token in ("\\emoji", "/emoji"):
                         fragments.append(("format", "emoji_off"))
-                    elif token == "dice":
-                        fragments.append(("format", "dice_on"))
+                    elif token[:4] == "dice":
+                        color = re.search(r"-[a-zA-Z]+", part)
+                        color = color[0][1:] if color is not None else ""
+                        fragments.append(("format", f"dice_start_{color}"))
+                        dice_on = True
                     elif token in ("\\dice", "/dice"):
                         fragments.append(("format", "dice_off"))
+                        dice_on = False
                     elif token == "bullet":
                         fragments.append(("bullet", "•"))
-                    elif re.search(r"\d+-\d+", part):
+                    elif dice_on and re.search(r"\d+-\d+|\d+", token):
                         fragments.append(("dice", token))
                     else:
                         fragments.append(("symbol", token))
@@ -1145,8 +1151,8 @@ class RegularCard:
                         curr_font = emoji_font
                     elif value == "emoji_off":
                         curr_font = curr_main_font
-                    elif value == "dice_on":
-                        curr_fragment.append(("dice_start", None, curr_font))
+                    elif value[:10] == "dice_start":
+                        curr_fragment.append((value, None, curr_font))
                     elif value == "dice_off":
                         curr_fragment.append(("dice_end", None, curr_font))
                     continue
@@ -1296,6 +1302,7 @@ class RegularCard:
             nonlocal curr_y
             dice_row_toggle = True
             dice_section_y = -1
+            dice_section = None
 
             for line_fragments in lines:
                 if line_fragments and line_fragments[0][0] == "newline":
@@ -1304,9 +1311,14 @@ class RegularCard:
                     )  # add an extra gap for user-specified newlines
                     continue
 
-                if line_fragments[0][0] == "dice_start":
+                if line_fragments[0][0][:10] == "dice_start":
                     dice_row_toggle = True
                     dice_section_y = curr_y
+                    color = line_fragments[0][0][11:]
+                    dice_section = open_image(f"{DICE_SECTION_PATH}/{color}.png")
+                    if dice_section is None:
+                        log(f"Dice section color '{color}' not found. Using colorless...")
+                        dice_section = open_image(f"{DICE_SECTION_PATH}/colorless.png")
 
                 if centered:
                     total_line_length = 0
@@ -1348,8 +1360,8 @@ class RegularCard:
                                 ascent, descent = frag_font.getmetrics()
                                 text_height = (ascent - descent + line_height) // 2
                                 dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
-                                dice_section = DICE_SECTION.get_formatted_image(
-                                    self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
+                                dice_section = dice_section.resize(
+                                    (self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins)
                                 )
                                 background_image.alpha_composite(
                                     dice_section, (margin // 2, dice_section_y - 2 * dice_margins)
@@ -1370,8 +1382,8 @@ class RegularCard:
                             ascent, descent = last_font.getmetrics()
                             text_height = (ascent - descent + line_height) // 2
                             dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
-                            dice_section = DICE_SECTION.get_formatted_image(
-                                self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins
+                            dice_section = dice_section.resize(
+                                (self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + text_height // 2)
                             )
                             background_image.alpha_composite(
                                 dice_section, (margin // 2, dice_section_y - 2 * dice_margins)

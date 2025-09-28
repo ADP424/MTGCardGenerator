@@ -67,6 +67,7 @@ MANA_SYMBOLS_PATH = "images/mana_symbols"
 WATERMARKS_PATH = "images/collector_info/watermarks"
 SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
 OVERLAYS_PATH = "images/art/overlay"
+DICE_SECTION_PATH = "images/other/dice_section"
 
 # Fonts
 MPLANTIN = "fonts/mplantin.ttf"
@@ -387,4 +388,3 @@ CLASS_HEADER = Symbol(open_image(f"{FRAMES_PATH}/class/header.png"))
 # Other
 RULES_DIVIDING_LINE = Symbol(open_image("images/other/divider.png"))
 ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)
-DICE_SECTION = Symbol(open_image("images/other/dice_section.png"))
