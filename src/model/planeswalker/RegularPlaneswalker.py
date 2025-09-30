@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
     BELEREN_BOLD_SMALL_CAPS,
+    CARD_FRAME_LAYOUT_EXTRAS,
     CARD_MANA_COST,
     CARD_RULES_TEXT,
     PLANESWALKER_ABILITY_BODY_EVEN,
@@ -75,9 +76,9 @@ class RegularPlaneswalker(RegularCard):
         self.TITLE_WIDTH = 1244
 
         # Type Text
-        self.TYPE_X = 130
+        self.TYPE_X = 130 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 201
         self.TYPE_Y = 1181
-        self.TYPE_WIDTH = 1240
+        self.TYPE_WIDTH = 1240 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1169
 
         # Rules Text Box
         self.RULES_BOX_X = 180

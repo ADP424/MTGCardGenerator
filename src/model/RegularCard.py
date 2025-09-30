@@ -6,6 +6,7 @@ from constants import (
     ARTIST_BRUSH,
     CARD_ADDITIONAL_TITLES,
     CARD_DESCRIPTOR,
+    CARD_FRAME_LAYOUT_EXTRAS,
     CARD_OVERLAYS,
     DICE_SECTION_PATH,
     RULES_DIVIDING_LINE,
@@ -30,7 +31,6 @@ from constants import (
     SET_SYMBOLS_PATH,
     WATERMARK_COLORS,
     CARD_WATERMARK_COLOR,
-    CARD_FRAME_LAYOUT,
     CARD_RULES_TEXT,
     CARD_WATERMARK,
     WATERMARKS_PATH,
@@ -124,9 +124,9 @@ class RegularCard:
         self.TYPE_BOX_HEIGHT = 114
 
         # Type Text
-        self.TYPE_X = 128
+        self.TYPE_X = 128 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 199
         self.TYPE_Y = 1190
-        self.TYPE_WIDTH = 1244
+        self.TYPE_WIDTH = 1244 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1173
         self.TYPE_MAX_FONT_SIZE = 67
         self.TYPE_MIN_FONT_SIZE = 6
         self.TYPE_FONT_COLOR = (0, 0, 0)
@@ -340,9 +340,6 @@ class RegularCard:
             else:
                 log(f"The value of '{key}' is not a list.")
 
-    def get_frame_layout(self) -> str:
-        return self.get_metadata(CARD_FRAME_LAYOUT).lower()
-
     def _create_art_layer(self):
         """
         Create the art layer of the card from the art folder.
@@ -363,8 +360,6 @@ class RegularCard:
             art_image = open_image(base_art_path)
         if art_image is None:
             log(f"Couldn't find an image with this card's name, '{filename}', in the art directory.")
-            log(card_key)
-            log(f"{card_title} {card_additional_titles} {card_descriptor}")
 
         self.art_layer = Layer(art_image)
 

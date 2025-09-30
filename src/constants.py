@@ -46,7 +46,7 @@ CARD_OVERLAYS = "Overlay(s)"
 # Not in Spreadsheet (Added at Runtime)
 CARD_INDEX = "Index"
 CARD_BACKSIDES = "Transform Backsides"
-
+CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
 
 ##################
 # FILE LOCATIONS #
@@ -114,6 +114,7 @@ WATERMARK_COLORS = {
     "black": (94, 94, 94),
     "red": (198, 109, 57),
     "green": (89, 140, 82),
+    "gold": (202, 179, 77),
     "multicolor": (202, 179, 77),
     "artifact": (100, 125, 134),
     "colorless": (100, 125, 134),

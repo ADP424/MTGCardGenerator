@@ -19,6 +19,7 @@ from constants import (
     CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
     CARD_FRAME_LAYOUT,
+    CARD_FRAME_LAYOUT_EXTRAS,
     CARD_FRAMES,
     CARD_FRONTSIDE,
     CARD_INDEX,
@@ -46,9 +47,8 @@ from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
-from model.transform.backside.TransformBackside import TransformBackside
-from model.transform.backside.TransformBacksideNoPip import TransformBacksideNoPip
-from model.transform.frontside.TransformFrontside import TransformFrontside
+from model.transform.TransformBackside import TransformBackside
+from model.transform.TransformFrontside import TransformFrontside
 from model.vehicle.RegularVehicle import RegularVehicle
 from utils import cardname_to_filename, get_card_key, open_image
 
@@ -94,7 +94,7 @@ def process_spreadsheets(
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
-        "transform backside no pip": TransformBacksideNoPip,
+
         # Token
         "regular token": RegularToken,
         "textless token": TextlessToken,
@@ -133,6 +133,15 @@ def process_spreadsheets(
 
                 if len(card_title) == 0:
                     continue
+
+                values[CARD_FRAME_LAYOUT_EXTRAS] = []
+                card_frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
+                for extra in (" pip",):
+                    extra_idx = card_frame_layout.find(extra)
+                    if card_frame_layout.find(extra) >= 0:
+                        old_frame_layout = values.get(CARD_FRAME_LAYOUT, "")
+                        values[CARD_FRAME_LAYOUT] = old_frame_layout[:extra_idx] + old_frame_layout[extra_idx + len(extra_idx):]
+                        values[CARD_FRAME_LAYOUT_EXTRAS].append(extra.strip())
 
                 raw_cards[card_key] = values
 

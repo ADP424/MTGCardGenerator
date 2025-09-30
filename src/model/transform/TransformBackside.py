@@ -56,7 +56,7 @@ class TransformBackside(RegularCard):
         self.TITLE_FONT_COLOR = (255, 255, 255)
 
         # Type Text
-        self.TYPE_X = 199
-        self.TYPE_WIDTH = 1173
         self.TYPE_FONT_COLOR = (255, 255, 255)
+
+        # Power & Toughness Text
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
