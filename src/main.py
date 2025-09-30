@@ -94,7 +94,6 @@ def process_spreadsheets(
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
-
         # Token
         "regular token": RegularToken,
         "textless token": TextlessToken,
@@ -140,7 +139,9 @@ def process_spreadsheets(
                     extra_idx = card_frame_layout.find(extra)
                     if card_frame_layout.find(extra) >= 0:
                         old_frame_layout = values.get(CARD_FRAME_LAYOUT, "")
-                        values[CARD_FRAME_LAYOUT] = old_frame_layout[:extra_idx] + old_frame_layout[extra_idx + len(extra_idx):]
+                        values[CARD_FRAME_LAYOUT] = (
+                            old_frame_layout[:extra_idx] + old_frame_layout[extra_idx + len(extra) :]
+                        )
                         values[CARD_FRAME_LAYOUT_EXTRAS].append(extra.strip())
 
                 raw_cards[card_key] = values
@@ -170,7 +171,7 @@ def process_spreadsheets(
     sorted_keys = get_sorted_keys()
 
     # Add indices to all the cards, for collector info
-    category_indices: dict[str: dict[str, int]] = {}
+    category_indices: dict[str : dict[str, int]] = {}
     for key in sorted_keys:
         card = raw_cards[key]
         if len(card.get(CARD_FRONTSIDE, "")) > 0:
@@ -208,7 +209,7 @@ def process_spreadsheets(
             elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
                 return True
         return False
-    
+
     filtered_cards: dict[str, dict[str, str]] = {}
     for key, metadata in raw_cards.items():
         card_title = metadata.get(CARD_TITLE, "")
@@ -294,10 +295,7 @@ def process_spreadsheets(
             frontside_card = card_sets[card_set].get(frontside_title)
             if frontside_card is not None:
                 for key, value in card.metadata.items():
-                    if (
-                        key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE)
-                        and len(value) == 0
-                    ):
+                    if key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE) and len(value) == 0:
                         card.set_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.set_metadata(CARD_BACKSIDES, card, append=True)
             else:
@@ -379,7 +377,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
 
         def frame_supported(frame_path: str) -> bool:
             for unsupported_path in blacklisted_frames:
-                if frame_path[:len(unsupported_path)].strip() == unsupported_path.strip():
+                if frame_path[: len(unsupported_path)].strip() == unsupported_path.strip():
                     return False
             return True
 
@@ -398,7 +396,9 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
                 card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 art_layout = frame_layout_map.get(card_frame_layout, "")
                 if len(art_layout) == 0:
-                    log(f"Unsupported frame layout for card extraction: '{card_frame_layout}'. Skipping '{card_key}'...")
+                    log(
+                        f"Unsupported frame layout for card extraction: '{card_frame_layout}'. Skipping '{card_key}'..."
+                    )
                     return
 
                 card_frames = card.get_metadata(CARD_FRAMES)
@@ -446,7 +446,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             ART_X["regular"] + ART_WIDTH["regular"],
             ART_Y["regular"] + ART_HEIGHT["regular"],
         )
-        
+
         for card_path in glob.glob(f"{INPUT_CARDS_PATH}/*.png"):
             log(f"Extracting art from '{card_path}'...")
             card_image = open_image(card_path)
@@ -552,7 +552,10 @@ if __name__ == "__main__":
         "-c",
         "--cards",
         nargs="+",
-        help=("Only process the cards with these names (including tokens, alt arts, etc.)."),
+        help=(
+            "Only process the cards with these names (including tokens, alt arts, etc.). "
+            "NOTE: If you're rendering alternates, you MUST render the original versions as well, or they will break."
+        ),
         dest="card_names_whitelist",
     )
     parser.add_argument(

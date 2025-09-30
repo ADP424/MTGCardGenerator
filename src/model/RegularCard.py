@@ -1059,6 +1059,7 @@ class RegularCard:
                 current_type = "rules"  # reset to rules unless flavor continues
 
         dice_on = False
+
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
             Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
