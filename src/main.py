@@ -313,7 +313,7 @@ def process_spreadsheets(
 def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
     for card_set, spreadsheet in card_sets.items():
         output_path = f"{OUTPUT_CARDS_PATH}/{card_set}"
-        log(f"Processing spreadsheet at '{output_path}'...")
+        log(f"Processing set at '{output_path}'...")
         increase_log_indent()
 
         for card in spreadsheet.values():
@@ -383,7 +383,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
 
         for output_path, spreadsheet in card_sets.items():
             output_path = f"{OUTPUT_ART_PATH}/{output_path[output_path.rfind("/") + 1:]}"
-            log(f"Processing spreadsheet at '{output_path}'...")
+            log(f"Processing set at '{output_path}'...")
             os.makedirs(output_path, exist_ok=True)
             increase_log_indent()
 
@@ -464,7 +464,6 @@ def main(
     do_basic_lands: bool = True,
     do_alts: bool = True,
     card_names_whitelist: list[str] = None,
-    ignore_sheet: bool = False,
 ):
     """
     Run the program.
@@ -489,9 +488,6 @@ def main(
     card_names_whitelist: list[str], optional
         The names of the cards to perform the action on (including descriptors when applicable).
         By default, perform the action on all cards.
-
-    ignore_sheet: bool, default : False
-        During art capture, whether to capture only art of regular cards from the sheet or ignore it entirely.
     """
 
     reset_log()
@@ -503,9 +499,7 @@ def main(
         pass  # TODO
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
-        card_sets = None
-        if not ignore_sheet:
-            card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
+        card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
         capture_art(card_sets)
 
 
@@ -557,13 +551,6 @@ if __name__ == "__main__":
             "NOTE: If you're rendering alternates, you MUST render the original versions as well, or they will break."
         ),
         dest="card_names_whitelist",
-    )
-    parser.add_argument(
-        "-is",
-        "--ignore-sheet",
-        action="store_false",
-        help="Skip processing the alternate arts of cards.",
-        dest="alt_arts",
     )
 
     args = parser.parse_args()

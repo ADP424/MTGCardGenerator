@@ -1251,12 +1251,14 @@ class RegularCard:
                 final_line = rules_lines[-1][-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
-                    if kind == "text":
+                    if kind == "text" or kind == "dice":
                         if value:
                             final_line_width += frag_font.getlength(value)
-                    else:
+                    elif kind == "symbol":
                         width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                    elif kind == "indent":
+                        final_line_width += value
                 if self.RULES_TEXT_X + final_line_width + margin >= self.POWER_TOUGHNESS_X:
                     continue
             break
