@@ -49,8 +49,11 @@ class TallToken(RegularToken):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
+        # Type Box
+        self.TYPE_BOX_Y = 1187
+
         # Type Text
-        self.TYPE_Y = 1190
+        self.TYPE_BOTTOM_Y = 1280
 
         # Rules Text Box
         self.RULES_BOX_Y = 1315

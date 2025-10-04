@@ -72,12 +72,15 @@ class RegularPlaneswalker(RegularCard):
 
         # Title Text
         self.TITLE_X = 130
-        self.TITLE_Y = 78
+        self.TITLE_BOTTOM_Y = 164
         self.TITLE_WIDTH = 1244
+
+        # Type Box
+        self.TYPE_BOX_Y = 1181
 
         # Type Text
         self.TYPE_X = 130 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 201
-        self.TYPE_Y = 1181
+        self.TYPE_BOTTOM_Y = 1270
         self.TYPE_WIDTH = 1240 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1169
 
         # Rules Text Box
@@ -116,6 +119,10 @@ class RegularPlaneswalker(RegularCard):
         self.SET_SYMBOL_Y = 1197
         self.SET_SYMBOL_WIDTH = 80
 
+        # Other
+        self.HOLO_STAMP_X = 660
+        self.HOLO_STAMP_Y = 1894
+
         # Separate mana and ability costs
         costs = self.get_metadata(CARD_MANA_COST).split("\n")
         self.ability_costs = [ability_cost.strip() for ability_cost in costs[1:]]
@@ -123,9 +130,6 @@ class RegularPlaneswalker(RegularCard):
 
         # Determine the heights and y-values of each ability rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
-        full_rules_height = self.RULES_TEXT_HEIGHT
-
-        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
         self.ability_texts = [text.strip() for text in full_rules_text.split("{end}")]
         ability_heights: list[int] = []
@@ -138,14 +142,13 @@ class RegularPlaneswalker(RegularCard):
 
         self.ability_heights: list[int] = []
         for height in ability_heights:
-            proportional_height = (height / total_height) * full_rules_height
-            even_height = full_rules_height / len(ability_heights)
+            proportional_height = (height / total_height) * self.RULES_TEXT_HEIGHT
+            even_height = self.RULES_TEXT_HEIGHT / len(ability_heights)
             alpha = 0.5
             final_height = int(alpha * proportional_height + (1 - alpha) * even_height)
             self.ability_heights.append(final_height)
 
         self.metadata[CARD_RULES_TEXT] = full_rules_text
-        self.RULES_TEXT_HEIGHT = full_rules_height
 
     def create_layers(
         self,

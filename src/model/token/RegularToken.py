@@ -54,8 +54,11 @@ class RegularToken(RegularCard):
         self.TITLE_FONT_COLOR = (255, 255, 255)
         self.TITLE_TEXT_ALIGN = "center"
 
+        # Type Box
+        self.TYPE_BOX_Y = 1361
+
         # Type Text
-        self.TYPE_Y = 1366
+        self.TYPE_BOTTOM_Y = 1456
 
         # Rules Text Box
         self.RULES_BOX_Y = 1496

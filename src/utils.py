@@ -129,6 +129,7 @@ def cardname_to_filename(card_name: str) -> str:
 def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "") -> str:
     """
     Return a card's unique identifier based on its title, additional titles, and descriptor.
+    Removes any formatting placeholders like "{UCS}".
 
     Parameters
     ----------
@@ -150,12 +151,12 @@ def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], 
     if isinstance(card_additional_titles, str):
         card_additional_titles = card_additional_titles.split("\n")
 
-    card_key = card_title
+    card_key = re.sub(r"{.*?}", "", card_title)
     for title in card_additional_titles:
-        title = title.strip()
+        title = re.sub(r"{.*?}", "", title.strip())
         if len(title) > 0:
             card_key += f" - {title}"
-    card_key += f" - {card_descriptor}" if len(card_descriptor) > 0 else ""
+    card_key += f" - {re.sub(r"{.*?}", "", card_descriptor)}" if len(card_descriptor) > 0 else ""
 
     return card_key
 

@@ -112,7 +112,7 @@ class RegularCard:
 
         # Title Text
         self.TITLE_X = 128
-        self.TITLE_Y = 112
+        self.TITLE_BOTTOM_Y = 200
         self.TITLE_WIDTH = 1244
         self.TITLE_MAX_FONT_SIZE = 79
         self.TITLE_MIN_FONT_SIZE = 6
@@ -121,11 +121,12 @@ class RegularCard:
         self.TITLE_TEXT_ALIGN = "left"
 
         # Type Box
+        self.TYPE_BOX_Y = 1187
         self.TYPE_BOX_HEIGHT = 114
 
         # Type Text
         self.TYPE_X = 128 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 199
-        self.TYPE_Y = 1190
+        self.TYPE_BOTTOM_Y = 1280
         self.TYPE_WIDTH = 1244 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1173
         self.TYPE_MAX_FONT_SIZE = 67
         self.TYPE_MIN_FONT_SIZE = 6
@@ -185,6 +186,8 @@ class RegularCard:
         # Other
         self.SYMBOL_FONT = "fonts/noto-kurrent.ttf"  # for international languages
         self.EMOJI_FONT = "fonts/noto-emoji.ttf"  # for emojis
+        self.HOLO_STAMP_X = 658
+        self.HOLO_STAMP_Y = 1898
 
         # set when mana cost layer is made to help with title spacing
         self.mana_cost_x = float("inf")
@@ -909,17 +912,16 @@ class RegularCard:
         ascent = title_font.getmetrics()[0]
         self._draw_ucs_chunks(
             draw,
-            (x_pos, (self.TITLE_BOX_HEIGHT - ascent) // 2),
+            (x_pos, (self.TITLE_BOTTOM_Y - self.TITLE_BOX_Y - ascent) // 2),
             text,
             title_font,
             symbol_backup_font,
             emoji_backup_font,
             fill=self.TITLE_FONT_COLOR,
-            anchor="lt",
             align=text_align,
         )
 
-        self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_Y)))
+        self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
     def _create_type_layer(self):
         """
@@ -956,16 +958,15 @@ class RegularCard:
         ascent = type_font.getmetrics()[0]
         self._draw_ucs_chunks(
             draw,
-            (0, (self.TYPE_BOX_HEIGHT - ascent) // 2),
+            (0, (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2),
             text,
             type_font,
             symbol_backup_font,
             emoji_backup_font,
             fill=self.TYPE_FONT_COLOR,
-            anchor="lt",
         )
 
-        self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_Y)))
+        self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
     def _replace_text_placeholders(self, text: str) -> str:
         """
@@ -1243,11 +1244,7 @@ class RegularCard:
             if content_height > usable_height:
                 continue
 
-            # check for power/toughness overlap
-            if (
-                len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y
-            ):
+            def get_final_line_width():
                 final_line = rules_lines[-1][-1]
                 final_line_width = 0
                 for kind, value, frag_font in final_line:
@@ -1259,8 +1256,29 @@ class RegularCard:
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         final_line_width += value
-                if self.RULES_TEXT_X + final_line_width + margin >= self.POWER_TOUGHNESS_X:
-                    continue
+                return final_line_width
+
+            # check for power/toughness overlap
+            if (
+                len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
+                and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_X + get_final_line_width() + margin >= self.POWER_TOUGHNESS_X
+            ):
+                continue
+
+            # check for holo stamp overlap
+            if (
+                "/holo" in self.get_metadata(CARD_FRAMES)
+                and self.RULES_TEXT_Y + usable_height >= self.HOLO_STAMP_Y
+                and self.RULES_TEXT_X + get_final_line_width() + margin >= self.HOLO_STAMP_X
+            ):
+                # log()
+                # log(usable_height)
+                # log(self.HOLO_STAMP_Y)
+                # log(margin)
+                # log(self.HOLO_STAMP_X)
+                continue
+
             break
         else:
             raise ValueError("Text is too long to fit in box even at minimum font size.")

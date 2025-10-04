@@ -65,17 +65,18 @@ class Battle(RegularCard):
 
         # Title Text
         self.TITLE_X = 344
-        self.TITLE_Y = 114
+        self.TITLE_BOTTOM_Y = 230
         self.TITLE_WIDTH = 2246
         self.TITLE_MAX_FONT_SIZE = 106
         self.TITLE_MIN_FONT_SIZE = 8
 
         # Type Box
+        self.TYPE_BOX_Y = 1165
         self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
         self.TYPE_X = 344
-        self.TYPE_Y = 1170
+        self.TYPE_BOTTOM_Y = 1294
         self.TYPE_WIDTH = 2248
         self.TYPE_MAX_FONT_SIZE = 90
         self.TYPE_MIN_FONT_SIZE = 8
@@ -120,3 +121,7 @@ class Battle(RegularCard):
         self.FOOTER_FONT_OUTLINE_SIZE = 4
         self.FOOTER_TAB_LENGTH = 33
         self.FOOTER_ARTIST_GAP_LENGTH = 7
+
+        # Other
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")

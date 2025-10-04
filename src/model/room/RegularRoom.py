@@ -1,4 +1,4 @@
-from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE
+from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE, CARD_WATERMARK
 from model.RegularCard import RegularCard
 from model.Layer import Layer
 
@@ -71,15 +71,16 @@ class RegularRoom(RegularCard):
 
         # First Title Text
         self.FIRST_TITLE_X = 297
-        self.FIRST_TITLE_Y = 102
+        self.FIRST_TITLE_BOTTOM_Y = 222
         self.FIRST_TITLE_WIDTH = 1097
 
         # Second Title Text
         self.SECOND_TITLE_X = 1580
-        self.SECOND_TITLE_Y = 102
+        self.SECOND_TITLE_BOTTOM_Y = 222
         self.SECOND_TITLE_WIDTH = 1097
 
         # Type Box
+        self.TYPE_BOX_Y = 1090
         self.TYPE_BOX_HEIGHT = 153
 
         # Mana Cost
@@ -89,7 +90,7 @@ class RegularRoom(RegularCard):
 
         # Type Text
         self.TYPE_X = 299
-        self.TYPE_Y = 1068
+        self.TYPE_BOTTOM_Y = 1174
         self.TYPE_WIDTH = 2369
         self.TYPE_MAX_FONT_SIZE = 80
         self.TYPE_MIN_FONT_SIZE = 8
@@ -159,6 +160,10 @@ class RegularRoom(RegularCard):
         self.FOOTER_TAB_LENGTH = 33
         self.FOOTER_ARTIST_GAP_LENGTH = 7
 
+        # Other
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")
+
         self.first_mana_cost_x = float("inf")
         self.second_mana_cost_x = float("inf")
 
@@ -168,17 +173,27 @@ class RegularRoom(RegularCard):
         (one for each rules text box because it's a room). Assumes the image is in RGBA format.
         """
 
+        full_watermark_colors = self.get_metadata(CARD_WATERMARK)
+
+        watermark_colors = full_watermark_colors.split("{end}")
+        first_watermark_colors = watermark_colors[0].strip()
+        second_watermark_colors = watermark_colors[1].strip() if len(watermark_colors) > 1 else first_watermark_colors
+
         self.RULES_BOX_X = self.FIRST_RULES_BOX_X
         self.RULES_BOX_Y = self.FIRST_RULES_BOX_Y
         self.RULES_BOX_WIDTH = self.FIRST_RULES_BOX_WIDTH
         self.RULES_BOX_HEIGHT = self.FIRST_RULES_BOX_HEIGHT
+        self.set_metadata(CARD_WATERMARK, first_watermark_colors)
         super()._create_watermark_layer()
 
         self.RULES_BOX_X = self.SECOND_RULES_BOX_X
         self.RULES_BOX_Y = self.SECOND_RULES_BOX_Y
         self.RULES_BOX_WIDTH = self.SECOND_RULES_BOX_WIDTH
         self.RULES_BOX_HEIGHT = self.SECOND_RULES_BOX_HEIGHT
+        self.set_metadata(CARD_WATERMARK, second_watermark_colors)
         super()._create_watermark_layer()
+
+        self.set_metadata(CARD_WATERMARK, full_watermark_colors)
 
     def _create_mana_cost_layer(self):
         """
@@ -219,14 +234,14 @@ class RegularRoom(RegularCard):
         second_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
         self.TITLE_X = self.FIRST_TITLE_X
-        self.TITLE_Y = self.FIRST_TITLE_Y
+        self.TITLE_BOTTOM_Y = self.FIRST_TITLE_BOTTOM_Y
         self.TITLE_WIDTH = self.FIRST_TITLE_WIDTH
         self.TITLE_BOX_HEIGHT = self.FIRST_TITLE_BOX_HEIGHT
         self.mana_cost_x = self.first_mana_cost_x
         super()._create_title_layer()
 
         self.TITLE_X = self.SECOND_TITLE_X
-        self.TITLE_Y = self.SECOND_TITLE_Y
+        self.TITLE_BOTTOM_Y = self.SECOND_TITLE_BOTTOM_Y
         self.TITLE_WIDTH = self.SECOND_TITLE_WIDTH
         self.TITLE_BOX_HEIGHT = self.SECOND_TITLE_BOX_HEIGHT
         self.set_metadata(CARD_TITLE, second_title)

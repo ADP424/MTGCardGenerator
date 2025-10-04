@@ -58,11 +58,11 @@ class RegularSaga(RegularCard):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Title Text
-        self.TITLE_Y = 105
+        # Type Box
+        self.TYPE_BOX_Y = 1779
 
         # Type Text
-        self.TYPE_Y = 1782
+        self.TYPE_BOTTOM_Y = 1872
 
         # Rules Text Box
         self.RULES_BOX_X = 116
@@ -103,11 +103,13 @@ class RegularSaga(RegularCard):
         self.SET_SYMBOL_Y = 1795
         self.SET_SYMBOL_WIDTH = 80
 
+        # Other
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")
+
         # Determine the heights and y-values of each ability rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
         full_rules_height = self.RULES_TEXT_HEIGHT
-
-        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
 
         texts = full_rules_text.split("{end}")
         self.static_text = texts[0].strip()
@@ -142,7 +144,6 @@ class RegularSaga(RegularCard):
             self.chapter_heights.append(final_height)
 
         self.metadata[CARD_RULES_TEXT] = full_rules_text
-        self.RULES_TEXT_HEIGHT = full_rules_height
 
     def create_layers(
         self,

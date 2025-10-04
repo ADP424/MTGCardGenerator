@@ -61,11 +61,11 @@ class RegularClass(RegularCard):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Title Text
-        self.TITLE_Y = 105
+        # Type Box
+        self.TYPE_BOX_Y = 1779
 
         # Type Text
-        self.TYPE_Y = 1782
+        self.TYPE_BOTTOM_Y = 1872
 
         # Level Text
         self.LEVEL_FONT = MPLANTIN
@@ -95,9 +95,7 @@ class RegularClass(RegularCard):
 
         # Determine the heights and y-values of each subclass/level rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
-        full_rules_height = self.RULES_TEXT_HEIGHT
 
-        self.RULES_TEXT_HEIGHT = 9999 * self.CARD_HEIGHT  # stop text shrinking to size while measuring
         self.level_rules_texts = [text.strip() for text in full_rules_text.split("{end}")]
 
         level_heights: list[int] = []
@@ -110,7 +108,7 @@ class RegularClass(RegularCard):
 
         self.level_heights: list[int] = []
         self.level_header_y_axes: list[int] = []
-        usable_height = full_rules_height - (len(self.level_rules_texts) - 1) * CLASS_HEADER.image.height
+        usable_height = self.RULES_TEXT_HEIGHT - (len(self.level_rules_texts) - 1) * CLASS_HEADER.image.height
         for count, height in enumerate(level_heights):
             proportional_height = (height / total_height) * usable_height
             even_height = usable_height / len(level_heights)
@@ -121,7 +119,6 @@ class RegularClass(RegularCard):
         self.level_header_y_axes.pop()
 
         self.metadata[CARD_RULES_TEXT] = full_rules_text
-        self.RULES_TEXT_HEIGHT = full_rules_height
 
     def create_layers(
         self,

@@ -200,14 +200,15 @@ def process_spreadsheets(
             return True
         card_titles = [title.strip() for title in card_additional_titles.split("\n")]
         for title in card_titles + [card_title]:
-            if len(card_descriptor) > 0:
-                if (
-                    f"{title} - {card_descriptor}" in card_names_whitelist
-                    or f"{card_title} - {title} - {card_descriptor}" in card_names_whitelist
-                ):
+            for card_name in card_names_whitelist:
+                if len(card_descriptor) > 0:
+                    if (
+                        card_name in f"{title} - {card_descriptor}"
+                        or card_name in f"{card_title} - {title} - {card_descriptor}"
+                    ):
+                        return True
+                elif card_name in title or card_name in f"{card_title} - {title}":
                     return True
-            elif title in card_names_whitelist or f"{card_title} - {title}" in card_names_whitelist:
-                return True
         return False
 
     filtered_cards: dict[str, dict[str, str]] = {}
@@ -264,7 +265,7 @@ def process_spreadsheets(
             if len(card_descriptor) == 0:
                 continue
 
-            original_card = card_sets[card_set].get(card_title, "")
+            original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles, ""))
             if original_card is not None:
                 for key, value in card.metadata.items():
                     if (
@@ -548,6 +549,7 @@ if __name__ == "__main__":
         nargs="+",
         help=(
             "Only process the cards with these names (including tokens, alt arts, etc.). "
+            "Accepts partial matches (i.e. 'Lotus' matches 'Black Lotus'). "
             "NOTE: If you're rendering alternates, you MUST render the original versions as well, or they will break."
         ),
         dest="card_names_whitelist",

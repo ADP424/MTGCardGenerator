@@ -49,8 +49,11 @@ class TextlessToken(RegularToken):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
+        # Type Box
+        self.TYPE_BOX_Y = 1717
+
         # Type Text
-        self.TYPE_Y = 1718
+        self.TYPE_BOTTOM_Y = 1814
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_Y = 1731

@@ -69,17 +69,18 @@ class RegularAdventure(RegularCard):
 
         # Adventure Title Text
         self.ADVENTURE_TITLE_X = 120
-        self.ADVENTURE_TITLE_Y = 1325
+        self.ADVENTURE_TITLE_BOTTOM_Y = 1400
         self.ADVENTURE_TITLE_WIDTH = 625
         self.ADVENTURE_TITLE_MAX_FONT_SIZE = 70
         self.ADVENTURE_TITLE_FONT_COLOR = (255, 255, 255)
 
         # Adventure Type Box
+        self.ADVENTURE_TYPE_BOX_Y = 1435
         self.ADVENTURE_TYPE_BOX_HEIGHT = 71
 
         # Adventure Type Text
         self.ADVENTURE_TYPE_X = 123
-        self.ADVENTURE_TYPE_Y = 1432
+        self.ADVENTURE_TYPE_BOTTOM_Y = 1476
         self.ADVENTURE_TYPE_WIDTH = 650
         self.ADVENTURE_TYPE_MAX_FONT_SIZE = 60
         self.ADVENTURE_TYPE_FONT_COLOR = (255, 255, 255)
@@ -161,8 +162,9 @@ class RegularAdventure(RegularCard):
         Process the regular and adventure title texts into their title boxes and append them to `self.text_layers`.
         """
 
+        full_title_box_y = self.TITLE_BOX_Y
         full_title_x = self.TITLE_X
-        full_title_y = self.TITLE_Y
+        full_title_bottom_y = self.TITLE_BOTTOM_Y
         full_title_width = self.TITLE_WIDTH
         full_title_box_height = self.TITLE_BOX_HEIGHT
         full_title_font_color = self.TITLE_FONT_COLOR
@@ -173,8 +175,9 @@ class RegularAdventure(RegularCard):
 
         adventure_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
+        self.TITLE_BOX_Y = self.ADVENTURE_TITLE_BOX_Y
         self.TITLE_X = self.ADVENTURE_TITLE_X
-        self.TITLE_Y = self.ADVENTURE_TITLE_Y
+        self.TITLE_BOTTOM_Y = self.ADVENTURE_TITLE_BOTTOM_Y
         self.TITLE_WIDTH = self.ADVENTURE_TITLE_WIDTH
         self.TITLE_BOX_HEIGHT = self.ADVENTURE_TITLE_BOX_HEIGHT
         self.TITLE_FONT_COLOR = self.ADVENTURE_TITLE_FONT_COLOR
@@ -182,8 +185,9 @@ class RegularAdventure(RegularCard):
         self.mana_cost_x = self.adventure_mana_cost_x
         super()._create_title_layer()
 
+        self.TITLE_BOX_Y = full_title_box_y
         self.TITLE_X = full_title_x
-        self.TITLE_Y = full_title_y
+        self.TITLE_BOTTOM_Y = full_title_bottom_y
         self.TITLE_WIDTH = full_title_width
         self.TITLE_BOX_HEIGHT = full_title_box_height
         self.TITLE_FONT_COLOR = full_title_font_color
@@ -195,8 +199,9 @@ class RegularAdventure(RegularCard):
         Process the regular and adventure type texts into their type boxes and append them to `self.text_layers`.
         """
 
+        full_type_box_y = self.TYPE_BOX_Y
         full_type_x = self.TYPE_X
-        full_type_y = self.TYPE_Y
+        full_type_bottom_y = self.TYPE_BOTTOM_Y
         full_type_width = self.TYPE_WIDTH
         full_type_box_height = self.TYPE_BOX_HEIGHT
         full_type_max_font_size = self.TYPE_MAX_FONT_SIZE
@@ -223,8 +228,9 @@ class RegularAdventure(RegularCard):
         self.set_metadata(CARD_SUBTYPES, primary_subtype)
         super()._create_type_layer()
 
+        self.TYPE_BOX_Y = self.ADVENTURE_TYPE_BOX_Y
         self.TYPE_X = self.ADVENTURE_TYPE_X
-        self.TYPE_Y = self.ADVENTURE_TYPE_Y
+        self.TYPE_BOTTOM_Y = self.ADVENTURE_TYPE_BOTTOM_Y
         self.TYPE_WIDTH = self.ADVENTURE_TYPE_WIDTH
         self.TYPE_BOX_HEIGHT = self.ADVENTURE_TYPE_BOX_HEIGHT
         self.TYPE_MAX_FONT_SIZE = self.ADVENTURE_TYPE_MAX_FONT_SIZE
@@ -238,8 +244,9 @@ class RegularAdventure(RegularCard):
         self.set_metadata(CARD_TYPES, full_type)
         self.set_metadata(CARD_SUBTYPES, full_subtype)
 
+        self.TYPE_BOX_Y = full_type_box_y
         self.TYPE_X = full_type_x
-        self.TYPE_Y = full_type_y
+        self.TYPE_BOTTOM_Y = full_type_bottom_y
         self.TYPE_WIDTH = full_type_width
         self.TYPE_BOX_HEIGHT = full_type_box_height
         self.TYPE_MAX_FONT_SIZE = full_type_max_font_size

@@ -49,8 +49,11 @@ class ShortToken(RegularToken):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
+        # Type Box
+        self.TYPE_BOX_Y = 1420
+
         # Type Text
-        self.TYPE_Y = 1424
+        self.TYPE_BOTTOM_Y = 1518
 
         # Rules Text Box
         self.RULES_BOX_Y = 1555
