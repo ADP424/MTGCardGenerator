@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_REVERSE_POWER_TOUGHNESS
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
 

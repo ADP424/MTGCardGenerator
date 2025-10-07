@@ -7,7 +7,7 @@ from constants import (
     SAGA_CHAPTER_DIVIDING_LINE,
     SAGA_CHAPTER_FRAME,
 )
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from utils import int_to_roman_numeral, paste_image
 

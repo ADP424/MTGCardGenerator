@@ -35,14 +35,16 @@ from constants import (
     OUTPUT_CARDS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.mtg_class.RegularClass import RegularClass
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
+from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
+from model.showcase.transparent.RegularTransparent import RegularTransparent
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
@@ -90,7 +92,9 @@ def process_spreadsheets(
 
     # Frame Layout to Subclass
     layout_to_subclass = {
+        # regular
         "regular": RegularCard,
+        "regular split rules text": RegularSplitRulesText,
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
@@ -114,6 +118,8 @@ def process_spreadsheets(
         "transform battle": TransformBattle,
         # Room
         "regular room": RegularRoom,
+        # Showcase
+        "regular transparent": RegularTransparent,
     }
 
     card_sets: dict[str, dict[str, RegularCard]] = {}
@@ -374,6 +380,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             "room/",
             "showcase/draconic/",
             "token/",
+            "showcase/transparent/"
         )
 
         def frame_supported(frame_path: str) -> bool:

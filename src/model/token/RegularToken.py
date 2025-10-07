@@ -1,5 +1,5 @@
 from constants import BELEREN_BOLD_SMALL_CAPS
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
 

@@ -1,4 +1,4 @@
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from model.token.RegularToken import RegularToken
 

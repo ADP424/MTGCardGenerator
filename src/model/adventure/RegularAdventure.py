@@ -7,7 +7,7 @@ from constants import (
     CARD_TITLE,
     CARD_TYPES,
 )
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
 

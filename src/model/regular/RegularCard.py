@@ -976,6 +976,8 @@ class RegularCard:
         new_text = text
         new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE), new_text, flags=re.IGNORECASE)
         new_text = re.sub("{-}", "—", new_text)
+        new_text = re.sub("{ln}", "\n", new_text)
+        new_text = re.sub("{center}", "", new_text)
         return new_text
 
     def _get_symbol_metrics(
@@ -1043,6 +1045,8 @@ class RegularCard:
             the height of the content, and the maximum usable height of the rules box
         """
 
+        text = self._replace_text_placeholders(text)
+
         sections = re.split(r"(\{flavor\}|\{divider\})", text)
         rules_text_blocks: list[tuple[str, str]] = []
         current_type = "rules"
@@ -1072,8 +1076,7 @@ class RegularCard:
 
             for i, part in enumerate(parts):
                 if i % 2 == 0:
-                    if part:
-                        fragments.append(("text", part))
+                    fragments.append(("text", part))
                 else:
                     token = part.strip().lower()
                     if token == "i":
@@ -1201,6 +1204,8 @@ class RegularCard:
 
             if curr_fragment:
                 lines.append(curr_fragment)
+            else:
+                lines.append([("text", "", curr_font)])
             return lines
 
         for font_size in range(self.RULES_BOX_MAX_FONT_SIZE, self.RULES_BOX_MIN_FONT_SIZE - 1, -1):
@@ -1272,11 +1277,6 @@ class RegularCard:
                 and self.RULES_TEXT_Y + usable_height >= self.HOLO_STAMP_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin >= self.HOLO_STAMP_X
             ):
-                # log()
-                # log(usable_height)
-                # log(self.HOLO_STAMP_Y)
-                # log(margin)
-                # log(self.HOLO_STAMP_X)
                 continue
 
             break
@@ -1299,7 +1299,6 @@ class RegularCard:
         if "{center}" in text:
             centered = True
             text = text.replace("{center}", "")
-        text = self._replace_text_placeholders(text)
 
         rules_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
 

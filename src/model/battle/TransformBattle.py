@@ -1,5 +1,5 @@
 from model.Layer import Layer
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.battle.Battle import Battle
 
 

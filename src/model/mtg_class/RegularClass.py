@@ -10,7 +10,7 @@ from constants import (
     MPLANTIN,
     SYMBOL_PLACEHOLDER_KEY,
 )
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from log import log
 

@@ -13,7 +13,7 @@ from constants import (
     PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL,
     PLANESWALKER_ABILITY_COST_BORDER_POSITIVE,
 )
-from model.RegularCard import RegularCard
+from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from utils import paste_image
 from log import log
@@ -355,7 +355,7 @@ class RegularPlaneswalker(RegularCard):
 
         self.RULES_TEXT_Y = full_rules_y
         self.RULES_TEXT_HEIGHT = full_rules_height
-        self.metadata[CARD_RULES_TEXT] = full_rules_text
+        self.set_metadata(CARD_RULES_TEXT, full_rules_text)
 
     def _create_ability_cost_layers(self):
         """

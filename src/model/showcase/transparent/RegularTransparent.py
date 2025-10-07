@@ -1,11 +1,10 @@
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
-from model.token.RegularToken import RegularToken
 
 
-class ShortToken(RegularToken):
+class RegularTransparent(RegularCard):
     """
-    A layered image representing a short token and all the collection info on it,
+    A layered image representing a card with a transparent frame and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -49,19 +48,14 @@ class ShortToken(RegularToken):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
-        # Type Box
-        self.TYPE_BOX_Y = 1420
+        # Title Text
+        self.TITLE_FONT_COLOR = (255, 255, 255)
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1518
-
-        # Rules Text Box
-        self.RULES_BOX_Y = 1555
-        self.RULES_BOX_HEIGHT = 377
+        self.TYPE_FONT_COLOR = (255, 255, 255)
 
         # Rules Text
-        self.RULES_TEXT_Y = 1555
-        self.RULES_TEXT_HEIGHT = 377
+        self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
 
-        # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1432
+        # Power & Toughness Text
+        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)

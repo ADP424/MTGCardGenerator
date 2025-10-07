@@ -163,6 +163,10 @@ TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/20.png")
 HALF_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/half.png")
 INFINITY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/infinity.png")
 
+# Other Mono Mana
+SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/snow.png")
+LOVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/love.png")
+
 # Tapping
 TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/tap.png")
 UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/untap.png")
@@ -220,6 +224,10 @@ RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/red
 GREEN_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_white.png")
 GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_blue.png")
 
+# Other Hybrid Mana
+COLORLESS_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/colorless_snow.png")
+SNOW_LOVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/hybrid/snow_love.png")
+
 # Standard Trybrid Mana
 WHITE_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/white_blue_black.png")
 BLUE_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/blue_red_white.png")
@@ -242,16 +250,17 @@ RED_WHITE_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/red_white_co
 GREEN_WHITE_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/green_white_colorless.png")
 GREEN_BLUE_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/green_blue_colorless.png")
 
+# Complex Trybrid Mana
+BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/black_double_green_phyrexian_snow_mana.png")
+
 # Variable Mana
 X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/x.png")
 Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/y.png")
 Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/z.png")
 
 # Other
-SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/snow.png")
 ENERGY = open_image(f"{MANA_SYMBOLS_PATH}/energy.png")
 TICKET = open_image(f"{MANA_SYMBOLS_PATH}/ticket.png")
-LOVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/love.png")
 
 
 ###########
@@ -294,6 +303,9 @@ SYMBOL_PLACEHOLDER_KEY = {
     "1/2": Symbol(HALF_MANA),
     "inf": Symbol(INFINITY_MANA),
     "infinity": Symbol(INFINITY_MANA),
+    # Other Mono Mana
+    "s": Symbol(SNOW_MANA),
+    "l": Symbol(LOVE_MANA),
     # Tapping
     "t": Symbol(TAP),
     "untap": Symbol(UNTAP),
@@ -406,6 +418,11 @@ SYMBOL_PLACEHOLDER_KEY = {
     "pg/pu": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "up/gp": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "pu/pg": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Other Hybrid Mana
+    "c/s": Symbol(COLORLESS_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "s/c": Symbol(COLORLESS_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "s/l": Symbol(SNOW_LOVE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "l/s": Symbol(SNOW_LOVE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # Standard Trybrid Mana
     "w/u/b": Symbol(WHITE_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "w/b/u": Symbol(WHITE_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
@@ -527,15 +544,20 @@ SYMBOL_PLACEHOLDER_KEY = {
     "u/c/g": Symbol(GREEN_BLUE_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "c/g/u": Symbol(GREEN_BLUE_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "c/u/g": Symbol(GREEN_BLUE_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Complex Trybrid Mana
+    "b/pgpg/s": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/s/pgpg": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pgpg/b/s": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pgpg/s/b": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "s/b/pgpg": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "s/pgpg/b": Symbol(BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # Variable Mana
     "x": Symbol(X_MANA),
     "y": Symbol(Y_MANA),
     "z": Symbol(Z_MANA),
     # Other
-    "s": Symbol(SNOW_MANA),
     "e": Symbol(ENERGY),
     "ticket": Symbol(TICKET),
-    "l": Symbol(LOVE_MANA),
 }
 
 # Planeswalker Abilities
