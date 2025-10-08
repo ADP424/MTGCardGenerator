@@ -2,6 +2,7 @@ import argparse
 import csv
 import glob
 import os
+import re
 from PIL import Image
 
 from datetime import MINYEAR, datetime
@@ -94,7 +95,7 @@ def process_spreadsheets(
 
     # Frame Layout to Subclass
     layout_to_subclass = {
-        # regular
+        # Regular
         "regular": RegularCard,
         "regular split rules text": RegularSplitRulesText,
         # Transform
@@ -208,8 +209,13 @@ def process_spreadsheets(
     def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
         if card_names_whitelist is None:
             return True
-        card_titles = [title.strip() for title in card_additional_titles.split("\n")]
-        for title in card_titles + [card_title]:
+        raw_card_titles = [title.strip() for title in card_additional_titles.split("\n")] + [card_title]
+        card_titles = []
+        for raw_title in raw_card_titles:
+            title = re.sub(r"{.*?}", "", raw_title)
+            card_titles.append(title)
+
+        for title in card_titles:
             for card_name in card_names_whitelist:
                 if len(card_descriptor) > 0:
                     if (
@@ -366,14 +372,26 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
     if card_sets is not None:
 
         frame_layout_map = {
+            # Regular
             "regular": "regular",
-            "regular adventure": "regular",
+            "regular split rules text": "regular",
+            # Transform
             "transform frontside": "regular",
             "transform backside": "regular",
-            "transform backside no pip": "regular",
+            # Token -- Not Allowed
+            # Planeswalker -- Not Allowed
+            # Vehicle
             "regular vehicle": "regular",
-            "regular class": "class",
+            # Saga
             "regular saga": "saga",
+            "transform saga": "saga",
+            # Class
+            "regular class": "class",
+            # Adventure
+            "regular adventure": "regular",
+            # Battle -- Not Allowed
+            # Room -- Not Allowed
+            # Showcase
         }
 
         blacklisted_frames = (
@@ -383,8 +401,9 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             "planeswalker/",
             "room/",
             "showcase/draconic/",
-            "token/",
+            "showcase/full_text/",
             "showcase/transparent/",
+            "token/",
         )
 
         def frame_supported(frame_path: str) -> bool:
@@ -405,7 +424,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
                 card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
                 card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
-                card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
+                card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower().replace(" pip", "")
                 art_layout = frame_layout_map.get(card_frame_layout, "")
                 if len(art_layout) == 0:
                     log(

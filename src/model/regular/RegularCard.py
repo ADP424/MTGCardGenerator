@@ -885,20 +885,48 @@ class RegularCard:
             centered = True
             text = text.replace("{center}", "")
 
+        color_tag_pattern = re.compile(
+            r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}",
+            flags=re.DOTALL
+        )
+
+        segments = []
+        last_end = 0
+        for match in color_tag_pattern.finditer(text):
+            r, g, b = map(int, match.groups()[:3])
+            color = (r, g, b)
+            segment_text = match.group(4)
+
+            if match.start() > last_end:
+                segments.append((text[last_end:match.start()], self.TITLE_FONT_COLOR))
+
+            segments.append((segment_text, color))
+            last_end = match.end()
+
+        if last_end < len(text):
+            segments.append((text[last_end:], self.TITLE_FONT_COLOR))
+
         font_size = self.TITLE_MAX_FONT_SIZE
         title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
-        title_length = self._get_ucs_chunks_length(text, title_font, symbol_backup_font, emoji_backup_font)
+
+        def get_title_length():
+            return sum(
+                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+                for seg_text, _ in segments
+            )
+
+        title_length = get_title_length()
         while (
             self.TITLE_X + title_length > min(self.mana_cost_x, self.TITLE_X + self.TITLE_WIDTH)
             and font_size >= self.TITLE_MIN_FONT_SIZE
         ):
             font_size -= 1
-            title_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+            title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
             symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
-            title_length = self._get_ucs_chunks_length(text, title_font, symbol_backup_font, emoji_backup_font)
+            title_length = get_title_length()
 
         image = Image.new("RGBA", (self.TITLE_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -910,16 +938,19 @@ class RegularCard:
             x_pos = (self.TITLE_WIDTH - title_length) // 2
 
         ascent = title_font.getmetrics()[0]
-        self._draw_ucs_chunks(
-            draw,
-            (x_pos, (self.TITLE_BOTTOM_Y - self.TITLE_BOX_Y - ascent) // 2),
-            text,
-            title_font,
-            symbol_backup_font,
-            emoji_backup_font,
-            fill=self.TITLE_FONT_COLOR,
-            align=text_align,
-        )
+        y_pos = (self.TITLE_BOTTOM_Y - self.TITLE_BOX_Y - ascent) // 2
+        for seg_text, color in segments:
+            self._draw_ucs_chunks(
+                draw,
+                (x_pos, y_pos),
+                seg_text,
+                title_font,
+                symbol_backup_font,
+                emoji_backup_font,
+                fill=color,
+                align=text_align,
+            )
+            x_pos += self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
 
         self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
@@ -938,33 +969,67 @@ class RegularCard:
         if len(text) == 0:
             return
 
+        color_tag_pattern = re.compile(
+            r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}",
+            flags=re.DOTALL
+        )
+
+        segments = []
+        last_end = 0
+        for match in color_tag_pattern.finditer(text):
+            r, g, b = map(int, match.groups()[:3])
+            color = (r, g, b)
+            segment_text = match.group(4)
+
+            if match.start() > last_end:
+                segments.append((text[last_end:match.start()], self.TYPE_FONT_COLOR))
+
+            segments.append((segment_text, color))
+            last_end = match.end()
+
+        if last_end < len(text):
+            segments.append((text[last_end:], self.TYPE_FONT_COLOR))
+
         font_size = self.TYPE_MAX_FONT_SIZE
         type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+
+        def get_type_length():
+            return sum(
+                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+                for seg_text, _ in segments
+            )
+
+        type_length = get_type_length()
         while (
-            self.TYPE_X + self._get_ucs_chunks_length(text, type_font, symbol_backup_font, emoji_backup_font)
-            > self.SET_SYMBOL_X
+            self.TYPE_X + type_length > self.SET_SYMBOL_X
             and font_size >= self.TYPE_MIN_FONT_SIZE
         ):
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
             symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            type_length = get_type_length()
 
         image = Image.new("RGBA", (self.TYPE_WIDTH, self.TYPE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         ascent = type_font.getmetrics()[0]
-        self._draw_ucs_chunks(
-            draw,
-            (0, (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2),
-            text,
-            type_font,
-            symbol_backup_font,
-            emoji_backup_font,
-            fill=self.TYPE_FONT_COLOR,
-        )
+        y_pos = (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2
+        x_pos = 0
+
+        for seg_text, color in segments:
+            self._draw_ucs_chunks(
+                draw,
+                (x_pos, y_pos),
+                seg_text,
+                type_font,
+                symbol_backup_font,
+                emoji_backup_font,
+                fill=color,
+            )
+            x_pos += self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
 
         self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
@@ -1074,6 +1139,11 @@ class RegularCard:
             parts = PLACEHOLDER_REGEX.split(line)
             nonlocal dice_on
 
+            color_tag_pattern = re.compile(
+                r"color\((\d+),(\d+),(\d+)\)",
+                flags=re.DOTALL
+            )
+
             for i, part in enumerate(parts):
                 if i % 2 == 0:
                     fragments.append(("text", part))
@@ -1103,6 +1173,14 @@ class RegularCard:
                         fragments.append(("bullet", "•"))
                     elif dice_on and re.search(r"\d+-\d+|\d+", token):
                         fragments.append(("dice", token))
+                    elif token[:5] == "color":
+                        color_match = color_tag_pattern.findall(token)
+                        if len(color_match) == 0:
+                            continue
+                        r, g, b = map(int, color_match[0][:3])
+                        fragments.append(("color", (r, g, b)))
+                    elif token == "/color":
+                        fragments.append(("color", "end"))
                     else:
                         fragments.append(("symbol", token))
             return fragments
@@ -1175,7 +1253,7 @@ class RegularCard:
                     dice_section_width = int(curr_font.getlength(f"{value} | "))
                     curr_fragment.append(("dice", f"{value} | ", curr_font))
                     curr_width += dice_section_width
-                else:
+                elif kind == "text":
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
                         width = int(curr_font.getlength(word))
@@ -1201,6 +1279,8 @@ class RegularCard:
                             else:
                                 curr_fragment.append(("text", word, curr_font))
                                 curr_width += width
+                else:
+                    curr_fragment.append((kind, value, curr_font))
 
             if curr_fragment:
                 lines.append(curr_fragment)
@@ -1314,6 +1394,8 @@ class RegularCard:
             Render lines of text as images.
             """
 
+            curr_font_color = self.RULES_TEXT_FONT_COLOR
+
             nonlocal curr_y
             dice_row_toggle = True
             dice_section_y = -1
@@ -1351,7 +1433,7 @@ class RegularCard:
                 for kind, value, frag_font in line_fragments:
                     if kind == "text":
                         if value:
-                            draw.text((curr_x, curr_y), value, font=frag_font, fill=self.RULES_TEXT_FONT_COLOR)
+                            draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color)
                             curr_x += draw.textlength(value, font=frag_font)
                     elif kind == "symbol":
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
@@ -1369,6 +1451,11 @@ class RegularCard:
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         curr_x += value
+                    elif kind == "color":
+                        if value == "end":
+                            curr_font_color = self.RULES_TEXT_FONT_COLOR
+                        else:
+                            curr_font_color = value
                     elif kind == "dice":
                         if dice_section_y > -1:
                             if not dice_row_toggle:
@@ -1385,7 +1472,7 @@ class RegularCard:
                             else:
                                 dice_row_toggle = False
                             dice_section_y = curr_y
-                        draw.text((curr_x, curr_y), value, font=frag_font, fill=self.RULES_TEXT_FONT_COLOR)
+                        draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color)
                         curr_x += draw.textlength(value, font=frag_font)
 
                 curr_y += line_height
