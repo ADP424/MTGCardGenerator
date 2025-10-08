@@ -108,6 +108,9 @@ class RegularSaga(RegularCard):
         self.HOLO_STAMP_Y = float("inf")
 
         # Determine the heights and y-values of each ability rules text
+        self._determine_ability_heights_and_y_values()
+
+    def _determine_ability_heights_and_y_values(self):
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
         full_rules_height = self.RULES_TEXT_HEIGHT
 

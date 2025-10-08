@@ -251,7 +251,9 @@ GREEN_WHITE_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/green_whit
 GREEN_BLUE_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/green_blue_colorless.png")
 
 # Complex Trybrid Mana
-BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/trybrid/black_double_green_phyrexian_snow_mana.png")
+BLACK_DOUBLE_GREEN_PHYREXIAN_SNOW_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/trybrid/black_double_green_phyrexian_snow_mana.png"
+)
 
 # Variable Mana
 X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/x.png")

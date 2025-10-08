@@ -486,7 +486,7 @@ class RegularCard:
             return
 
         rarity = self.get_metadata(CARD_RARITY).lower()
-        if rarity == "token":
+        if rarity in ("token", "land"):
             rarity = "common"
         if len(rarity) == 0:
             return

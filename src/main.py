@@ -44,6 +44,8 @@ from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
+from model.saga.TransformSaga import TransformSaga
+from model.showcase.FullText import FullText
 from model.showcase.transparent.RegularTransparent import RegularTransparent
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
@@ -109,6 +111,7 @@ def process_spreadsheets(
         "regular vehicle": RegularVehicle,
         # Saga
         "regular saga": RegularSaga,
+        "transform saga": TransformSaga,
         # Class
         "regular class": RegularClass,
         # Adventure
@@ -120,6 +123,7 @@ def process_spreadsheets(
         "regular room": RegularRoom,
         # Showcase
         "regular transparent": RegularTransparent,
+        "full text": FullText,
     }
 
     card_sets: dict[str, dict[str, RegularCard]] = {}
@@ -380,7 +384,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             "room/",
             "showcase/draconic/",
             "token/",
-            "showcase/transparent/"
+            "showcase/transparent/",
         )
 
         def frame_supported(frame_path: str) -> bool:
