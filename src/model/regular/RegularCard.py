@@ -151,6 +151,8 @@ class RegularCard:
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
+        self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER = 5
+        self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 8
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1166
@@ -879,16 +881,16 @@ class RegularCard:
         text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
+        
+        if "{skip}" in text:
+            return
 
         centered = False
         if "{center}" in text:
             centered = True
             text = text.replace("{center}", "")
 
-        color_tag_pattern = re.compile(
-            r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}",
-            flags=re.DOTALL
-        )
+        color_tag_pattern = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
 
         segments = []
         last_end = 0
@@ -898,7 +900,7 @@ class RegularCard:
             segment_text = match.group(4)
 
             if match.start() > last_end:
-                segments.append((text[last_end:match.start()], self.TITLE_FONT_COLOR))
+                segments.append((text[last_end : match.start()], self.TITLE_FONT_COLOR))
 
             segments.append((segment_text, color))
             last_end = match.end()
@@ -969,10 +971,7 @@ class RegularCard:
         if len(text) == 0:
             return
 
-        color_tag_pattern = re.compile(
-            r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}",
-            flags=re.DOTALL
-        )
+        color_tag_pattern = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
 
         segments = []
         last_end = 0
@@ -982,7 +981,7 @@ class RegularCard:
             segment_text = match.group(4)
 
             if match.start() > last_end:
-                segments.append((text[last_end:match.start()], self.TYPE_FONT_COLOR))
+                segments.append((text[last_end : match.start()], self.TYPE_FONT_COLOR))
 
             segments.append((segment_text, color))
             last_end = match.end()
@@ -1002,10 +1001,7 @@ class RegularCard:
             )
 
         type_length = get_type_length()
-        while (
-            self.TYPE_X + type_length > self.SET_SYMBOL_X
-            and font_size >= self.TYPE_MIN_FONT_SIZE
-        ):
+        while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
             type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
             symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
@@ -1039,7 +1035,7 @@ class RegularCard:
         """
 
         new_text = text
-        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE), new_text, flags=re.IGNORECASE)
+        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE).replace("{skip}", ""), new_text, flags=re.IGNORECASE)
         new_text = re.sub("{-}", "—", new_text)
         new_text = re.sub("{ln}", "\n", new_text)
         new_text = re.sub("{center}", "", new_text)
@@ -1139,10 +1135,7 @@ class RegularCard:
             parts = PLACEHOLDER_REGEX.split(line)
             nonlocal dice_on
 
-            color_tag_pattern = re.compile(
-                r"color\((\d+),(\d+),(\d+)\)",
-                flags=re.DOTALL
-            )
+            color_tag_pattern = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re.DOTALL)
 
             for i, part in enumerate(parts):
                 if i % 2 == 0:
@@ -1179,8 +1172,12 @@ class RegularCard:
                             continue
                         r, g, b = map(int, color_match[0][:3])
                         fragments.append(("color", (r, g, b)))
-                    elif token == "/color":
+                    elif token in ("\\color", "/color"):
                         fragments.append(("color", "end"))
+                    elif token == "space":
+                        fragments.append(("spacing", "start"))
+                    elif token in ("\\space", "/space"):
+                        fragments.append(("spacing", "end"))
                     else:
                         fragments.append(("symbol", token))
             return fragments
@@ -1204,6 +1201,7 @@ class RegularCard:
             curr_font = regular_font  # regular vs italics vs symbol vs emoji
 
             indent = 0
+            draw_text = True
 
             def go_to_newline():
                 nonlocal curr_fragment, curr_width
@@ -1253,7 +1251,10 @@ class RegularCard:
                     dice_section_width = int(curr_font.getlength(f"{value} | "))
                     curr_fragment.append(("dice", f"{value} | ", curr_font))
                     curr_width += dice_section_width
+                elif kind == "spacing":
+                    draw_text = False if value == "start" else True
                 elif kind == "text":
+                    draw_kind = "text" if draw_text else "spacing"
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
                         width = int(curr_font.getlength(word))
@@ -1264,7 +1265,7 @@ class RegularCard:
                             if curr_width + width > max_line_width:
                                 go_to_newline()
                                 continue
-                            curr_fragment.append(("text", word, curr_font))
+                            curr_fragment.append((draw_kind, word, curr_font))
                             curr_width += width
                         else:
                             if curr_fragment and curr_width + width > max_line_width:
@@ -1274,10 +1275,10 @@ class RegularCard:
                                     char_width = int(curr_font.getlength(char))
                                     if curr_fragment and curr_width + char_width > max_line_width:
                                         go_to_newline()
-                                    curr_fragment.append(("text", char, curr_font))
+                                    curr_fragment.append((draw_kind, char, curr_font))
                                     curr_width += char_width
                             else:
-                                curr_fragment.append(("text", word, curr_font))
+                                curr_fragment.append((draw_kind, word, curr_font))
                                 curr_width += width
                 else:
                     curr_fragment.append((kind, value, curr_font))
@@ -1346,16 +1347,16 @@ class RegularCard:
             # check for power/toughness overlap
             if (
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + usable_height >= self.POWER_TOUGHNESS_Y
-                and self.RULES_TEXT_X + get_final_line_width() + margin >= self.POWER_TOUGHNESS_X
+                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER >= self.POWER_TOUGHNESS_X
             ):
                 continue
 
             # check for holo stamp overlap
             if (
                 "/holo" in self.get_metadata(CARD_FRAMES)
-                and self.RULES_TEXT_Y + usable_height >= self.HOLO_STAMP_Y
-                and self.RULES_TEXT_X + get_final_line_width() + margin >= self.HOLO_STAMP_X
+                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.HOLO_STAMP_Y
+                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER >= self.HOLO_STAMP_X
             ):
                 continue
 
@@ -1456,6 +1457,10 @@ class RegularCard:
                             curr_font_color = self.RULES_TEXT_FONT_COLOR
                         else:
                             curr_font_color = value
+                    elif kind == "spacing":
+                        log(value)
+                        if value:
+                            curr_x += draw.textlength(value, font=frag_font)
                     elif kind == "dice":
                         if dice_section_y > -1:
                             if not dice_row_toggle:

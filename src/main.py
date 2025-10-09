@@ -205,6 +205,8 @@ def process_spreadsheets(
         if len(card_set) > 0 and len(category) > 0:
             card["footer_largest_index"] = category_indices[card_set][category]
 
+    print(category_indices[card_set])
+
     # Cull any cards not on the whitelist
     def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
         if card_names_whitelist is None:

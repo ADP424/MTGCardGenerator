@@ -1,4 +1,4 @@
-from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE, CARD_WATERMARK
+from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE, CARD_WATERMARK, CARD_WATERMARK_COLOR
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
@@ -173,7 +173,7 @@ class RegularRoom(RegularCard):
         (one for each rules text box because it's a room). Assumes the image is in RGBA format.
         """
 
-        full_watermark_colors = self.get_metadata(CARD_WATERMARK)
+        full_watermark_colors = self.get_metadata(CARD_WATERMARK_COLOR)
 
         watermark_colors = full_watermark_colors.split("{end}")
         first_watermark_colors = watermark_colors[0].strip()
@@ -183,17 +183,17 @@ class RegularRoom(RegularCard):
         self.RULES_BOX_Y = self.FIRST_RULES_BOX_Y
         self.RULES_BOX_WIDTH = self.FIRST_RULES_BOX_WIDTH
         self.RULES_BOX_HEIGHT = self.FIRST_RULES_BOX_HEIGHT
-        self.set_metadata(CARD_WATERMARK, first_watermark_colors)
+        self.set_metadata(CARD_WATERMARK_COLOR, first_watermark_colors)
         super()._create_watermark_layer()
 
         self.RULES_BOX_X = self.SECOND_RULES_BOX_X
         self.RULES_BOX_Y = self.SECOND_RULES_BOX_Y
         self.RULES_BOX_WIDTH = self.SECOND_RULES_BOX_WIDTH
         self.RULES_BOX_HEIGHT = self.SECOND_RULES_BOX_HEIGHT
-        self.set_metadata(CARD_WATERMARK, second_watermark_colors)
+        self.set_metadata(CARD_WATERMARK_COLOR, second_watermark_colors)
         super()._create_watermark_layer()
 
-        self.set_metadata(CARD_WATERMARK, full_watermark_colors)
+        self.set_metadata(CARD_WATERMARK_COLOR, full_watermark_colors)
 
     def _create_mana_cost_layer(self):
         """
