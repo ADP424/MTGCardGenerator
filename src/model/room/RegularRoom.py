@@ -1,4 +1,10 @@
-from constants import CARD_ADDITIONAL_TITLES, CARD_MANA_COST, CARD_RULES_TEXT, CARD_TITLE, CARD_WATERMARK, CARD_WATERMARK_COLOR
+from constants import (
+    CARD_ADDITIONAL_TITLES,
+    CARD_MANA_COST,
+    CARD_RULES_TEXT,
+    CARD_TITLE,
+    CARD_WATERMARK_COLOR,
+)
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 

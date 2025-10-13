@@ -29,11 +29,17 @@ from constants import (
     CARD_OVERLAYS,
     CARD_RARITY,
     CARD_SET,
+    CARD_TILE_HEIGHT,
+    CARD_TILE_WIDTH,
     CARD_TITLE,
+    FRAME_LAYOUT_EXTRAS_LIST,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
+    MAX_TILING_HEIGHT,
+    MAX_TILING_WIDTH,
     OUTPUT_ART_PATH,
     OUTPUT_CARDS_PATH,
+    OUTPUT_TILES_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.regular.RegularCard import RegularCard
@@ -146,7 +152,7 @@ def process_spreadsheets(
 
                 values[CARD_FRAME_LAYOUT_EXTRAS] = []
                 card_frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
-                for extra in (" pip",):
+                for extra in FRAME_LAYOUT_EXTRAS_LIST:
                     extra_idx = card_frame_layout.find(extra)
                     if card_frame_layout.find(extra) >= 0:
                         old_frame_layout = values.get(CARD_FRAME_LAYOUT, "")
@@ -204,8 +210,6 @@ def process_spreadsheets(
         card_set = card.get(CARD_SET, "")
         if len(card_set) > 0 and len(category) > 0:
             card["footer_largest_index"] = category_indices[card_set][category]
-
-    print(category_indices[card_set])
 
     # Cull any cards not on the whitelist
     def card_on_the_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
@@ -314,7 +318,10 @@ def process_spreadsheets(
             frontside_card = card_sets[card_set].get(frontside_title)
             if frontside_card is not None:
                 for key, value in card.metadata.items():
-                    if key in (CARD_INDEX, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE) and len(value) == 0:
+                    if (
+                        key in (CARD_INDEX, CARD_CATEGORY, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE)
+                        and len(value) == 0
+                    ):
                         card.set_metadata(key, frontside_card.get_metadata(key))
                 frontside_card.set_metadata(CARD_BACKSIDES, card, append=True)
             else:
@@ -357,13 +364,113 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
                 log(f"Processing '{backside_key}'...")
                 increase_log_indent()
 
-                backside.create_layers(create_rarity_symbol_layer=False)
+                backside.create_layers()
                 final_backside = backside.render_card()
                 final_backside.save(f"{output_path}/{cardname_to_filename(backside_key)}.png")
 
                 decrease_log_indent()
 
             decrease_log_indent()
+
+        decrease_log_indent()
+
+        log()
+
+
+def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
+    tile_image_width = (MAX_TILING_WIDTH // CARD_TILE_WIDTH) * CARD_TILE_WIDTH
+    tile_image_height = (MAX_TILING_HEIGHT // CARD_TILE_HEIGHT) * CARD_TILE_HEIGHT
+
+    for card_set, spreadsheet in card_sets.items():
+        output_path = f"{OUTPUT_TILES_PATH}/{card_set}"
+        log(f"Processing set at '{output_path}'...")
+        increase_log_indent()
+
+        tile_image = {
+            "regular": Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0)),
+            "token": Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0)),
+            "alternate": Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0)),
+            "basic land": Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0)),
+        }
+
+        tile_num = {
+            "regular": 1,
+            "token": 1,
+            "alternate": 1,
+            "basic land": 1,
+        }
+        curr_width = {
+            "regular": 0,
+            "token": 0,
+            "alternate": 0,
+            "basic land": 0,
+        }
+        curr_height = {
+            "regular": 0,
+            "token": 0,
+            "alternate": 0,
+            "basic land": 0,
+        }
+
+        def tile_card(card: RegularCard):
+            card.create_layers()
+            final_card = card.render_card()
+            if card.FOOTER_ROTATION == 90:
+                final_card = final_card.transpose(Image.Transpose.ROTATE_270)
+            elif card.FOOTER_ROTATION == 270:
+                final_card = final_card.transpose(Image.Transpose.ROTATE_90)
+            final_card = final_card.resize((CARD_TILE_WIDTH, CARD_TILE_HEIGHT))
+
+            card_category = card.get_metadata(CARD_CATEGORY).lower()
+            if not tile_image.get(card_category, False):
+                log(f"Unknown card category '{card_category}'. Skipping...")
+                return
+
+            if curr_width[card_category] > tile_image_width - CARD_TILE_WIDTH:
+                curr_width[card_category] = 0
+                curr_height[card_category] += CARD_TILE_HEIGHT
+            if curr_height[card_category] > tile_image_height - CARD_TILE_HEIGHT:
+                output_file_path = f"{output_path}/{card_category}/{tile_num[card_category]}.png"
+                log(f"Saving {card_category} tile set to '{output_file_path}'...")
+                os.makedirs(f"{output_path}/{card_category}", exist_ok=True)
+                tile_image[card_category].save(output_file_path)
+                tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
+                curr_height[card_category] = 0
+                tile_num[card_category] += 1
+
+            tile_image[card_category].paste(final_card, (curr_width[card_category], curr_height[card_category]))
+            curr_width[card_category] += CARD_TILE_WIDTH
+
+        for card in spreadsheet.values():
+            card_title = card.get_metadata(CARD_TITLE)
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+
+            log(f"Tiling '{card_key}'...")
+            increase_log_indent()
+
+            tile_card(card)
+
+            for backside in card.get_metadata(CARD_BACKSIDES, []):
+                backside_title = backside.get_metadata(CARD_TITLE)
+                backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
+                backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
+                backside_key = get_card_key(backside_title, backside_additional_titles, backside_descriptor)
+
+                log(f"Tiling '{backside_key}'...")
+                increase_log_indent()
+
+                tile_card(backside)
+
+                decrease_log_indent()
+
+            decrease_log_indent()
+
+        for category in tile_image.keys():
+            if curr_width[category] > 0 or curr_height[category] > 0:
+                os.makedirs(f"{output_path}/{category}", exist_ok=True)
+                tile_image[category].save(f"{output_path}/{category}/{tile_num[category]}.png")
 
         decrease_log_indent()
 
@@ -529,7 +636,9 @@ def main(
         card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
         render_cards(card_sets)
     elif action == ACTIONS[1]:
-        pass  # TODO
+        log("Tiling cards...")
+        card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)
+        render_tiled_cards(card_sets)
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
         card_sets = process_spreadsheets(do_cards, do_tokens, do_basic_lands, do_alts, card_names_whitelist)

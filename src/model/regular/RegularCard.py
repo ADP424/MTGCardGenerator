@@ -881,7 +881,7 @@ class RegularCard:
         text = replace_ticks(self.get_metadata(CARD_TITLE))
         if len(text) == 0:
             return
-        
+
         if "{skip}" in text:
             return
 
@@ -1035,7 +1035,9 @@ class RegularCard:
         """
 
         new_text = text
-        new_text = re.sub("{cardname}", self.get_metadata(CARD_TITLE).replace("{skip}", ""), new_text, flags=re.IGNORECASE)
+        new_text = re.sub(
+            "{cardname}", self.get_metadata(CARD_TITLE).replace("{skip}", ""), new_text, flags=re.IGNORECASE
+        )
         new_text = re.sub("{-}", "—", new_text)
         new_text = re.sub("{ln}", "\n", new_text)
         new_text = re.sub("{center}", "", new_text)
@@ -1348,7 +1350,8 @@ class RegularCard:
             if (
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
                 and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.POWER_TOUGHNESS_Y
-                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER >= self.POWER_TOUGHNESS_X
+                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                >= self.POWER_TOUGHNESS_X
             ):
                 continue
 
@@ -1356,7 +1359,8 @@ class RegularCard:
             if (
                 "/holo" in self.get_metadata(CARD_FRAMES)
                 and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.HOLO_STAMP_Y
-                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER >= self.HOLO_STAMP_X
+                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                >= self.HOLO_STAMP_X
             ):
                 continue
 
@@ -1458,7 +1462,6 @@ class RegularCard:
                         else:
                             curr_font_color = value
                     elif kind == "spacing":
-                        log(value)
                         if value:
                             curr_x += draw.textlength(value, font=frag_font)
                     elif kind == "dice":

@@ -55,6 +55,7 @@ CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
 # Input & Output locations
 INPUT_SPREADSHEETS_PATH = "spreadsheets"
 OUTPUT_CARDS_PATH = "processed_cards"
+OUTPUT_TILES_PATH = "processed_tiles"
 
 INPUT_CARDS_PATH = "existing_cards"
 OUTPUT_ART_PATH = "extracted_art"
@@ -81,6 +82,12 @@ GOTHAM_BOLD = "fonts/gotham-bold.ttf"
 ###########################
 # FORMATTING & DIMENSIONS #
 ###########################
+
+# Tiling
+CARD_TILE_WIDTH = 1500
+CARD_TILE_HEIGHT = 2100
+MAX_TILING_WIDTH = 10000
+MAX_TILING_HEIGHT = 10000
 
 # Card Art
 ART_WIDTH = {
@@ -123,6 +130,9 @@ WATERMARK_COLORS = {
 
 # Rarity to Initial (For Footer)
 RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
+
+# Card Frame Layout Extras
+FRAME_LAYOUT_EXTRAS_LIST = (" pip", " white")
 
 
 ##########

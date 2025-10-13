@@ -14,6 +14,9 @@ spreadsheets/*
 existing_cards/*
 !existing_cards/.gitkeep
 
+processed_tiles/*
+!processed_tiles/.gitkeep
+
 images/art/*
 images/art/overlay/*
 !images/art/.gitkeep
