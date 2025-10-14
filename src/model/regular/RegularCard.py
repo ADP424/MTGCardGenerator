@@ -8,6 +8,7 @@ from constants import (
     CARD_DESCRIPTOR,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_OVERLAYS,
+    CARD_REVERSE_POWER_TOUGHNESS,
     DICE_SECTION_PATH,
     RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
@@ -191,6 +192,10 @@ class RegularCard:
         self.HOLO_STAMP_X = 658
         self.HOLO_STAMP_Y = 1898
 
+        # Reverse Power & Toughness Text
+        self.REVERSE_POWER_TOUGHNESS_X = float("inf")
+        self.REVERSE_POWER_TOUGHNESS_Y = float("inf")
+
         # set when mana cost layer is made to help with title spacing
         self.mana_cost_x = float("inf")
 
@@ -279,7 +284,7 @@ class RegularCard:
         if create_overlay_layers:
             self._create_overlay_layers()
 
-    def render_card(self) -> Image.Image:
+    def render_card(self, close_images: bool = True) -> Image.Image:
         """
         Merge all layers into one image.
 
@@ -287,15 +292,21 @@ class RegularCard:
         -------
         Image
             The merged image.
+
+        close_images: bool, default : True
+            Whether to close the images used in the card layers or not.
+            This means the card cannot be rendered again, but it frees memory.
         """
 
-        base_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
-        composite_image = base_image.copy()
+        composite_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
 
         for layer in (
             [self.art_layer] + self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers
         ):
             composite_image = paste_image(layer.image, composite_image, layer.position)
+            if close_images and layer.image:
+                layer.image.close()
+                layer.image = None
 
         return composite_image
 
@@ -422,8 +433,9 @@ class RegularCard:
         """
 
         watermark_name = self.get_metadata(CARD_WATERMARK)
-        if len(watermark_name) == 0:
+        if len(watermark_name) == 0 or "{skip}" in watermark_name:
             return
+
         watermark_path = f"{WATERMARKS_PATH}/{watermark_name}.png"
         watermark = open_image(watermark_path)
         if watermark is None:
@@ -438,7 +450,7 @@ class RegularCard:
                 if color is not None:
                     watermark_color.append(color)
 
-        if not watermark_color:
+        if not watermark_color or "{skip}" in watermark_color:
             watermark_color = (0, 0, 0)
 
         watermark_height = int(self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE * self.RULES_BOX_HEIGHT)
@@ -460,7 +472,7 @@ class RegularCard:
             else:
                 left_color = recolor(resized, watermark_color[0]).convert("RGBA")
                 right_color = recolor(resized, watermark_color[1]).convert("RGBA")
-                mask = Image.open(f"{FRAMES_PATH}/regular/mask/left.png").resize(resized.size).getchannel("A")
+                mask = open_image(f"{FRAMES_PATH}/regular/mask/left.png").resize(resized.size).getchannel("A")
                 recolored = Image.composite(left_color, right_color, mask)
 
         r, g, b, alpha = recolored.split()
@@ -490,7 +502,7 @@ class RegularCard:
         rarity = self.get_metadata(CARD_RARITY).lower()
         if rarity in ("token", "land"):
             rarity = "common"
-        if len(rarity) == 0:
+        if len(rarity) == 0 or "{skip}" in rarity:
             return
 
         symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
@@ -793,7 +805,7 @@ class RegularCard:
         """
 
         text = self.get_metadata(CARD_MANA_COST)
-        if len(text) == 0:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         text = re.sub(r"{+|}+", " ", text)
@@ -879,10 +891,7 @@ class RegularCard:
         """
 
         text = replace_ticks(self.get_metadata(CARD_TITLE))
-        if len(text) == 0:
-            return
-
-        if "{skip}" in text:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         centered = False
@@ -968,7 +977,7 @@ class RegularCard:
         else:
             text = first_part.strip()
         text = replace_ticks(text)
-        if len(text) == 0:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         color_tag_pattern = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
@@ -1364,6 +1373,15 @@ class RegularCard:
             ):
                 continue
 
+            # check for reverse power/toughness overlap
+            if (
+                len(self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)) > 0
+                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.REVERSE_POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                >= self.REVERSE_POWER_TOUGHNESS_X
+            ):
+                continue
+
             break
         else:
             raise ValueError("Text is too long to fit in box even at minimum font size.")
@@ -1377,7 +1395,7 @@ class RegularCard:
         """
 
         text = self.get_metadata(CARD_RULES_TEXT)
-        if len(text) == 0:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         centered = False
@@ -1520,7 +1538,7 @@ class RegularCard:
         """
 
         text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
-        if len(text) == 0:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)

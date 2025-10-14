@@ -147,7 +147,7 @@ class TransformFrontside(RegularCard):
         """
 
         text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)
-        if len(text) == 0:
+        if len(text) == 0 or "{skip}" in text:
             return
 
         power_toughness_x = self.REVERSE_POWER_TOUGHNESS_X

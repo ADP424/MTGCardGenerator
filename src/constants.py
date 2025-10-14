@@ -132,7 +132,7 @@ WATERMARK_COLORS = {
 RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
 
 # Card Frame Layout Extras
-FRAME_LAYOUT_EXTRAS_LIST = (" pip", " white")
+FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ")
 
 
 ##########
