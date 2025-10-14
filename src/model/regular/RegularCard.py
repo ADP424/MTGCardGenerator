@@ -1354,11 +1354,13 @@ class RegularCard:
                     elif kind == "indent":
                         final_line_width += value
                 return final_line_width
+            
+            starting_y = margin + (usable_height - content_height) // 2
 
             # check for power/toughness overlap
             if (
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.POWER_TOUGHNESS_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.POWER_TOUGHNESS_X
             ):
@@ -1367,7 +1369,7 @@ class RegularCard:
             # check for holo stamp overlap
             if (
                 "/holo" in self.get_metadata(CARD_FRAMES)
-                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.HOLO_STAMP_Y
+                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.HOLO_STAMP_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.HOLO_STAMP_X
             ):
@@ -1376,7 +1378,7 @@ class RegularCard:
             # check for reverse power/toughness overlap
             if (
                 len(self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
                 >= self.REVERSE_POWER_TOUGHNESS_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.REVERSE_POWER_TOUGHNESS_X

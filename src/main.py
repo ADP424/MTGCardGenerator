@@ -350,6 +350,11 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
         increase_log_indent()
 
         def render_card(card: RegularCard):
+            card_title = card.get_metadata(CARD_TITLE)
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+            
             card.create_layers()
             final_card = card.render_card()
             final_card.save(f"{output_path}/{cardname_to_filename(card_key)}.png")
