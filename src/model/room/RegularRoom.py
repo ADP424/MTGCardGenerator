@@ -92,7 +92,7 @@ class RegularRoom(RegularCard):
         # Mana Cost
         self.MANA_COST_SYMBOL_SIZE = 94
         self.MANA_COST_SYMBOL_SPACING = 8
-        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 8)
+        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-2, 6)
 
         # Type Text
         self.TYPE_X = 299

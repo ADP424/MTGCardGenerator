@@ -50,12 +50,12 @@ class TransformBattle(Battle):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 313
-        self.TITLE_BOX_WIDTH = 2320
+        self.TITLE_BOX_X = 492
+        self.TITLE_BOX_WIDTH = 2138
 
         # Title Text
-        self.TITLE_X = 359
-        self.TITLE_WIDTH = 2231
+        self.TITLE_X = 520
+        self.TITLE_WIDTH = 2049
 
         # Type Text
         self.TYPE_X = 359

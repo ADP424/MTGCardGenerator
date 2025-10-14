@@ -1376,7 +1376,8 @@ class RegularCard:
             # check for reverse power/toughness overlap
             if (
                 len(self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.REVERSE_POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_Y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+                >= self.REVERSE_POWER_TOUGHNESS_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.REVERSE_POWER_TOUGHNESS_X
             ):

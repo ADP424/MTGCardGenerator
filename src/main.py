@@ -429,7 +429,9 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
                 curr_height[card_category] = 0
                 tile_num[card_category] += 1
 
-            tile_image[card_category] = paste_image(final_card, tile_image[card_category], (curr_width[card_category], curr_height[card_category]))
+            tile_image[card_category] = paste_image(
+                final_card, tile_image[card_category], (curr_width[card_category], curr_height[card_category])
+            )
             final_card.close()
             curr_width[card_category] += CARD_TILE_WIDTH
 
