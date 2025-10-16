@@ -40,6 +40,7 @@ CARD_DESCRIPTOR = "Descriptor"
 CARD_ORDERER = "Orderer"
 CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"
 CARD_FRONTSIDE = "Transform Frontside"
+CARD_ORIGINAL = "Original"
 
 CARD_OVERLAYS = "Overlay(s)"
 
@@ -600,4 +601,5 @@ CLASS_HEADER = Symbol(open_image(f"{FRAMES_PATH}/class/header.png"))
 
 # Other
 RULES_DIVIDING_LINE = Symbol(open_image("images/other/divider.png"))
+LIGHT_RULES_DIVIDING_LINE = Symbol(open_image("images/other/light_divider.png"))
 ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)

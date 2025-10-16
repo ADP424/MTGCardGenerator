@@ -110,6 +110,7 @@ class RegularCard:
         self.MANA_COST_SYMBOL_SIZE = 70
         self.MANA_COST_SYMBOL_SPACING = 6
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 0
 
         # Title Text
         self.TITLE_X = 128
@@ -119,6 +120,7 @@ class RegularCard:
         self.TITLE_MIN_FONT_SIZE = 6
         self.TITLE_FONT = BELEREN_BOLD
         self.TITLE_FONT_COLOR = (0, 0, 0)
+        self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.TITLE_TEXT_ALIGN = "left"
 
         # Type Box
@@ -132,6 +134,7 @@ class RegularCard:
         self.TYPE_MAX_FONT_SIZE = 67
         self.TYPE_MIN_FONT_SIZE = 6
         self.TYPE_FONT_COLOR = (0, 0, 0)
+        self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0
 
         # Rules Text Box
         self.RULES_BOX_X = 112
@@ -149,6 +152,7 @@ class RegularCard:
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
+        self.RULES_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
@@ -187,6 +191,7 @@ class RegularCard:
         self.FOOTER_ARTIST_GAP_LENGTH = 5
 
         # Other
+        self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
         self.SYMBOL_FONT = "fonts/noto-kurrent.ttf"  # for international languages
         self.EMOJI_FONT = "fonts/noto-emoji.ttf"  # for emojis
         self.HOLO_STAMP_X = 658
@@ -830,6 +835,9 @@ class RegularCard:
                 The mana symbol image provided, now with a drop shadow.
             """
 
+            if offset == (0, 0):
+                return symbol_image
+
             alpha = symbol_image.getchannel("A")
             shadow = Image.new("RGBA", symbol_image.size, (0, 0, 0, 0))
             black = Image.new("L", symbol_image.size)
@@ -861,7 +869,10 @@ class RegularCard:
 
         image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
-        curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING
+        if self.MANA_COST_SYMBOL_SPACING > 0:
+            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING - self.MANA_COST_SYMBOL_OUTLINE_SIZE
+        else:
+            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_OUTLINE_SIZE
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
@@ -872,7 +883,7 @@ class RegularCard:
             width = int(symbol.image.width * scale)
             height = int(symbol.image.height * scale)
             symbol_image = add_drop_shadow(
-                symbol.get_formatted_image(width, height), self.MANA_COST_SYMBOL_SHADOW_OFFSET
+                symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE), self.MANA_COST_SYMBOL_SHADOW_OFFSET
             )
 
             curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
@@ -923,10 +934,10 @@ class RegularCard:
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
         def get_title_length():
-            return sum(
-                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+            return int(sum(
+                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
                 for seg_text, _ in segments
-            )
+            ))
 
         title_length = get_title_length()
         while (
@@ -944,9 +955,9 @@ class RegularCard:
 
         text_align = self.TITLE_TEXT_ALIGN if not centered else "center"
         if text_align == "left":
-            x_pos = 0
+            x_pos = int(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
         elif text_align == "center":
-            x_pos = (self.TITLE_WIDTH - title_length) // 2
+            x_pos = (self.TITLE_WIDTH - title_length + int(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)) // 2
 
         ascent = title_font.getmetrics()[0]
         y_pos = (self.TITLE_BOTTOM_Y - self.TITLE_BOX_Y - ascent) // 2
@@ -960,8 +971,10 @@ class RegularCard:
                 emoji_backup_font,
                 fill=color,
                 align=text_align,
+                stroke_width=(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                stroke_fill="black",
             )
-            x_pos += self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+            x_pos += int(self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE))
 
         self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
@@ -1004,10 +1017,10 @@ class RegularCard:
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
         def get_type_length():
-            return sum(
-                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+            return int(sum(
+                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font) * (1 + self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE)
                 for seg_text, _ in segments
-            )
+            ))
 
         type_length = get_type_length()
         while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
@@ -1022,7 +1035,7 @@ class RegularCard:
 
         ascent = type_font.getmetrics()[0]
         y_pos = (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2
-        x_pos = 0
+        x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
         for seg_text, color in segments:
             self._draw_ucs_chunks(
@@ -1033,8 +1046,10 @@ class RegularCard:
                 symbol_backup_font,
                 emoji_backup_font,
                 fill=color,
+                stroke_width=(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                stroke_fill="black",
             )
-            x_pos += self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+            x_pos += int(self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE))
 
         self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
@@ -1085,8 +1100,28 @@ class RegularCard:
         scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
         width = int(symbol.image.width * scale)
         height = int(symbol.image.height * scale)
-        symbol_image = symbol.get_formatted_image(width, height)
+        symbol_image = symbol.get_formatted_image(width, height, self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
         return symbol_image.width, symbol_image.height, symbol_image
+    
+    def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont) -> int:
+        """
+        Return the length of the text if it were written in the given font in the rules text box.
+
+        Parameters
+        ----------
+        text: str
+            The text to get the length of.
+
+        font: FreeTypeFont
+            The font the text would be written in.
+
+        Returns
+        -------
+        int
+            The length of the text written in the given font if it were written in the rules text box.
+        """
+
+        return int(font.getlength(text) * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
 
     def _get_rules_text_layout(self, text: str) -> tuple[
         list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]],
@@ -1254,12 +1289,12 @@ class RegularCard:
                     curr_fragment.append(("symbol", value, curr_font))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                 elif kind == "bullet":
-                    bullet_width = int(curr_font.getlength(f"{value} "))
+                    bullet_width = self._get_rules_text_fragment_length(f"{value} ", curr_font)
                     curr_fragment.append(("text", f"{value} ", curr_font))
                     curr_width += bullet_width
                     indent = bullet_width
                 elif kind == "dice":
-                    dice_section_width = int(curr_font.getlength(f"{value} | "))
+                    dice_section_width = self._get_rules_text_fragment_length(f"{value} | ", curr_font)
                     curr_fragment.append(("dice", f"{value} | ", curr_font))
                     curr_width += dice_section_width
                 elif kind == "spacing":
@@ -1268,7 +1303,7 @@ class RegularCard:
                     draw_kind = "text" if draw_text else "spacing"
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
-                        width = int(curr_font.getlength(word))
+                        width = self._get_rules_text_fragment_length(word, curr_font)
 
                         if word.isspace():
                             if not curr_fragment:
@@ -1283,7 +1318,7 @@ class RegularCard:
                                 go_to_newline()
                             if width > max_line_width:
                                 for char in word:
-                                    char_width = int(curr_font.getlength(char))
+                                    char_width = width = self._get_rules_text_fragment_length(char, curr_font)
                                     if curr_fragment and curr_width + char_width > max_line_width:
                                         go_to_newline()
                                     curr_fragment.append((draw_kind, char, curr_font))
@@ -1336,7 +1371,7 @@ class RegularCard:
                     else:
                         content_height += line_height
                 if idx < len(rules_lines) - 1:
-                    content_height += RULES_DIVIDING_LINE.image.height + line_height
+                    content_height += self.RULES_TEXT_DIVIDER.image.height + line_height
             usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
@@ -1347,20 +1382,21 @@ class RegularCard:
                 for kind, value, frag_font in final_line:
                     if kind == "text" or kind == "dice":
                         if value:
-                            final_line_width += frag_font.getlength(value)
+                            final_line_width += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "symbol":
                         width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         final_line_width += value
                 return final_line_width
-            
+
             starting_y = margin + (usable_height - content_height) // 2
 
             # check for power/toughness overlap
             if (
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
-                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.POWER_TOUGHNESS_Y
+                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+                >= self.POWER_TOUGHNESS_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.POWER_TOUGHNESS_X
             ):
@@ -1369,7 +1405,8 @@ class RegularCard:
             # check for holo stamp overlap
             if (
                 "/holo" in self.get_metadata(CARD_FRAMES)
-                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER >= self.HOLO_STAMP_Y
+                and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+                >= self.HOLO_STAMP_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
                 >= self.HOLO_STAMP_X
             ):
@@ -1448,19 +1485,19 @@ class RegularCard:
                     for kind, value, frag_font in line_fragments:
                         if kind in ("text", "dice"):
                             if value:
-                                total_line_length += draw.textlength(value, font=frag_font)
+                                total_line_length += self._get_rules_text_fragment_length(value, frag_font)
                         elif kind == "symbol":
                             width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                             total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                    curr_x = (self.RULES_TEXT_WIDTH - total_line_length) // 2
+                    curr_x = (self.RULES_TEXT_WIDTH - total_line_length + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)) // 2
                 else:
-                    curr_x = margin
+                    curr_x = margin + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
                 for kind, value, frag_font in line_fragments:
                     if kind == "text":
                         if value:
-                            draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color)
-                            curr_x += draw.textlength(value, font=frag_font)
+                            draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color, stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
+                            curr_x += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "symbol":
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
                         if symbol_image is not None:
@@ -1473,7 +1510,7 @@ class RegularCard:
                             )
                         else:
                             placeholder = f"[{value}]"
-                            draw.text((curr_x, curr_y), placeholder, font=frag_font, fill="red")
+                            draw.text((curr_x, curr_y), placeholder, font=frag_font, fill="red", stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         curr_x += value
@@ -1484,7 +1521,7 @@ class RegularCard:
                             curr_font_color = value
                     elif kind == "spacing":
                         if value:
-                            curr_x += draw.textlength(value, font=frag_font)
+                            curr_x += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "dice":
                         if dice_section_y > -1:
                             if not dice_row_toggle:
@@ -1501,8 +1538,8 @@ class RegularCard:
                             else:
                                 dice_row_toggle = False
                             dice_section_y = curr_y
-                        draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color)
-                        curr_x += draw.textlength(value, font=frag_font)
+                        draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color, stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
+                        curr_x += self._get_rules_text_fragment_length(value, frag_font)
 
                 curr_y += line_height
 
@@ -1521,7 +1558,8 @@ class RegularCard:
                             )
                     dice_section_y = -1
 
-        dividing_line = RULES_DIVIDING_LINE.get_formatted_image(self.RULES_TEXT_WIDTH, RULES_DIVIDING_LINE.image.height)
+        dividing_line = self.RULES_TEXT_DIVIDER.get_formatted_image(self.RULES_TEXT_WIDTH, self.RULES_TEXT_DIVIDER.image.height)
+        dividing_line.save("LATO.png")
         for idx, lines in enumerate(rules_lines):
             if idx > 0:
                 curr_y += line_height // 2

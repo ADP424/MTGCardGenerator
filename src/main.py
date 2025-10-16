@@ -26,6 +26,7 @@ from constants import (
     CARD_INDEX,
     CARD_LANGUAGE,
     CARD_ORDERER,
+    CARD_ORIGINAL,
     CARD_OVERLAYS,
     CARD_RARITY,
     CARD_SET,
@@ -53,6 +54,7 @@ from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
+from model.showcase.Japan import Japan
 from model.showcase.transparent.RegularTransparent import RegularTransparent
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
@@ -122,6 +124,7 @@ def process_spreadsheets(
         # Showcase
         "regular transparent": RegularTransparent,
         "full text": FullText,
+        "japan": Japan,
     }
 
     card_sets: dict[str, dict[str, RegularCard]] = {}
@@ -285,12 +288,16 @@ def process_spreadsheets(
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+            card_original_title = card.get_metadata(CARD_ORIGINAL)
 
             # skip if this isn't an alternate
-            if len(card_descriptor) == 0:
+            if len(card_descriptor) == 0 and len(card_original_title) == 0:
                 continue
 
-            original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles, ""))
+            original_card = card_sets[card_set].get(card_original_title)
+            if original_card is None:
+                original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles, ""))
+
             if original_card is not None:
                 for key, value in card.metadata.items():
                     if (
@@ -354,7 +361,7 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
-            
+
             card.create_layers()
             final_card = card.render_card()
             final_card.save(f"{output_path}/{cardname_to_filename(card_key)}.png")
@@ -510,6 +517,7 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             "room/",
             "showcase/draconic/",
             "showcase/full_text/",
+            "showcase/japan/",
             "showcase/transparent/",
             "token/",
         )

@@ -146,7 +146,7 @@ class TransformFrontside(RegularCard):
         Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
         """
 
-        text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)
+        text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS).replace("*", "★")
         if len(text) == 0 or "{skip}" in text:
             return
 
