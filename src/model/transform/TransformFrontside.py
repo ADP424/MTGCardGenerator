@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 
-from constants import BELEREN_BOLD_SMALL_CAPS, CARD_REVERSE_POWER_TOUGHNESS
+from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
@@ -146,19 +146,16 @@ class TransformFrontside(RegularCard):
         Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
         """
 
-        text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS).replace("*", "★")
+        text = self.get_metadata(CARD_TRANSFORM_HINT).replace("*", "★")
         if len(text) == 0 or "{skip}" in text:
             return
-
-        power_toughness_x = self.REVERSE_POWER_TOUGHNESS_X
-        power_toughness_y = self.REVERSE_POWER_TOUGHNESS_Y
-        power_toughness_width = self.REVERSE_POWER_TOUGHNESS_WIDTH
-        power_toughness_height = self.REVERSE_POWER_TOUGHNESS_HEIGHT
 
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
-        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
+        image = Image.new(
+            "RGBA", (self.REVERSE_POWER_TOUGHNESS_WIDTH, self.REVERSE_POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0)
+        )
         draw = ImageDraw.Draw(image)
 
         text_width = self._get_ucs_chunks_length(text, power_toughness_font, symbol_backup_font, emoji_backup_font)
@@ -166,7 +163,10 @@ class TransformFrontside(RegularCard):
         text_height = int(bounding_box[3] - bounding_box[1])
         self._draw_ucs_chunks(
             draw,
-            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
+            (
+                (self.REVERSE_POWER_TOUGHNESS_WIDTH - text_width) // 2,
+                (self.REVERSE_POWER_TOUGHNESS_HEIGHT - text_height) // 2,
+            ),
             text,
             power_toughness_font,
             symbol_backup_font,
@@ -175,4 +175,4 @@ class TransformFrontside(RegularCard):
             anchor="lt",
         )
 
-        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))
+        self.text_layers.append(Layer(image, (self.REVERSE_POWER_TOUGHNESS_X, self.REVERSE_POWER_TOUGHNESS_Y)))

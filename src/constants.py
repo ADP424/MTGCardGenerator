@@ -38,7 +38,7 @@ ADD_TOTAL_TO_FOOTER = "Add Total to Footer?"
 CARD_ADDITIONAL_TITLES = "Additional Title(s)"
 CARD_DESCRIPTOR = "Descriptor"
 CARD_ORDERER = "Orderer"
-CARD_REVERSE_POWER_TOUGHNESS = "Transform P/T"
+CARD_TRANSFORM_HINT = "Transform Hint"
 CARD_FRONTSIDE = "Transform Frontside"
 CARD_ORIGINAL = "Original"
 
@@ -134,6 +134,10 @@ RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M",
 
 # Card Frame Layout Extras
 FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ")
+
+# Splitter for Coloring Text
+COLOR_TAG_PATTERN = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
+COLOR_TAG_PATTERN_NO_BRACES = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re.DOTALL)
 
 
 ##########

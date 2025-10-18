@@ -43,6 +43,10 @@ from constants import (
     OUTPUT_TILES_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
+from model.modal.ModalBackside import ModalBackside
+from model.modal.ModalFrontside import ModalFrontside
+from model.modal.short.ShortModalBackside import ShortModalBackside
+from model.modal.short.ShortModalFrontside import ShortModalFrontside
 from model.regular.RegularCard import RegularCard
 from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
@@ -100,6 +104,11 @@ def process_spreadsheets(
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
+        # Modal
+        "modal frontside": ModalFrontside,
+        "modal backside": ModalBackside,
+        "short modal frontside": ShortModalFrontside,
+        "short modal backside": ShortModalBackside,
         # Token
         "regular token": RegularToken,
         "textless token": TextlessToken,

@@ -8,7 +8,9 @@ from constants import (
     CARD_DESCRIPTOR,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_OVERLAYS,
-    CARD_REVERSE_POWER_TOUGHNESS,
+    CARD_TRANSFORM_HINT,
+    COLOR_TAG_PATTERN,
+    COLOR_TAG_PATTERN_NO_BRACES,
     DICE_SECTION_PATH,
     RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
@@ -883,7 +885,8 @@ class RegularCard:
             width = int(symbol.image.width * scale)
             height = int(symbol.image.height * scale)
             symbol_image = add_drop_shadow(
-                symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE), self.MANA_COST_SYMBOL_SHADOW_OFFSET
+                symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
+                self.MANA_COST_SYMBOL_SHADOW_OFFSET,
             )
 
             curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
@@ -910,11 +913,9 @@ class RegularCard:
             centered = True
             text = text.replace("{center}", "")
 
-        color_tag_pattern = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
-
         segments = []
         last_end = 0
-        for match in color_tag_pattern.finditer(text):
+        for match in COLOR_TAG_PATTERN.finditer(text):
             r, g, b = map(int, match.groups()[:3])
             color = (r, g, b)
             segment_text = match.group(4)
@@ -934,10 +935,13 @@ class RegularCard:
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
         def get_title_length():
-            return int(sum(
-                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
-                for seg_text, _ in segments
-            ))
+            return int(
+                sum(
+                    self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+                    * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
+                    for seg_text, _ in segments
+                )
+            )
 
         title_length = get_title_length()
         while (
@@ -974,7 +978,10 @@ class RegularCard:
                 stroke_width=(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                 stroke_fill="black",
             )
-            x_pos += int(self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE))
+            x_pos += int(
+                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+                * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
+            )
 
         self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
@@ -993,11 +1000,9 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
-        color_tag_pattern = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
-
         segments = []
         last_end = 0
-        for match in color_tag_pattern.finditer(text):
+        for match in COLOR_TAG_PATTERN.finditer(text):
             r, g, b = map(int, match.groups()[:3])
             color = (r, g, b)
             segment_text = match.group(4)
@@ -1017,10 +1022,13 @@ class RegularCard:
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
         def get_type_length():
-            return int(sum(
-                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font) * (1 + self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE)
-                for seg_text, _ in segments
-            ))
+            return int(
+                sum(
+                    self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+                    * (1 + self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE)
+                    for seg_text, _ in segments
+                )
+            )
 
         type_length = get_type_length()
         while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
@@ -1049,7 +1057,10 @@ class RegularCard:
                 stroke_width=(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                 stroke_fill="black",
             )
-            x_pos += int(self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font) * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE))
+            x_pos += int(
+                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+                * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
+            )
 
         self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
@@ -1102,7 +1113,7 @@ class RegularCard:
         height = int(symbol.image.height * scale)
         symbol_image = symbol.get_formatted_image(width, height, self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
         return symbol_image.width, symbol_image.height, symbol_image
-    
+
     def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont) -> int:
         """
         Return the length of the text if it were written in the given font in the rules text box.
@@ -1178,10 +1189,8 @@ class RegularCard:
             """
 
             fragments = []
-            parts = PLACEHOLDER_REGEX.split(line)
+            parts: list[str] = PLACEHOLDER_REGEX.split(line)
             nonlocal dice_on
-
-            color_tag_pattern = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re.DOTALL)
 
             for i, part in enumerate(parts):
                 if i % 2 == 0:
@@ -1213,7 +1222,7 @@ class RegularCard:
                     elif dice_on and re.search(r"\d+-\d+|\d+", token):
                         fragments.append(("dice", token))
                     elif token[:5] == "color":
-                        color_match = color_tag_pattern.findall(token)
+                        color_match = COLOR_TAG_PATTERN_NO_BRACES.findall(token)
                         if len(color_match) == 0:
                             continue
                         r, g, b = map(int, color_match[0][:3])
@@ -1341,7 +1350,7 @@ class RegularCard:
             symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
-            line_height = font_size
+            line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
             margin = int(font_size * 0.25)
             max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
 
@@ -1414,7 +1423,7 @@ class RegularCard:
 
             # check for reverse power/toughness overlap
             if (
-                len(self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)) > 0
+                len(self.get_metadata(CARD_TRANSFORM_HINT)) > 0
                 and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
                 >= self.REVERSE_POWER_TOUGHNESS_Y
                 and self.RULES_TEXT_X + get_final_line_width() + margin + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
@@ -1449,7 +1458,7 @@ class RegularCard:
         image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        line_height = font_size
+        line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = margin + (usable_height - content_height) // 2
 
         def draw_lines(lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]):
@@ -1489,14 +1498,25 @@ class RegularCard:
                         elif kind == "symbol":
                             width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                             total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                    curr_x = (self.RULES_TEXT_WIDTH - total_line_length + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)) // 2
+                    curr_x = (
+                        self.RULES_TEXT_WIDTH
+                        - total_line_length
+                        + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
+                    ) // 2
                 else:
                     curr_x = margin + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
                 for kind, value, frag_font in line_fragments:
                     if kind == "text":
                         if value:
-                            draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color, stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
+                            draw.text(
+                                (curr_x, curr_y),
+                                value,
+                                font=frag_font,
+                                fill=curr_font_color,
+                                stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                                stroke_fill="black",
+                            )
                             curr_x += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "symbol":
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
@@ -1510,7 +1530,14 @@ class RegularCard:
                             )
                         else:
                             placeholder = f"[{value}]"
-                            draw.text((curr_x, curr_y), placeholder, font=frag_font, fill="red", stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
+                            draw.text(
+                                (curr_x, curr_y),
+                                placeholder,
+                                font=frag_font,
+                                fill="red",
+                                stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                                stroke_fill="black",
+                            )
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
                         curr_x += value
@@ -1538,7 +1565,14 @@ class RegularCard:
                             else:
                                 dice_row_toggle = False
                             dice_section_y = curr_y
-                        draw.text((curr_x, curr_y), value, font=frag_font, fill=curr_font_color, stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size), stroke_fill="black")
+                        draw.text(
+                            (curr_x, curr_y),
+                            value,
+                            font=frag_font,
+                            fill=curr_font_color,
+                            stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                            stroke_fill="black",
+                        )
                         curr_x += self._get_rules_text_fragment_length(value, frag_font)
 
                 curr_y += line_height
@@ -1558,8 +1592,9 @@ class RegularCard:
                             )
                     dice_section_y = -1
 
-        dividing_line = self.RULES_TEXT_DIVIDER.get_formatted_image(self.RULES_TEXT_WIDTH, self.RULES_TEXT_DIVIDER.image.height)
-        dividing_line.save("LATO.png")
+        dividing_line = self.RULES_TEXT_DIVIDER.get_formatted_image(
+            self.RULES_TEXT_WIDTH, self.RULES_TEXT_DIVIDER.image.height
+        )
         for idx, lines in enumerate(rules_lines):
             if idx > 0:
                 curr_y += line_height // 2

@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 
-from constants import BELEREN_BOLD_SMALL_CAPS, CARD_REVERSE_POWER_TOUGHNESS
+from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from model.saga.RegularSaga import RegularSaga
@@ -155,7 +155,7 @@ class TransformSaga(RegularSaga):
         Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
         """
 
-        text = self.get_metadata(CARD_REVERSE_POWER_TOUGHNESS)
+        text = self.get_metadata(CARD_TRANSFORM_HINT)
         if len(text) == 0:
             return
 
