@@ -143,8 +143,6 @@ class RegularCard:
         self.RULES_BOX_Y = 1315
         self.RULES_BOX_WIDTH = 1278
         self.RULES_BOX_HEIGHT = 623
-        self.RULES_BOX_MAX_FONT_SIZE = 78
-        self.RULES_BOX_MIN_FONT_SIZE = 6
 
         # Rules Text
         self.RULES_TEXT_X = 112
@@ -153,6 +151,8 @@ class RegularCard:
         self.RULES_TEXT_HEIGHT = 623
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
+        self.RULES_TEXT_MAX_FONT_SIZE = 78
+        self.RULES_TEXT_MIN_FONT_SIZE = 6
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
         self.RULES_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
@@ -1344,7 +1344,7 @@ class RegularCard:
                 lines.append([("text", "", curr_font)])
             return lines
 
-        for font_size in range(self.RULES_BOX_MAX_FONT_SIZE, self.RULES_BOX_MIN_FONT_SIZE - 1, -1):
+        for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
             rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
             italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
             symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)

@@ -86,14 +86,14 @@ class Battle(RegularCard):
         self.RULES_BOX_Y = 1339
         self.RULES_BOX_WIDTH = 2291
         self.RULES_BOX_HEIGHT = 579
-        self.RULES_BOX_MAX_FONT_SIZE = 104
-        self.RULES_BOX_MIN_FONT_SIZE = 8
 
         # Rules Text
         self.RULES_TEXT_X = 324
         self.RULES_TEXT_Y = 1339
         self.RULES_TEXT_WIDTH = 2291
         self.RULES_TEXT_HEIGHT = 579
+        self.RULES_TEXT_MAX_FONT_SIZE = 104
+        self.RULES_TEXT_MIN_FONT_SIZE = 8
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 7
 
         # Power & Toughness Text

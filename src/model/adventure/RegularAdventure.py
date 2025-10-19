@@ -85,9 +85,6 @@ class RegularAdventure(RegularCard):
         self.ADVENTURE_TYPE_MAX_FONT_SIZE = 60
         self.ADVENTURE_TYPE_FONT_COLOR = (255, 255, 255)
 
-        # Rules Boxes
-        self.RULES_BOX_MAX_FONT_SIZE = 70
-
         # Right Rules Text Box
         self.RULES_BOX_X = 756
         self.RULES_BOX_Y = 1320
@@ -99,6 +96,9 @@ class RegularAdventure(RegularCard):
         self.ADVENTURE_RULES_BOX_Y = 1508
         self.ADVENTURE_RULES_BOX_WIDTH = 652
         self.ADVENTURE_RULES_BOX_HEIGHT = 430
+
+        # Rules Text
+        self.RULES_TEXT_MAX_FONT_SIZE = 70
 
         # Right Rules Text
         self.RULES_TEXT_X = 774

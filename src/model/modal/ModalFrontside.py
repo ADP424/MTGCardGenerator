@@ -67,6 +67,9 @@ class ModalFrontside(RegularCard):
         self.TITLE_X = 240
         self.TITLE_WIDTH = 1158
 
+        # Rules Text
+        self.RULES_TEXT_HEIGHT = 552
+
         # Reminder Text/Box
         self.REMINDER_X = 102
         self.REMINDER_Y = 1866

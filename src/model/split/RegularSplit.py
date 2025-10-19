@@ -2,16 +2,19 @@ from constants import (
     CARD_ADDITIONAL_TITLES,
     CARD_MANA_COST,
     CARD_RULES_TEXT,
+    CARD_SUBTYPES,
+    CARD_SUPERTYPES,
     CARD_TITLE,
+    CARD_TYPES,
     CARD_WATERMARK_COLOR,
 )
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
 
-class RegularRoom(RegularCard):
+class RegularSplit(RegularCard):
     """
-    A layered image representing an enchantment room card and all the collection info on it,
+    A layered image representing a split card and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -56,113 +59,91 @@ class RegularRoom(RegularCard):
         )
 
         # Overall Card
-        self.CARD_WIDTH = 2814
-        self.CARD_HEIGHT = 2010
+        self.CARD_WIDTH = 2100
+        self.CARD_HEIGHT = 1500
 
         # First Title Box
-        self.FIRST_TITLE_BOX_X = 249
-        self.FIRST_TITLE_BOX_Y = 101
-        self.FIRST_TITLE_BOX_WIDTH = 1134
-        self.FIRST_TITLE_BOX_HEIGHT = 145
+        self.FIRST_TITLE_BOX_X = 193
+        self.FIRST_TITLE_BOX_Y = self.TITLE_BOX_Y
+        self.FIRST_TITLE_BOX_WIDTH = 840
+        self.FIRST_TITLE_BOX_HEIGHT = self.TITLE_BOX_HEIGHT
 
         # Second Title Box
-        self.SECOND_TITLE_BOX_X = 1535
-        self.SECOND_TITLE_BOX_Y = 101
-        self.SECOND_TITLE_BOX_WIDTH = 1134
-        self.SECOND_TITLE_BOX_HEIGHT = 145
-
-        # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 94
-        self.MANA_COST_SYMBOL_SPACING = 8
-        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-2, 6)
-
-        # Title Text
-        self.TITLE_MAX_FONT_SIZE = 106
-        self.TITLE_MIN_FONT_SIZE = 8
+        self.SECOND_TITLE_BOX_X = 1151
+        self.SECOND_TITLE_BOX_Y = self.TITLE_BOX_Y
+        self.SECOND_TITLE_BOX_WIDTH = 840
+        self.SECOND_TITLE_BOX_HEIGHT = self.TITLE_BOX_HEIGHT
 
         # First Title Text
-        self.FIRST_TITLE_X = 297
-        self.FIRST_TITLE_BOTTOM_Y = 222
-        self.FIRST_TITLE_WIDTH = 1097
+        self.FIRST_TITLE_X = 223
+        self.FIRST_TITLE_BOTTOM_Y = 198
+        self.FIRST_TITLE_WIDTH = 859
 
         # Second Title Text
-        self.SECOND_TITLE_X = 1580
-        self.SECOND_TITLE_BOTTOM_Y = 222
-        self.SECOND_TITLE_WIDTH = 1097
+        self.SECOND_TITLE_X = 1181
+        self.SECOND_TITLE_BOTTOM_Y = 198
+        self.SECOND_TITLE_WIDTH = 859
 
         # Type Box
-        self.TYPE_BOX_Y = 1090
-        self.TYPE_BOX_HEIGHT = 153
+        self.TYPE_BOX_Y = 815
+        self.TYPE_BOX_HEIGHT = 77
 
         # Type Text
-        self.TYPE_X = 299
-        self.TYPE_BOTTOM_Y = 1174
-        self.TYPE_WIDTH = 2369
-        self.TYPE_MAX_FONT_SIZE = 80
-        self.TYPE_MIN_FONT_SIZE = 8
-        self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_MAX_FONT_SIZE = 60
+        self.TYPE_MIN_FONT_SIZE = 6
 
-        # Shared Rules Text Box
-        self.SHARED_RULES_BOX_X = 277
-        self.SHARED_RULES_BOX_Y = 1104
-        self.SHARED_RULES_BOX_WIDTH = 2380
-        self.SHARED_RULES_BOX_HEIGHT = 180
-        self.SHARED_RULES_TEXT_FONT_COLOR = (255, 255, 255)
+        # First Type Text
+        self.FIRST_TYPE_X = 222
+        self.FIRST_TYPE_BOTTOM_Y = 872
+        self.FIRST_TYPE_WIDTH = 853
+
+        # Second Type Text
+        self.SECOND_TYPE_X = 1179
+        self.SECOND_TYPE_BOTTOM_Y = 872
+        self.SECOND_TYPE_WIDTH = 853
 
         # First Rules Text Box
-        self.FIRST_RULES_BOX_X = 277
-        self.FIRST_RULES_BOX_Y = 1405
-        self.FIRST_RULES_BOX_WIDTH = 1095
-        self.FIRST_RULES_BOX_HEIGHT = 506
-        self.FIRST_RULES_TEXT_FONT_COLOR = (0, 0, 0)
+        self.FIRST_RULES_BOX_X = 212
+        self.FIRST_RULES_BOX_Y = 907
+        self.FIRST_RULES_BOX_WIDTH = 821
+        self.FIRST_RULES_BOX_HEIGHT = 526
 
         # Second Rules Text Box
-        self.SECOND_RULES_BOX_X = 1563
-        self.SECOND_RULES_BOX_Y = 1405
-        self.SECOND_RULES_BOX_WIDTH = 1095
-        self.SECOND_RULES_BOX_HEIGHT = 506
-        self.SECOND_RULES_TEXT_FONT_COLOR = (0, 0, 0)
-
-        # Rules Text
-        self.RULES_TEXT_MAX_FONT_SIZE = 104
-        self.RULES_TEXT_MIN_FONT_SIZE = 8
-        self.RULES_TEXT_MANA_SYMBOL_SPACING = 7
-
-        # Shared Rules Text
-        self.SHARED_RULES_TEXT_X = 277
-        self.SHARED_RULES_TEXT_Y = 1213
-        self.SHARED_RULES_TEXT_WIDTH = 2380
-        self.SHARED_RULES_TEXT_HEIGHT = 180
+        self.SECOND_RULES_BOX_X = 1170
+        self.SECOND_RULES_BOX_Y = 907
+        self.SECOND_RULES_BOX_WIDTH = 821
+        self.SECOND_RULES_BOX_HEIGHT = 526
 
         # First Rules Text
-        self.FIRST_RULES_TEXT_X = 277
-        self.FIRST_RULES_TEXT_Y = 1405
-        self.FIRST_RULES_TEXT_WIDTH = 1095
-        self.FIRST_RULES_TEXT_HEIGHT = 506
+        self.FIRST_RULES_TEXT_X = 212
+        self.FIRST_RULES_TEXT_Y = 907
+        self.FIRST_RULES_TEXT_WIDTH = 821
+        self.FIRST_RULES_TEXT_HEIGHT = 526
 
         # Second Rules Text
-        self.SECOND_RULES_TEXT_X = 1563
-        self.SECOND_RULES_TEXT_Y = 1405
-        self.SECOND_RULES_TEXT_WIDTH = 1095
-        self.SECOND_RULES_TEXT_HEIGHT = 506
+        self.SECOND_RULES_TEXT_X = 1170
+        self.SECOND_RULES_TEXT_Y = 907
+        self.SECOND_RULES_TEXT_WIDTH = 821
+        self.SECOND_RULES_TEXT_HEIGHT = 526
 
-        # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 2588
-        self.SET_SYMBOL_Y = 1105
-        self.SET_SYMBOL_WIDTH = 70
+        # First Set / Rarity Symbol
+        self.FIRST_SET_SYMBOL_X = 970
+        self.FIRST_SET_SYMBOL_Y = 823
+        self.FIRST_SET_SYMBOL_WIDTH = 60
+
+        # Second Set / Rarity Symbol
+        self.SECOND_SET_SYMBOL_X = 1926
+        self.SECOND_SET_SYMBOL_Y = 823
+        self.SECOND_SET_SYMBOL_WIDTH = 60
 
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
         self.FOOTER_ROTATION = 270
         self.FOOTER_X = 0
-        self.FOOTER_Y = 129
-        self.FOOTER_WIDTH = 1760
-        self.FOOTER_HEIGHT = 181
-        self.FOOTER_FONT_SIZE = 47
-        self.FOOTER_FONT_OUTLINE_SIZE = 4
-        self.FOOTER_TAB_LENGTH = 33
-        self.FOOTER_ARTIST_GAP_LENGTH = 7
+        self.FOOTER_Y = 94
+        self.FOOTER_WIDTH = 1304
+        self.FOOTER_HEIGHT = 136
 
         # Other
         self.HOLO_STAMP_X = float("inf")
@@ -254,6 +235,45 @@ class RegularRoom(RegularCard):
 
         self.set_metadata(CARD_TITLE, first_title)
 
+    def _create_type_layer(self):
+        """
+        Process title text into the titles for each door of the room and append them to `self.text_layers`.
+        """
+
+        supertypes = self.get_metadata(CARD_SUPERTYPES)
+        types = self.get_metadata(CARD_TYPES)
+        subtypes = self.get_metadata(CARD_SUBTYPES)
+
+        first_supertype = supertypes.split("\n")[0]
+        first_type = types.split("\n")[0]
+        first_subtype = subtypes.split("\n")[0]
+
+        second_supertype = supertypes.split("\n")[1] if len(supertypes) > 0 else first_supertype
+        second_type = types.split("\n")[1] if len(supertypes) > 0 else first_type
+        second_subtype = subtypes.split("\n")[1] if len(supertypes) > 0 else first_subtype
+
+        self.TYPE_X = self.FIRST_TYPE_X
+        self.TYPE_BOTTOM_Y = self.FIRST_TYPE_BOTTOM_Y
+        self.TYPE_WIDTH = self.FIRST_TYPE_WIDTH
+        self.SET_SYMBOL_X = self.FIRST_SET_SYMBOL_X
+        self.set_metadata(CARD_SUPERTYPES, first_supertype)
+        self.set_metadata(CARD_TYPES, first_type)
+        self.set_metadata(CARD_SUBTYPES, first_subtype)
+        super()._create_type_layer()
+
+        self.TYPE_X = self.SECOND_TYPE_X
+        self.TYPE_BOTTOM_Y = self.SECOND_TYPE_BOTTOM_Y
+        self.TYPE_WIDTH = self.SECOND_TYPE_WIDTH
+        self.SET_SYMBOL_X = self.SECOND_SET_SYMBOL_X
+        self.set_metadata(CARD_SUPERTYPES, second_supertype)
+        self.set_metadata(CARD_TYPES, second_type)
+        self.set_metadata(CARD_SUBTYPES, second_subtype)
+        super()._create_type_layer()
+
+        self.set_metadata(CARD_SUPERTYPES, supertypes)
+        self.set_metadata(CARD_TYPES, types)
+        self.set_metadata(CARD_SUBTYPES, subtypes)
+
     def _create_rules_text_layer(self):
         """
         Process MTG rules text in the rules text boxes, exchanging placeholders for symbols and text formatting,
@@ -263,28 +283,17 @@ class RegularRoom(RegularCard):
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
 
         rules_texts = full_rules_text.split("{end}")
-        shared_rules_text = rules_texts[0].strip()
-        first_rules_text = rules_texts[1].strip() if len(rules_texts) > 1 else ""
-        second_rules_text = rules_texts[2].strip() if len(rules_texts) > 2 else ""
+        first_rules_text = rules_texts[0].strip()
+        second_rules_text = rules_texts[1].strip() if len(rules_texts) > 1 else ""
 
         # Do titles correctly so that {cardname} placeholder works as expected
         first_title = self.get_metadata(CARD_TITLE)
         second_title = self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n")[0]
 
-        self.RULES_TEXT_X = self.SHARED_RULES_TEXT_X
-        self.RULES_TEXT_Y = self.SHARED_RULES_TEXT_Y
-        self.RULES_TEXT_WIDTH = self.SHARED_RULES_TEXT_WIDTH
-        self.RULES_TEXT_HEIGHT = self.SHARED_RULES_TEXT_HEIGHT
-        self.RULES_TEXT_FONT_COLOR = self.SHARED_RULES_TEXT_FONT_COLOR
-        self.set_metadata(CARD_RULES_TEXT, shared_rules_text)
-        self.set_metadata(CARD_TITLE, f"{first_title} // {second_title}")
-        super()._create_rules_text_layer()
-
         self.RULES_TEXT_X = self.FIRST_RULES_TEXT_X
         self.RULES_TEXT_Y = self.FIRST_RULES_TEXT_Y
         self.RULES_TEXT_WIDTH = self.FIRST_RULES_TEXT_WIDTH
         self.RULES_TEXT_HEIGHT = self.FIRST_RULES_TEXT_HEIGHT
-        self.RULES_TEXT_FONT_COLOR = self.FIRST_RULES_TEXT_FONT_COLOR
         self.set_metadata(CARD_RULES_TEXT, first_rules_text)
         self.set_metadata(CARD_TITLE, first_title)
         super()._create_rules_text_layer()
@@ -293,10 +302,25 @@ class RegularRoom(RegularCard):
         self.RULES_TEXT_Y = self.SECOND_RULES_TEXT_Y
         self.RULES_TEXT_WIDTH = self.SECOND_RULES_TEXT_WIDTH
         self.RULES_TEXT_HEIGHT = self.SECOND_RULES_TEXT_HEIGHT
-        self.RULES_TEXT_FONT_COLOR = self.SECOND_RULES_TEXT_FONT_COLOR
         self.set_metadata(CARD_RULES_TEXT, second_rules_text)
         self.set_metadata(CARD_TITLE, second_title)
         super()._create_rules_text_layer()
 
         self.set_metadata(CARD_RULES_TEXT, full_rules_text)
         self.set_metadata(CARD_TITLE, first_title)
+
+    def _create_rarity_symbol_layer(self):
+        """
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
+        and append it to `self.text_layers`.
+        """
+
+        self.SET_SYMBOL_X = self.FIRST_SET_SYMBOL_X
+        self.SET_SYMBOL_Y = self.FIRST_SET_SYMBOL_Y
+        self.SET_SYMBOL_WIDTH = self.FIRST_SET_SYMBOL_WIDTH
+        super()._create_rarity_symbol_layer()
+
+        self.SET_SYMBOL_X = self.SECOND_SET_SYMBOL_X
+        self.SET_SYMBOL_Y = self.SECOND_SET_SYMBOL_Y
+        self.SET_SYMBOL_WIDTH = self.SECOND_SET_SYMBOL_WIDTH
+        super()._create_rarity_symbol_layer()

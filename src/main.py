@@ -60,6 +60,8 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
 from model.showcase.Japan import Japan
 from model.showcase.transparent.RegularTransparent import RegularTransparent
+from model.split.RegularSplit import RegularSplit
+from model.split.fuse.RegularFuse import RegularFuse
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
@@ -109,6 +111,9 @@ def process_spreadsheets(
         "modal backside": ModalBackside,
         "short modal frontside": ShortModalFrontside,
         "short modal backside": ShortModalBackside,
+        # Split
+        "regular split": RegularSplit,
+        "regular fuse": RegularFuse,
         # Token
         "regular token": RegularToken,
         "textless token": TextlessToken,

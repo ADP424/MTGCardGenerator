@@ -57,11 +57,10 @@ class ShortModalFrontside(ModalFrontside):
 
         # Rules Text Box
         self.RULES_BOX_Y = 1602
-        self.RULES_BOX_HEIGHT = 336
+        self.RULES_BOX_HEIGHT = 330
 
         # Rules Text
-        self.RULES_TEXT_Y = 1602
-        self.RULES_TEXT_HEIGHT = 336
+        self.RULES_TEXT_HEIGHT = 266
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_Y = 1485
