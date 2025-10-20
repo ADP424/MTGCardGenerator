@@ -939,7 +939,7 @@ class RegularCard:
 
         drop_shadow_offset = (
             int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
-            int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+            int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
 
         image = add_drop_shadow(image, drop_shadow_offset)
@@ -1024,7 +1024,7 @@ class RegularCard:
 
         drop_shadow_offset = (
             int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
-            int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+            int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
         image = add_drop_shadow(image, drop_shadow_offset)
         self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
@@ -1572,7 +1572,7 @@ class RegularCard:
 
         drop_shadow_offset = (
             int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
-            int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+            int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
         image = add_drop_shadow(image, drop_shadow_offset)
 
@@ -1612,7 +1612,7 @@ class RegularCard:
 
         drop_shadow_offset = (
             int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[0] * self.POWER_TOUGHNESS_FONT_SIZE),
-            int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[1] * self.POWER_TOUGHNESS_FONT_SIZE)
+            int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[1] * self.POWER_TOUGHNESS_FONT_SIZE),
         )
         image = add_drop_shadow(image, drop_shadow_offset)
         self.text_layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))

@@ -197,6 +197,7 @@ def int_to_roman_numeral(num: int) -> str:
             num -= value
     return roman_numeral
 
+
 def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
     """
     Apply drop shadow to an image.

@@ -84,7 +84,11 @@ class RegularFuse(RegularSplit):
         rules_texts = full_rules_text.split("{end}")
         first_rules_text = rules_texts[0].strip()
         second_rules_text = rules_texts[1].strip() if len(rules_texts) > 1 else ""
-        reminder_rules_text = rules_texts[2].strip() if len(rules_texts) > 2 else "Fuse {i}(You may cast one or both halves of this card from your hand.){/i}{center}"
+        reminder_rules_text = (
+            rules_texts[2].strip()
+            if len(rules_texts) > 2
+            else "Fuse {i}(You may cast one or both halves of this card from your hand.){/i}{center}"
+        )
 
         # Do titles correctly so that {cardname} placeholder works as expected
         first_title = self.get_metadata(CARD_TITLE)
