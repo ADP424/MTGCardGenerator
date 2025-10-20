@@ -218,7 +218,7 @@ TWO_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/blue.png")
 TWO_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/black.png")
 TWO_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/red.png")
 TWO_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/green.png")
-TWO_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/green.png")
+TWO_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/colorless.png")
 
 # Hybrid Phyrexian Mana
 WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/white_blue.png")

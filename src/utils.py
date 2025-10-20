@@ -196,3 +196,53 @@ def int_to_roman_numeral(num: int) -> str:
             roman_numeral += symbol
             num -= value
     return roman_numeral
+
+def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
+    """
+    Apply drop shadow to an image.
+
+    Parameters
+    ----------
+    symbol_image: Image
+        The image to add drop shadow to.
+
+    offset: tuple[float, float]
+        Offset of the shadow relative to the image in the form (x, y).
+
+    Returns
+    -------
+    Image
+        The image provided, now with a drop shadow.
+    """
+
+    if offset == (0, 0):
+        return image
+
+    alpha = image.getchannel("A")
+    shadow = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    black = Image.new("L", image.size)
+    shadow.paste(black, mask=alpha)
+
+    # Make a new image big enough for shadow to fit with the symbol
+    total_width = int(image.width + abs(offset[0]))
+    total_height = int(image.height + abs(offset[1]))
+    result = Image.new("RGBA", (total_width, total_height), (0, 0, 0, 0))
+
+    # Paste shadow first, then the symbol over it
+    if offset[0] >= 0:
+        symbol_x = 0
+        shadow_x = offset[0]
+    else:
+        symbol_x = -offset[0]
+        shadow_x = 0
+    if offset[1] >= 0:
+        symbol_y = 0
+        shadow_y = offset[1]
+    else:
+        symbol_y = -offset[1]
+        shadow_y = 0
+
+    result.alpha_composite(shadow, (shadow_x, shadow_y))
+    result.alpha_composite(image, (symbol_x, symbol_y))
+
+    return result

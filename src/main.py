@@ -59,6 +59,9 @@ from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
 from model.showcase.Japan import Japan
+from model.showcase.promo.ExtendedPromo import ExtendedPromo
+from model.showcase.promo.OpenHousePromo import OpenHousePromo
+from model.showcase.promo.RegularPromo import RegularPromo
 from model.showcase.transparent.RegularTransparent import RegularTransparent
 from model.split.RegularSplit import RegularSplit
 from model.split.fuse.RegularFuse import RegularFuse
@@ -139,6 +142,10 @@ def process_spreadsheets(
         "regular transparent": RegularTransparent,
         "full text": FullText,
         "japan": Japan,
+        # Showcase Promo
+        "regular promo": RegularPromo,
+        "extended promo": ExtendedPromo,
+        "open house promo": OpenHousePromo,
     }
 
     card_sets: dict[str, dict[str, RegularCard]] = {}

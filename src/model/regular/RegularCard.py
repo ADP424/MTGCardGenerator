@@ -46,7 +46,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from utils import cardname_to_filename, get_card_key, open_image, paste_image, replace_ticks
+from utils import add_drop_shadow, cardname_to_filename, get_card_key, open_image, paste_image, replace_ticks
 
 
 class RegularCard:
@@ -122,8 +122,9 @@ class RegularCard:
         self.TITLE_MIN_FONT_SIZE = 6
         self.TITLE_FONT = BELEREN_BOLD
         self.TITLE_FONT_COLOR = (0, 0, 0)
-        self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.TITLE_TEXT_ALIGN = "left"
+        self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE = 0
+        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Type Box
         self.TYPE_BOX_Y = 1187
@@ -137,6 +138,7 @@ class RegularCard:
         self.TYPE_MIN_FONT_SIZE = 6
         self.TYPE_FONT_COLOR = (0, 0, 0)
         self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0
+        self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Rules Text Box
         self.RULES_BOX_X = 112
@@ -160,6 +162,7 @@ class RegularCard:
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
         self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER = 5
         self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 8
+        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1166
@@ -168,6 +171,7 @@ class RegularCard:
         self.POWER_TOUGHNESS_HEIGHT = 124
         self.POWER_TOUGHNESS_FONT_SIZE = 80
         self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
+        self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Watermark
         self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE = 0.77
@@ -819,56 +823,6 @@ class RegularCard:
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
 
-        def add_drop_shadow(symbol_image: Image.Image, offset: tuple[int, int]) -> Image.Image:
-            """
-            Apply drop shadow to a mana symbol.
-
-            Parameters
-            ----------
-            symbol_image: Image
-                The image of the mana symbol.
-
-            offset: tuple[float, float]
-                Offset of the shadow relative to the symbol in the form (x, y).
-
-            Returns
-            -------
-            Image
-                The mana symbol image provided, now with a drop shadow.
-            """
-
-            if offset == (0, 0):
-                return symbol_image
-
-            alpha = symbol_image.getchannel("A")
-            shadow = Image.new("RGBA", symbol_image.size, (0, 0, 0, 0))
-            black = Image.new("L", symbol_image.size)
-            shadow.paste(black, mask=alpha)
-
-            # Make a new image big enough for shadow to fit with the symbol
-            total_width = int(symbol_image.width + abs(offset[0]))
-            total_height = int(symbol_image.height + abs(offset[1]))
-            result = Image.new("RGBA", (total_width, total_height), (0, 0, 0, 0))
-
-            # Paste shadow first, then the symbol over it
-            if offset[0] >= 0:
-                symbol_x = 0
-                shadow_x = offset[0]
-            else:
-                symbol_x = -offset[0]
-                shadow_x = 0
-            if offset[1] >= 0:
-                symbol_y = 0
-                shadow_y = offset[1]
-            else:
-                symbol_y = -offset[1]
-                shadow_y = 0
-
-            result.alpha_composite(shadow, (shadow_x, shadow_y))
-            result.alpha_composite(symbol_image, (symbol_x, symbol_y))
-
-            return result
-
         image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
         if self.MANA_COST_SYMBOL_SPACING > 0:
@@ -983,6 +937,12 @@ class RegularCard:
                 * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
             )
 
+        drop_shadow_offset = (
+            int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
+            int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+        )
+
+        image = add_drop_shadow(image, drop_shadow_offset)
         self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
     def _create_type_layer(self):
@@ -1062,6 +1022,11 @@ class RegularCard:
                 * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
             )
 
+        drop_shadow_offset = (
+            int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
+            int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+        )
+        image = add_drop_shadow(image, drop_shadow_offset)
         self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
     def _replace_text_placeholders(self, text: str) -> str:
@@ -1605,6 +1570,12 @@ class RegularCard:
                 curr_y += dividing_line.height + line_height // 2
             draw_lines(lines)
 
+        drop_shadow_offset = (
+            int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
+            int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size)
+        )
+        image = add_drop_shadow(image, drop_shadow_offset)
+
         self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
         self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
 
@@ -1639,6 +1610,11 @@ class RegularCard:
             anchor="lt",
         )
 
+        drop_shadow_offset = (
+            int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[0] * self.POWER_TOUGHNESS_FONT_SIZE),
+            int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[1] * self.POWER_TOUGHNESS_FONT_SIZE)
+        )
+        image = add_drop_shadow(image, drop_shadow_offset)
         self.text_layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
 
     def _create_overlay_layers(self):
