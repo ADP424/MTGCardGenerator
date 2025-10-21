@@ -7,7 +7,7 @@ from utils import open_image
 # Command Line #
 ################
 
-ACTIONS = ["render", "tile", "art"]
+ACTIONS = ["render", "tile", "art-extract", "art-audit"]
 
 
 ##########################

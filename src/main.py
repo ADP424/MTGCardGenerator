@@ -34,6 +34,7 @@ from constants import (
     CARD_TILE_WIDTH,
     CARD_TITLE,
     FRAME_LAYOUT_EXTRAS_LIST,
+    INPUT_ART_PATH,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
     MAX_TILING_HEIGHT,
@@ -625,6 +626,54 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             base_image.save(f"{OUTPUT_ART_PATH}/{card_name}")
 
 
+def audit_art(card_sets: dict[str, dict[str, RegularCard]]):
+    """
+    Check if all the art in the art directory corresponds to a specific card, for the sets provided.
+    """
+
+    for output_path, spreadsheet in card_sets.items():
+        art_path = f"{INPUT_ART_PATH}/{output_path[output_path.rfind("/") + 1:]}"
+        log(f"Finding cards from the set without art in '{art_path}'...")
+        increase_log_indent()
+
+        card_filenames = []
+
+        def check_card_art(card: RegularCard):
+            card_title = card.get_metadata(CARD_TITLE)
+            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+
+            card_filename = cardname_to_filename(card_key)
+            card_path = f"{art_path}/{card_filename}.png"
+            if not os.path.isfile(card_path):
+                log(f"No card art with filename '{card_filename}' for '{card_key}' in '{art_path}'...")
+            else:
+                card_filenames.append(card_filename)
+
+        for card in spreadsheet.values():
+            check_card_art(card)
+
+            increase_log_indent()
+            for backside in card.get_metadata(CARD_BACKSIDES, []):
+                check_card_art(backside)
+            decrease_log_indent()
+
+        decrease_log_indent()
+
+        log(f"Finding art in '{art_path}' that doesn't correspond to a card in the set...")
+        increase_log_indent()
+
+        for art_path in glob.glob(f"{art_path}/*.png"):
+            filename = art_path[art_path.rfind("\\") + 1 : art_path.rfind(".png")]
+            if filename not in card_filenames:
+                log(f"'{filename}' in '{art_path}' has no associated card in the spreadsheets provided.")
+
+        decrease_log_indent()
+
+        log()
+
+
 def main(
     action: str,
     card_names_whitelist: list[str] = None,
@@ -663,6 +712,9 @@ def main(
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
         capture_art(card_sets)
+    elif action == ACTIONS[3]:
+        log("Auditing art...")
+        audit_art(card_sets)
 
 
 if __name__ == "__main__":

@@ -56,3 +56,6 @@ class RegularTransparent(RegularCard):
 
         # Rules Text
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
+
+        # Power & Toughness Text
+        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
