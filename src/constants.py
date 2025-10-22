@@ -133,7 +133,7 @@ WATERMARK_COLORS = {
 RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
 
 # Card Frame Layout Extras
-FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ")
+FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ", " light", "light ")
 
 # Splitter for Coloring Text
 COLOR_TAG_PATTERN = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
@@ -281,6 +281,48 @@ Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/variable/z.png")
 # Other
 ENERGY = open_image(f"{MANA_SYMBOLS_PATH}/energy.png")
 TICKET = open_image(f"{MANA_SYMBOLS_PATH}/ticket.png")
+
+# Showcase Future Shifted Mana Symbols
+FUTURE_SHIFTED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/white.png")
+FUTURE_SHIFTED_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/blue.png")
+FUTURE_SHIFTED_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/black.png")
+FUTURE_SHIFTED_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/red.png")
+FUTURE_SHIFTED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/green.png")
+
+FUTURE_SHIFTED_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/0.png")
+FUTURE_SHIFTED_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/1.png")
+FUTURE_SHIFTED_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/2.png")
+FUTURE_SHIFTED_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/3.png")
+FUTURE_SHIFTED_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/4.png")
+FUTURE_SHIFTED_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/5.png")
+FUTURE_SHIFTED_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/6.png")
+FUTURE_SHIFTED_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/7.png")
+FUTURE_SHIFTED_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/8.png")
+FUTURE_SHIFTED_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/9.png")
+FUTURE_SHIFTED_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/10.png")
+FUTURE_SHIFTED_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/11.png")
+FUTURE_SHIFTED_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/12.png")
+FUTURE_SHIFTED_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/13.png")
+FUTURE_SHIFTED_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/14.png")
+FUTURE_SHIFTED_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/15.png")
+FUTURE_SHIFTED_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/16.png")
+FUTURE_SHIFTED_SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/17.png")
+FUTURE_SHIFTED_EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/18.png")
+FUTURE_SHIFTED_NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/19.png")
+FUTURE_SHIFTED_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/mono/20.png")
+
+FUTURE_SHIFTED_WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/white_blue.png")
+FUTURE_SHIFTED_WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/white_black.png")
+FUTURE_SHIFTED_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/blue_black.png")
+FUTURE_SHIFTED_BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/blue_red.png")
+FUTURE_SHIFTED_BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/black_red.png")
+FUTURE_SHIFTED_BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/black_green.png")
+FUTURE_SHIFTED_RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/red_green.png")
+FUTURE_SHIFTED_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/red_white.png")
+FUTURE_SHIFTED_GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/green_white.png")
+FUTURE_SHIFTED_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/hybrid/green_blue.png")
+
+FUTURE_SHIFTED_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/variable/x.png")
 
 
 ###########
@@ -584,6 +626,60 @@ SYMBOL_PLACEHOLDER_KEY = {
     "ticket": Symbol(TICKET),
 }
 
+FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(FUTURE_SHIFTED_WHITE_MANA),
+    "u": Symbol(FUTURE_SHIFTED_BLUE_MANA),
+    "b": Symbol(FUTURE_SHIFTED_BLACK_MANA),
+    "r": Symbol(FUTURE_SHIFTED_RED_MANA),
+    "g": Symbol(FUTURE_SHIFTED_GREEN_MANA),
+    # Numbered Mana
+    "0": Symbol(FUTURE_SHIFTED_ZERO_MANA),
+    "1": Symbol(FUTURE_SHIFTED_ONE_MANA),
+    "2": Symbol(FUTURE_SHIFTED_TWO_MANA),
+    "3": Symbol(FUTURE_SHIFTED_THREE_MANA),
+    "4": Symbol(FUTURE_SHIFTED_FOUR_MANA),
+    "5": Symbol(FUTURE_SHIFTED_FIVE_MANA),
+    "6": Symbol(FUTURE_SHIFTED_SIX_MANA),
+    "7": Symbol(FUTURE_SHIFTED_SEVEN_MANA),
+    "8": Symbol(FUTURE_SHIFTED_EIGHT_MANA),
+    "9": Symbol(FUTURE_SHIFTED_NINE_MANA),
+    "10": Symbol(FUTURE_SHIFTED_TEN_MANA),
+    "11": Symbol(FUTURE_SHIFTED_ELEVEN_MANA),
+    "12": Symbol(FUTURE_SHIFTED_TWELVE_MANA),
+    "13": Symbol(FUTURE_SHIFTED_THIRTEEN_MANA),
+    "14": Symbol(FUTURE_SHIFTED_FOURTEEN_MANA),
+    "15": Symbol(FUTURE_SHIFTED_FIFTEEN_MANA),
+    "16": Symbol(FUTURE_SHIFTED_SIXTEEN_MANA),
+    "17": Symbol(FUTURE_SHIFTED_SEVENTEEN_MANA),
+    "18": Symbol(FUTURE_SHIFTED_EIGHTEEN_MANA),
+    "19": Symbol(FUTURE_SHIFTED_NINETEEN_MANA),
+    "20": Symbol(FUTURE_SHIFTED_TWENTY_MANA),
+    # Standard Hybrid Mana
+    "w/u": Symbol(FUTURE_SHIFTED_WHITE_BLUE_MANA),
+    "u/w": Symbol(FUTURE_SHIFTED_WHITE_BLUE_MANA),
+    "w/b": Symbol(FUTURE_SHIFTED_WHITE_BLACK_MANA),
+    "b/w": Symbol(FUTURE_SHIFTED_WHITE_BLACK_MANA),
+    "u/b": Symbol(FUTURE_SHIFTED_BLUE_BLACK_MANA),
+    "b/u": Symbol(FUTURE_SHIFTED_BLUE_BLACK_MANA),
+    "u/r": Symbol(FUTURE_SHIFTED_BLUE_RED_MANA),
+    "r/u": Symbol(FUTURE_SHIFTED_BLUE_RED_MANA),
+    "b/r": Symbol(FUTURE_SHIFTED_BLACK_RED_MANA),
+    "r/b": Symbol(FUTURE_SHIFTED_BLACK_RED_MANA),
+    "b/g": Symbol(FUTURE_SHIFTED_BLACK_GREEN_MANA),
+    "g/b": Symbol(FUTURE_SHIFTED_BLACK_GREEN_MANA),
+    "r/g": Symbol(FUTURE_SHIFTED_RED_GREEN_MANA),
+    "g/r": Symbol(FUTURE_SHIFTED_RED_GREEN_MANA),
+    "r/w": Symbol(FUTURE_SHIFTED_RED_WHITE_MANA),
+    "w/r": Symbol(FUTURE_SHIFTED_RED_WHITE_MANA),
+    "g/w": Symbol(FUTURE_SHIFTED_GREEN_WHITE_MANA),
+    "w/g": Symbol(FUTURE_SHIFTED_GREEN_WHITE_MANA),
+    "g/u": Symbol(FUTURE_SHIFTED_GREEN_BLUE_MANA),
+    "u/g": Symbol(FUTURE_SHIFTED_GREEN_BLUE_MANA),
+    # Variable Mana
+    "x": Symbol(FUTURE_SHIFTED_X_MANA),
+}
+
 # Planeswalker Abilities
 PLANESWALKER_ABILITY_BODY_EVEN = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/body/even.png"))
 PLANESWALKER_ABILITY_BODY_ODD = Symbol(open_image(f"{FRAMES_PATH}/planeswalker/ability/body/odd.png"))
@@ -602,6 +698,18 @@ SAGA_BANNER_STRIPE = Symbol(open_image(f"{FRAMES_PATH}/saga/banner_stripe.png"))
 
 # Class
 CLASS_HEADER = Symbol(open_image(f"{FRAMES_PATH}/class/header.png"))
+
+# Future Shifted
+FUTURE_SHIFTED_TYPE_ICON_KEY = {
+    "artifact": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/artifact.png")),
+    "creature": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/creature.png")),
+    "enchantment": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/enchantment.png")),
+    "instant": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/instant.png")),
+    "land": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/land.png")),
+    "planeswalker": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/planeswalker.png")),
+    "sorcery": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/sorcery.png")),
+    "multitype": Symbol(open_image(f"{FRAMES_PATH}/showcase/future/type_icon/multitype.png")),
+}
 
 # Other
 RULES_DIVIDING_LINE = Symbol(open_image("images/other/divider.png"))

@@ -52,7 +52,10 @@ class RegularToken(RegularCard):
         # Title Text
         self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
         self.TITLE_FONT_COLOR = (
-            (255, 255, 255) if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (0, 0, 0)
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
         )
         self.TITLE_TEXT_ALIGN = "center"
 

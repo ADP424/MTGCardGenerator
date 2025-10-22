@@ -59,6 +59,7 @@ from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
+from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
@@ -143,6 +144,7 @@ def process_spreadsheets(
         "regular transparent": RegularTransparent,
         "full text": FullText,
         "japan": Japan,
+        "future shifted": FutureShifted,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
@@ -562,7 +564,10 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
                 card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
                 card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
-                card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower().replace(" pip", "")
+                card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
+                for extra in FRAME_LAYOUT_EXTRAS_LIST:
+                    card_frame_layout = card_frame_layout.replace(extra, "")
+
                 art_layout = frame_layout_map.get(card_frame_layout, "")
                 if len(art_layout) == 0:
                     log(

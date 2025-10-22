@@ -832,7 +832,7 @@ class RegularCard:
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
-                log(f"Unknown placeholder '{{{sym}}}'")
+                log(f"Unknown placeholder: '{{{sym}}}'")
                 continue
 
             scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
@@ -1345,7 +1345,11 @@ class RegularCard:
                     else:
                         content_height += line_height
                 if idx < len(rules_lines) - 1:
-                    content_height += self.RULES_TEXT_DIVIDER.image.height + line_height
+                    content_height += (
+                        self.RULES_TEXT_DIVIDER.image.height + line_height
+                        if self.RULES_TEXT_DIVIDER is not None
+                        else line_height
+                    )
             usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
@@ -1557,17 +1561,20 @@ class RegularCard:
                             )
                     dice_section_y = -1
 
-        dividing_line = self.RULES_TEXT_DIVIDER.get_formatted_image(
-            self.RULES_TEXT_WIDTH, self.RULES_TEXT_DIVIDER.image.height
+        dividing_line = (
+            self.RULES_TEXT_DIVIDER.get_formatted_image(self.RULES_TEXT_WIDTH, self.RULES_TEXT_DIVIDER.image.height)
+            if self.RULES_TEXT_DIVIDER is not None
+            else None
         )
         for idx, lines in enumerate(rules_lines):
             if idx > 0:
                 curr_y += line_height // 2
-                image.alpha_composite(
-                    dividing_line,
-                    (0, curr_y),
-                )
-                curr_y += dividing_line.height + line_height // 2
+                if dividing_line is not None:
+                    image.alpha_composite(
+                        dividing_line,
+                        (0, curr_y),
+                    )
+                    curr_y += dividing_line.height + line_height // 2
             draw_lines(lines)
 
         drop_shadow_offset = (
