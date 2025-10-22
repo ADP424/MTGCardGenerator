@@ -29,6 +29,7 @@ class Symbol:
         new_height: int = -1,
         outline_size: int = 0,
         outline_color: tuple[int, int, int] = (0, 0, 0),
+        ignore_size_ratio: bool = False,
     ) -> Image.Image:
         """
         Returns a resized, formatted version of the image based on the options passed into the constructor.
@@ -47,6 +48,9 @@ class Symbol:
         outline_color: tuple[int, int, int]: default : (0, 0, 0)
             The color of the outline to draw around the image.
 
+        ignore_size_ratio: bool, default : False
+            Whether to ignore the size ratio passed into the constructor and just render the image at its normal size.
+
         Returns
         -------
         Image
@@ -59,9 +63,11 @@ class Symbol:
         if new_height < 0:
             new_height = self.image.height
 
+        size_ratio = self.size_ratio if not ignore_size_ratio else (1, 1)
+
         # resize
         resized_image = self.image.resize(
-            (int(new_width * self.size_ratio[0]), int(new_height * self.size_ratio[1])), Image.LANCZOS
+            (int(new_width * size_ratio[0]), int(new_height * size_ratio[1])), Image.LANCZOS
         )
 
         # add outline

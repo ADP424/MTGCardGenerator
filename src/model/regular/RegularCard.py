@@ -832,7 +832,7 @@ class RegularCard:
         for sym in reversed(text.split(" ")):
             symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
-                log(f"Unknown placeholder: '{{{sym}}}'")
+                log(f"Unknown placeholder: '{{{sym.strip().lower()}}}'")
                 continue
 
             scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height

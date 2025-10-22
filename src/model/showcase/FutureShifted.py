@@ -7,6 +7,7 @@ from constants import (
     CARD_TYPES,
     FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY,
     FUTURE_SHIFTED_TYPE_ICON_KEY,
+    SYMBOL_PLACEHOLDER_KEY,
 )
 from log import log
 from model.Layer import Layer
@@ -66,29 +67,34 @@ class FutureShifted(RegularCard):
         self.TITLE_BOX_HEIGHT = 114
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 118
+        self.MANA_COST_SYMBOL_SIZE = 120
         self.MANA_COST_SYMBOL_X = {
-            1: 185,
-            2: 124,
-            3: 94,
-            4: 94,
-            5: 120,
-            6: 215,
+            1: 184,
+            2: 123,
+            3: 93,
+            4: 93,
+            5: 119,
+            6: 214,
         }
         self.MANA_COST_SYMBOL_Y = {
-            1: 284,
-            2: 420,
-            3: 569,
-            4: 721,
-            5: 884,
-            6: 1036,
+            1: 283,
+            2: 419,
+            3: 568,
+            4: 720,
+            5: 883,
+            6: 1035,
         }
 
         # Title Text
         self.TITLE_X = 265
         self.TITLE_BOTTOM_Y = 218
         self.TITLE_WIDTH = 1100
-        self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Type Box
         self.TYPE_BOX_Y = 1187
@@ -98,7 +104,12 @@ class FutureShifted(RegularCard):
         self.TYPE_X = 181 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 252
         self.TYPE_BOTTOM_Y = 1276
         self.TYPE_WIDTH = 1114 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1043
-        self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Rules Text Box
         self.RULES_BOX_X = 112
@@ -116,7 +127,12 @@ class FutureShifted(RegularCard):
         self.POWER_TOUGHNESS_Y = 1880
         self.POWER_TOUGHNESS_WIDTH = 252
         self.POWER_TOUGHNESS_HEIGHT = 120
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        self.POWER_TOUGHNESS_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_X = 1334
@@ -131,7 +147,7 @@ class FutureShifted(RegularCard):
 
         # Type Icon
         self.TYPE_ICON_X = 102
-        self.TYPE_ICON_Y = 100
+        self.TYPE_ICON_Y = 101
         self.TYPE_ICON_SIZE = 59
         self.TYPE_ICON_COLOR = (
             (255, 255, 255)
@@ -263,13 +279,16 @@ class FutureShifted(RegularCard):
 
             symbol = FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
-                log(f"Unknown placeholder for future shifted card: '{{{sym}}}'")
-                continue
+                log(f"Unknown placeholder for future shifted card: '{{{sym.strip().lower()}}}'. Using regular symbol...")
+                symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
+                if symbol is None:
+                    log(f"STILL unknown placeholder: '{{{sym.strip().lower()}}}'.")
+                    continue
 
             scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
             width = int(symbol.image.width * scale)
             height = int(symbol.image.height * scale)
-            symbol_image = symbol.get_formatted_image(width, height)
+            symbol_image = symbol.get_formatted_image(width, height, ignore_size_ratio=True)
 
             x_location = self.MANA_COST_SYMBOL_X.get(num, 0)
             y_location = self.MANA_COST_SYMBOL_Y.get(num, 0)
