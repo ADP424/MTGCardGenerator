@@ -950,7 +950,9 @@ class RegularCard:
         Process type text into the type box and append it to `self.text_layers`.
         """
 
-        first_part = f"{replace_ticks(self.get_metadata(CARD_SUPERTYPES))} {replace_ticks(self.get_metadata(CARD_TYPES))}"
+        first_part = (
+            f"{replace_ticks(self.get_metadata(CARD_SUPERTYPES))} {replace_ticks(self.get_metadata(CARD_TYPES))}"
+        )
         second_part = replace_ticks(self.get_metadata(CARD_SUBTYPES))
         if len(second_part) > 0:
             text = " — ".join((first_part, second_part)).strip()
@@ -1595,6 +1597,22 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
+        segments = []
+        last_end = 0
+        for match in COLOR_TAG_PATTERN.finditer(text):
+            r, g, b = map(int, match.groups()[:3])
+            color = (r, g, b)
+            segment_text = match.group(4)
+
+            if match.start() > last_end:
+                segments.append((text[last_end : match.start()], self.POWER_TOUGHNESS_FONT_COLOR))
+
+            segments.append((segment_text, color))
+            last_end = match.end()
+
+        if last_end < len(text):
+            segments.append((text[last_end:], self.POWER_TOUGHNESS_FONT_COLOR))
+
         power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
@@ -1602,26 +1620,37 @@ class RegularCard:
         image = Image.new("RGBA", (self.POWER_TOUGHNESS_WIDTH, self.POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        text_width = self._get_ucs_chunks_length(text, power_toughness_font, symbol_backup_font, emoji_backup_font)
-        bounding_box = power_toughness_font.getbbox(text)
+        total_width = int(
+            sum(
+                self._get_ucs_chunks_length(seg_text, power_toughness_font, symbol_backup_font, emoji_backup_font)
+                for seg_text, _ in segments
+            )
+        )
+        bounding_box = power_toughness_font.getbbox(text or " ")
         text_height = int(bounding_box[3] - bounding_box[1])
 
-        self._draw_ucs_chunks(
-            draw,
-            ((self.POWER_TOUGHNESS_WIDTH - text_width) // 2, (self.POWER_TOUGHNESS_HEIGHT - text_height) // 2),
-            text,
-            power_toughness_font,
-            symbol_backup_font,
-            emoji_backup_font,
-            fill=self.POWER_TOUGHNESS_FONT_COLOR,
-            anchor="lt",
-        )
+        x_pos = (self.POWER_TOUGHNESS_WIDTH - total_width) // 2
+        y_pos = (self.POWER_TOUGHNESS_HEIGHT - text_height) // 2
+
+        for seg_text, color in segments:
+            self._draw_ucs_chunks(
+                draw,
+                (x_pos, y_pos),
+                seg_text,
+                power_toughness_font,
+                symbol_backup_font,
+                emoji_backup_font,
+                fill=color,
+                anchor="lt",
+            )
+            x_pos += self._get_ucs_chunks_length(seg_text, power_toughness_font, symbol_backup_font, emoji_backup_font)
 
         drop_shadow_offset = (
             int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[0] * self.POWER_TOUGHNESS_FONT_SIZE),
             int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[1] * self.POWER_TOUGHNESS_FONT_SIZE),
         )
         image = add_drop_shadow(image, drop_shadow_offset)
+
         self.text_layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
 
     def _create_overlay_layers(self):

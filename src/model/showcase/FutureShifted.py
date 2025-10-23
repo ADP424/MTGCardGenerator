@@ -124,7 +124,7 @@ class FutureShifted(RegularCard):
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1144
-        self.POWER_TOUGHNESS_Y = 1880
+        self.POWER_TOUGHNESS_Y = 1887
         self.POWER_TOUGHNESS_WIDTH = 252
         self.POWER_TOUGHNESS_HEIGHT = 120
         self.POWER_TOUGHNESS_FONT_COLOR = (
@@ -279,7 +279,9 @@ class FutureShifted(RegularCard):
 
             symbol = FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:
-                log(f"Unknown placeholder for future shifted card: '{{{sym.strip().lower()}}}'. Using regular symbol...")
+                log(
+                    f"Unknown placeholder for future shifted card: '{{{sym.strip().lower()}}}'. Using regular symbol..."
+                )
                 symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
                 if symbol is None:
                     log(f"STILL unknown placeholder: '{{{sym.strip().lower()}}}'.")
