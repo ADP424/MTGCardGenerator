@@ -79,9 +79,10 @@ class ModalFrontside(RegularCard):
         self.REMINDER_HEIGHT = 88
         self.REMINDER_MANA_FONT_SIZE = 55
         self.REMINDER_TYPE_MAX_FONT_SIZE = 50
-        self.REMINDER_TYPE_MIN_FONT_SIZE = 6
+        self.REMINDER_MANA_MIN_FONT_SIZE = 6
         self.REMINDER_TYPE_HINT_FONT_COLOR = (255, 255, 255)
         self.REMINDER_MANA_HINT_FONT_COLOR = (255, 255, 255)
+        self.REMINDER_TYPE_MANA_GAP = 25
 
     def create_layers(
         self,
@@ -158,11 +159,67 @@ class ModalFrontside(RegularCard):
             create_overlay_layers,
         )
 
+        if create_reminder_type_layer:
+            self._create_reminder_type_layer()
+
         if create_reminder_mana_layer:
             self._create_reminder_mana_layer()
 
-        if create_reminder_type_layer:
-            self._create_reminder_type_layer()
+    def _create_reminder_type_layer(self):
+        """
+        Process reminder type text for modal cards and append it to `self.text_layers`.
+        """
+
+        type_hint = replace_ticks(self.get_metadata(CARD_ADDITIONAL_TITLES))
+        if "{skip}" in type_hint:
+            type_hint = ""
+
+        centered = False
+        if "{center}" in type_hint:
+            centered = True
+            type_hint = type_hint.replace("{center}", "")
+
+        segments = []
+        last_end = 0
+        for match in COLOR_TAG_PATTERN.finditer(type_hint):
+            r, g, b = map(int, match.groups()[:3])
+            color = (r, g, b)
+            segment_text = match.group(4)
+
+            if match.start() > last_end:
+                segments.append((type_hint[last_end : match.start()], self.REMINDER_TYPE_HINT_FONT_COLOR))
+
+            segments.append((segment_text, color))
+            last_end = match.end()
+
+        if last_end < len(type_hint):
+            segments.append((type_hint[last_end:], self.REMINDER_TYPE_HINT_FONT_COLOR))
+
+        reminder_type_font = ImageFont.truetype(self.TITLE_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
+        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
+        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
+
+        image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        x_pos = 0
+        ascent = reminder_type_font.getmetrics()[0]
+        y_pos = (self.REMINDER_TEXT_BOTTOM_Y - self.REMINDER_Y - ascent) // 2
+        for seg_text, color in segments:
+            self._draw_ucs_chunks(
+                draw,
+                (x_pos, y_pos),
+                seg_text,
+                reminder_type_font,
+                symbol_backup_font,
+                emoji_backup_font,
+                fill=color,
+                align="left" if not centered else "center",
+            )
+            x_pos += self._get_ucs_chunks_length(seg_text, reminder_type_font, symbol_backup_font, emoji_backup_font)
+
+        self.reminder_type_x = x_pos + self.REMINDER_TYPE_MANA_GAP
+        self.text_layers.append(Layer(image, (self.REMINDER_X, self.REMINDER_Y)))
 
     def _create_reminder_mana_layer(self):
         """
@@ -175,9 +232,6 @@ class ModalFrontside(RegularCard):
             type_hint = ""
         if "{skip}" in mana_hint:
             mana_hint = ""
-
-        image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(image)
 
         fragments: list[tuple[str, str]] = []
         parts: list[str] = PLACEHOLDER_REGEX.split(mana_hint)
@@ -213,142 +267,76 @@ class ModalFrontside(RegularCard):
                 else:
                     fragments.append(("symbol", token))
 
-        rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, self.REMINDER_MANA_FONT_SIZE)
-        italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, self.REMINDER_MANA_FONT_SIZE)
-        symbol_font = ImageFont.truetype(self.SYMBOL_FONT, self.REMINDER_MANA_FONT_SIZE)
-        emoji_font = ImageFont.truetype(self.EMOJI_FONT, self.REMINDER_MANA_FONT_SIZE)
+        font_size = self.REMINDER_MANA_FONT_SIZE
+        while font_size > self.REMINDER_MANA_MIN_FONT_SIZE:
+            image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(image)
 
-        curr_font_color = self.REMINDER_MANA_HINT_FONT_COLOR
+            rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
+            italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
+            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
-        curr_x = 0
-        for kind, value in fragments:
-            curr_main_font = rules_font  # regular vs italics
-            curr_font = rules_font  # regular vs italics vs symbol vs emoji
+            curr_font_color = self.REMINDER_MANA_HINT_FONT_COLOR
 
-            if kind == "text":
-                bounding_box = curr_font.getbbox(value)
-                text_height = int(bounding_box[3] - bounding_box[1])
-                if value:
-                    draw.text(
-                        (curr_x, self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - text_height),
-                        value,
-                        font=curr_font,
-                        anchor="lt",
-                        fill=curr_font_color,
-                    )
-                    curr_x += self._get_rules_text_fragment_length(value, curr_font)
-            elif kind == "format":
-                if value == "italic_on":
-                    curr_main_font = italics_font
-                    curr_font = italics_font
-                elif value == "italic_off":
-                    curr_main_font = rules_font
-                    curr_font = rules_font
-                elif value == "ucs_on":
-                    curr_font = symbol_font
-                elif value == "ucs_off":
-                    curr_font = curr_main_font
-                elif value == "emoji_on":
-                    curr_font = emoji_font
-                elif value == "emoji_off":
-                    curr_font = curr_main_font
-                continue
-            elif kind == "symbol":
-                width, height, symbol_image = self._get_symbol_metrics(value, curr_font, self.REMINDER_MANA_FONT_SIZE)
-                if symbol_image is not None:
-                    image.alpha_composite(
-                        symbol_image,
-                        (
-                            int(curr_x),
-                            (self.REMINDER_HEIGHT - height) // 2,
-                        ),
-                    )
-                    curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                else:
-                    log(f"Unknown placeholder in reminder layer: '{value}'")
-            elif kind == "color":
-                if value == "end":
-                    curr_font_color = self.REMINDER_MANA_HINT_FONT_COLOR
-                else:
-                    curr_font_color = value
-            elif kind == "spacing":
-                if value:
-                    curr_x += draw.textlength(value, curr_font)
+            curr_x = 0
+            for kind, value in fragments:
+                curr_main_font = rules_font  # regular vs italics
+                curr_font = rules_font  # regular vs italics vs symbol vs emoji
 
-        self.mana_hint_x = self.TITLE_BOX_X + curr_x
-        self.text_layers.append(Layer(image, (self.REMINDER_X + self.REMINDER_WIDTH - curr_x, self.REMINDER_Y)))
+                if kind == "text":
+                    bounding_box = curr_font.getbbox(value)
+                    text_height = int(bounding_box[3] - bounding_box[1])
+                    ascent = curr_font.getmetrics()[0]
+                    if value:
+                        draw.text(
+                            (curr_x, self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - min(text_height, ascent)),
+                            value,
+                            font=curr_font,
+                            anchor="lt",
+                            fill=curr_font_color,
+                        )
+                        curr_x += self._get_rules_text_fragment_length(value, curr_font)
+                elif kind == "format":
+                    if value == "italic_on":
+                        curr_main_font = italics_font
+                        curr_font = italics_font
+                    elif value == "italic_off":
+                        curr_main_font = rules_font
+                        curr_font = rules_font
+                    elif value == "ucs_on":
+                        curr_font = symbol_font
+                    elif value == "ucs_off":
+                        curr_font = curr_main_font
+                    elif value == "emoji_on":
+                        curr_font = emoji_font
+                    elif value == "emoji_off":
+                        curr_font = curr_main_font
+                    continue
+                elif kind == "symbol":
+                    width, height, symbol_image = self._get_symbol_metrics(value, curr_font, font_size)
+                    if symbol_image is not None:
+                        image.alpha_composite(
+                            symbol_image,
+                            (
+                                int(curr_x),
+                                (self.REMINDER_HEIGHT - height) // 2,
+                            ),
+                        )
+                        curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                    else:
+                        log(f"Unknown placeholder in reminder layer: '{value}'")
+                elif kind == "color":
+                    if value == "end":
+                        curr_font_color = self.REMINDER_MANA_HINT_FONT_COLOR
+                    else:
+                        curr_font_color = value
+                elif kind == "spacing":
+                    if value:
+                        curr_x += draw.textlength(value, curr_font)
 
-    def _create_reminder_type_layer(self):
-        """
-        Process reminder type text for modal cards and append it to `self.text_layers`.
-        """
-
-        type_hint = replace_ticks(self.get_metadata(CARD_ADDITIONAL_TITLES))
-        if "{skip}" in type_hint:
-            type_hint = ""
-
-        centered = False
-        if "{center}" in type_hint:
-            centered = True
-            type_hint = type_hint.replace("{center}", "")
-
-        segments = []
-        last_end = 0
-        for match in COLOR_TAG_PATTERN.finditer(type_hint):
-            r, g, b = map(int, match.groups()[:3])
-            color = (r, g, b)
-            segment_text = match.group(4)
-
-            if match.start() > last_end:
-                segments.append((type_hint[last_end : match.start()], self.REMINDER_TYPE_HINT_FONT_COLOR))
-
-            segments.append((segment_text, color))
-            last_end = match.end()
-
-        if last_end < len(type_hint):
-            segments.append((type_hint[last_end:], self.REMINDER_TYPE_HINT_FONT_COLOR))
-
-        font_size = self.REMINDER_TYPE_MAX_FONT_SIZE
-        reminder_type_font = ImageFont.truetype(self.TITLE_FONT, font_size)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
-
-        def get_title_length():
-            return int(
-                sum(
-                    self._get_ucs_chunks_length(seg_text, reminder_type_font, symbol_backup_font, emoji_backup_font)
-                    for seg_text, _ in segments
-                )
-            )
-
-        title_length = get_title_length()
-        while (
-            self.REMINDER_X + title_length > min(self.mana_hint_x, self.REMINDER_X + self.REMINDER_WIDTH)
-            and font_size >= self.REMINDER_TYPE_MIN_FONT_SIZE
-        ):
+            if curr_x < self.REMINDER_WIDTH - self.reminder_type_x:
+                break
             font_size -= 1
-            reminder_type_font = ImageFont.truetype(self.TITLE_FONT, font_size)
-            symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-            emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
-            title_length = get_title_length()
 
-        image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(image)
-
-        x_pos = 0
-        ascent = reminder_type_font.getmetrics()[0]
-        y_pos = (self.REMINDER_TEXT_BOTTOM_Y - self.REMINDER_Y - ascent) // 2
-        for seg_text, color in segments:
-            self._draw_ucs_chunks(
-                draw,
-                (x_pos, y_pos),
-                seg_text,
-                reminder_type_font,
-                symbol_backup_font,
-                emoji_backup_font,
-                fill=color,
-                align="left" if not centered else "center",
-            )
-            x_pos += self._get_ucs_chunks_length(seg_text, reminder_type_font, symbol_backup_font, emoji_backup_font)
-
-        self.text_layers.append(Layer(image, (self.REMINDER_X, self.REMINDER_Y)))
+        self.text_layers.append(Layer(image, (self.REMINDER_X + self.REMINDER_WIDTH - curr_x, self.REMINDER_Y)))

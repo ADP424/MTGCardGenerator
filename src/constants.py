@@ -623,7 +623,7 @@ SYMBOL_PLACEHOLDER_KEY = {
     "z": Symbol(Z_MANA),
     # Other
     "e": Symbol(ENERGY),
-    "ticket": Symbol(TICKET),
+    "tk": Symbol(TICKET),
 }
 
 FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY = {

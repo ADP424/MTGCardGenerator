@@ -950,8 +950,8 @@ class RegularCard:
         Process type text into the type box and append it to `self.text_layers`.
         """
 
-        first_part = f"{self.get_metadata(CARD_SUPERTYPES)} {self.get_metadata(CARD_TYPES)}"
-        second_part = self.get_metadata(CARD_SUBTYPES)
+        first_part = f"{replace_ticks(self.get_metadata(CARD_SUPERTYPES))} {replace_ticks(self.get_metadata(CARD_TYPES))}"
+        second_part = replace_ticks(self.get_metadata(CARD_SUBTYPES))
         if len(second_part) > 0:
             text = " — ".join((first_part, second_part)).strip()
         else:
