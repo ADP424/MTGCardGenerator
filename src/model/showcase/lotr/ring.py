@@ -2,7 +2,7 @@ from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 
 
-class Ring(RegularCard):
+class RingLOTR(RegularCard):
     """
     A layered image representing a showcase Lord of the Rings ring-styled card
     and all the collection info on it, with all relevant card metadata.

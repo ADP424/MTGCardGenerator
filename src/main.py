@@ -61,7 +61,8 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
-from model.showcase.lotr.ring import Ring
+from model.showcase.lotr.Ring import RingLOTR
+from model.showcase.lotr.Scroll import ScrollLOTR
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
 from model.showcase.promo.RegularPromo import RegularPromo
@@ -151,7 +152,8 @@ def process_spreadsheets(
         "extended promo": ExtendedPromo,
         "open house promo": OpenHousePromo,
         # Showcase LOTR
-        "ring": Ring,
+        "lotr ring": RingLOTR,
+        "lotr scroll": ScrollLOTR,
     }
 
     card_sets: dict[str, dict[str, RegularCard]] = {}
