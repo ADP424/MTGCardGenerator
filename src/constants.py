@@ -133,7 +133,7 @@ WATERMARK_COLORS = {
 RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
 
 # Card Frame Layout Extras
-FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ", " light", "light ")
+FRAME_LAYOUT_EXTRAS_LIST = (" pip", "pip ", " white", "white ", " light", "light ", " vehicle", "vehicle ")
 
 # Splitter for Coloring Text
 COLOR_TAG_PATTERN = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)

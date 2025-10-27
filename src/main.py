@@ -76,7 +76,6 @@ from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
 from model.transform.TransformBackside import TransformBackside
 from model.transform.TransformFrontside import TransformFrontside
-from model.vehicle.RegularVehicle import RegularVehicle
 from utils import cardname_to_filename, get_card_key, open_image, paste_image
 
 
@@ -129,8 +128,6 @@ def process_spreadsheets(
         "tall token": TallToken,
         # Planeswalker
         "regular planeswalker": RegularPlaneswalker,
-        # Vehicle
-        "regular vehicle": RegularVehicle,
         # Saga
         "regular saga": RegularSaga,
         "transform saga": TransformSaga,

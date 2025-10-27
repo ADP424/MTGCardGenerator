@@ -1,4 +1,4 @@
-from constants import RULES_DIVIDING_LINE
+from constants import CARD_FRAME_LAYOUT_EXTRAS, RULES_DIVIDING_LINE
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from model.showcase.promo.RegularPromo import RegularPromo
@@ -59,7 +59,9 @@ class ExtendedPromo(RegularPromo):
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
+        self.POWER_TOUGHNESS_FONT_COLOR = (
+            (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
+        )
 
         # Other
         self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE

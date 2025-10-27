@@ -170,7 +170,9 @@ class RegularCard:
         self.POWER_TOUGHNESS_WIDTH = 252
         self.POWER_TOUGHNESS_HEIGHT = 124
         self.POWER_TOUGHNESS_FONT_SIZE = 80
-        self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
+        self.POWER_TOUGHNESS_FONT_COLOR = (
+            (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
+        )
         self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Watermark
