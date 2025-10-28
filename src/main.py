@@ -61,6 +61,7 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
+from model.showcase.Sketch import Sketch
 from model.showcase.Zendikar import Zendikar
 from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
@@ -146,6 +147,7 @@ def process_spreadsheets(
         "japan": Japan,
         "future shifted": FutureShifted,
         "zendikar": Zendikar,
+        "sketch": Sketch,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
