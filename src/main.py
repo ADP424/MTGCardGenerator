@@ -324,6 +324,7 @@ def process_spreadsheets(
             if len(card_descriptor) == 0 and len(card_original_title) == 0:
                 continue
 
+            original_card = None
             if len(card_original_title) > 0:
                 original_card = card_sets[card_set].get(card_original_title)
                 if original_card is None:

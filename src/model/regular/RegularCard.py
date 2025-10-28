@@ -403,9 +403,14 @@ class RegularCard:
 
         pending_masks: list[Image.Image] = []
 
+        before = True  # tracks if we've hit "{end}" yet, meaning frames to render AFTER text
         for frame_path in card_frames.split("\n"):
             frame_path = frame_path.lower().strip()
             if len(frame_path) == 0:
+                continue
+
+            if frame_path == "{end}":
+                before = False
                 continue
 
             frame = open_image(f"{FRAMES_PATH}/{frame_path}.png")
@@ -431,7 +436,10 @@ class RegularCard:
                 pending_masks.clear()
                 frame = new_frame
 
-            self.frame_layers.append(Layer(frame))
+            if before:
+                self.frame_layers.append(Layer(frame))
+            else:
+                self.overlay_layers.append(Layer(frame))
 
         if pending_masks:
             log(
@@ -448,6 +456,11 @@ class RegularCard:
         watermark_name = self.get_metadata(CARD_WATERMARK)
         if len(watermark_name) == 0 or "{skip}" in watermark_name:
             return
+
+        overlay = False
+        if "{last}" in watermark_name:
+            watermark_name = watermark_name.replace("{last}", "")
+            overlay = True
 
         watermark_path = f"{WATERMARKS_PATH}/{watermark_name}.png"
         watermark = open_image(watermark_path)
@@ -492,7 +505,8 @@ class RegularCard:
         alpha = ImageEnhance.Brightness(alpha).enhance(self.WATERMARK_OPACITY)
         made_translucent = Image.merge("RGBA", (r, g, b, alpha))
 
-        self.collector_layers.append(
+        layers = self.collector_layers if not overlay else self.overlay_layers
+        layers.append(
             Layer(
                 made_translucent,
                 (
@@ -518,6 +532,11 @@ class RegularCard:
         if len(rarity) == 0 or "{skip}" in rarity:
             return
 
+        overlay = False
+        if "{last}" in rarity:
+            rarity = rarity.replace("{last}", "")
+            overlay = True
+
         symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
         rarity_symbol = open_image(symbol_path)
         if rarity_symbol is None:
@@ -527,7 +546,8 @@ class RegularCard:
         rarity_symbol = rarity_symbol.resize(
             (self.SET_SYMBOL_WIDTH, int((self.SET_SYMBOL_WIDTH / rarity_symbol.width) * rarity_symbol.height))
         )
-        self.collector_layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
+        layers = self.collector_layers if not overlay else self.overlay_layers
+        layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
 
     def _split_ucs_chunks(
         self,
@@ -821,6 +841,11 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
+        overlay = False
+        if "{last}" in text:
+            text = text.replace("{last}", "")
+            overlay = True
+
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -853,7 +878,9 @@ class RegularCard:
                 break
 
         self.mana_cost_x = self.TITLE_BOX_X + curr_x - self.MANA_COST_SYMBOL_SPACING
-        self.text_layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
+
+        layers = self.text_layers if not overlay else self.overlay_layers
+        layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
 
     def _create_title_layer(self):
         """
@@ -864,10 +891,15 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
+        overlay = False
+        if "{last}" in text:
+            text = text.replace("{last}", "")
+            overlay = True
+
         centered = False
         if "{center}" in text:
-            centered = True
             text = text.replace("{center}", "")
+            centered = True
 
         segments = []
         last_end = 0
@@ -943,9 +975,10 @@ class RegularCard:
             int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
             int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
-
         image = add_drop_shadow(image, drop_shadow_offset)
-        self.text_layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
+
+        layers = self.text_layers if not overlay else self.overlay_layers
+        layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
 
     def _create_type_layer(self):
         """
@@ -960,9 +993,15 @@ class RegularCard:
             text = " — ".join((first_part, second_part)).strip()
         else:
             text = first_part.strip()
+
         text = replace_ticks(text)
         if len(text) == 0 or "{skip}" in text:
             return
+
+        overlay = False
+        if "{last}" in text:
+            text = text.replace("{last}", "")
+            overlay = True
 
         segments = []
         last_end = 0
@@ -1031,7 +1070,9 @@ class RegularCard:
             int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
         image = add_drop_shadow(image, drop_shadow_offset)
-        self.text_layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
+
+        layers = self.text_layers if not overlay else self.overlay_layers
+        layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
 
     def _replace_text_placeholders(self, text: str) -> str:
         """
@@ -1422,8 +1463,13 @@ class RegularCard:
 
         centered = False
         if "{center}" in text:
-            centered = True
             text = text.replace("{center}", "")
+            centered = True
+
+        overlay = False
+        if "{last}" in text:
+            text = text.replace("{last}", "")
+            overlay = True
 
         rules_lines, font_size, margin, content_height, usable_height = self._get_rules_text_layout(text)
 
@@ -1588,7 +1634,9 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset)
 
         self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
-        self.text_layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
+
+        layers = self.text_layers if not overlay else self.overlay_layers
+        layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
 
     def _create_power_toughness_layer(self):
         """
@@ -1598,6 +1646,11 @@ class RegularCard:
         text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
         if len(text) == 0 or "{skip}" in text:
             return
+
+        overlay = False
+        if "{last}" in text:
+            text = text.replace("{last}", "")
+            overlay = True
 
         segments = []
         last_end = 0
@@ -1653,7 +1706,8 @@ class RegularCard:
         )
         image = add_drop_shadow(image, drop_shadow_offset)
 
-        self.text_layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
+        layers = self.text_layers if not overlay else self.overlay_layers
+        layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
 
     def _create_overlay_layers(self):
         """
