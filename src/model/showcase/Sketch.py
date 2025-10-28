@@ -48,5 +48,12 @@ class Sketch(RegularCard):
             metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
         )
 
+        # Title Text
+        self.TITLE_MAX_FONT_SIZE = 70
+
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1174
+
+        # Set / Rarity Symbol
+        self.SET_SYMBOL_Y = 1205
+        self.SET_SYMBOL_WIDTH = 80

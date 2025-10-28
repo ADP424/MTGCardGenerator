@@ -324,9 +324,13 @@ def process_spreadsheets(
             if len(card_descriptor) == 0 and len(card_original_title) == 0:
                 continue
 
-            original_card = card_sets[card_set].get(card_original_title)
-            if original_card is None:
-                original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles, ""))
+            if len(card_original_title) > 0:
+                original_card = card_sets[card_set].get(card_original_title)
+                if original_card is None:
+                    log(f"Could not find '{card_original_title}' as an original card of an alternate.")
+
+            if original_card is None and len(card_descriptor) > 0:
+                original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles))
 
             if original_card is not None:
                 for key, value in card.metadata.items():
