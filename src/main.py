@@ -84,6 +84,7 @@ def process_spreadsheets(
     card_names_whitelist: list[str] = None,
     card_sets_whitelist: list[str] = None,
     card_categories_whitelist: list[str] = None,
+    sort: bool = True,
 ) -> dict[str, dict[str, RegularCard]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
@@ -98,6 +99,9 @@ def process_spreadsheets(
 
     card_categories_whitelist: list[str], optional
         The names of the card categories to process. Process all of them by default.
+
+    sort: bool, default: True
+        Whether to sort the sheet by date, then by name, or not.
 
     Returns
     -------
@@ -337,7 +341,7 @@ def process_spreadsheets(
                 for key, value in card.metadata.items():
                     if (
                         not isinstance(value, int)
-                        and key not in (CARD_SET, CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY)
+                        and key not in (CARD_SET, CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY, CARD_FRAME_LAYOUT_EXTRAS)
                         and len(value) == 0
                     ):
                         card.set_metadata(key, original_card.get_metadata(key))
@@ -381,6 +385,21 @@ def process_spreadsheets(
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_sets[card_set][card_key]
+
+    if sort:
+        sorted_card_sets = {}
+        for card_set in card_sets:
+            sorted_card_sets[card_set] = dict(
+                sorted(
+                    card_sets[card_set].items(),
+                    key=lambda card: (
+                        str_to_datetime(card[1].get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
+                        str_to_int(card[1].get_metadata(CARD_ORDERER), 0),
+                        card[1].get_metadata(CARD_TITLE),
+                    ),
+                )
+            )
+        return sorted_card_sets
 
     return card_sets
 
@@ -662,6 +681,12 @@ def audit_art(card_sets: dict[str, dict[str, RegularCard]]):
 
             card_filename = cardname_to_filename(card_key)
             card_path = f"{art_path}/{card_filename}.png"
+
+            card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
+            if "full text" in card_frame_layout:
+                card_filenames.append(card_filename)
+                return
+
             if not os.path.isfile(card_path):
                 log(f"No card art with filename '{card_filename}' for '{card_key}' in '{art_path}'...")
             else:
@@ -695,6 +720,7 @@ def main(
     card_names_whitelist: list[str] = None,
     card_sets_whitelist: list[str] = None,
     card_categories_whitelist: list[str] = None,
+    sort: bool = True,
 ):
     """
     Run the program.
@@ -715,10 +741,13 @@ def main(
     card_categories_whitelist: list[str], optional
         The names of the categories to include cards of in performing the action on.
         By default, perform the action on all cards.
+
+    sort: bool, default: False
+        Whether to automatically sort the cards by date, then by name, or not.
     """
 
     reset_log()
-    card_sets = process_spreadsheets(card_names_whitelist, card_sets_whitelist, card_categories_whitelist)
+    card_sets = process_spreadsheets(card_names_whitelist, card_sets_whitelist, card_categories_whitelist, sort)
     if action == ACTIONS[0]:
         log("Rendering cards...")
         render_cards(card_sets)
@@ -772,6 +801,17 @@ if __name__ == "__main__":
         ),
         dest="card_categories_whitelist",
     )
+    parser.add_argument(
+        "-st",
+        "--sort",
+        action="store_false",
+        help=(
+            "Whether to sort the provided cards by date (ascending) then card name (ascending)."
+            "If false, it will take the order given in the spreadsheets, one spreadsheet after another. "
+            "This matters for what order cards are indexed on in their footer (and for the order when tiling)."
+        ),
+        dest="sort",
+    )
 
     args = parser.parse_args()
     main(
@@ -779,4 +819,5 @@ if __name__ == "__main__":
         args.card_names_whitelist,
         args.card_sets_whitelist,
         args.card_categories_whitelist,
+        args.sort,
     )

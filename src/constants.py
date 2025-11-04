@@ -127,6 +127,7 @@ WATERMARK_COLORS = {
     "artifact": (100, 125, 134),
     "colorless": (100, 125, 134),
     "land": (94, 84, 72),
+    "purple": (181, 108, 236),
 }
 
 # Rarity to Initial (For Footer)
@@ -180,6 +181,7 @@ INFINITY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/infinity.png")
 # Other Mono Mana
 SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/snow.png")
 LOVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/love.png")
+TRIANGLE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/triangle.png")
 
 # Tapping
 TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/tap.png")
@@ -231,6 +233,14 @@ RED_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/red
 RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/red_white.png")
 GREEN_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_white.png")
 GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/green_blue.png")
+
+# Hybrid Generic Phyrexian Mana
+TWO_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/white.png")
+TWO_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/blue.png")
+TWO_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/black.png")
+TWO_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/red.png")
+TWO_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/green.png")
+TWO_COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/phyrexian/colorless.png")
 
 # Snow Hybrid Mana
 SNOW_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/snow_colorless.png")
@@ -367,6 +377,7 @@ SYMBOL_PLACEHOLDER_KEY = {
     # Other Mono Mana
     "s": Symbol(SNOW_MANA),
     "l": Symbol(LOVE_MANA),
+    "triangle": Symbol(TRIANGLE_MANA),
     # Tapping
     "t": Symbol(TAP),
     "untap": Symbol(UNTAP),
@@ -470,6 +481,31 @@ SYMBOL_PLACEHOLDER_KEY = {
     "pg/pu": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "up/gp": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "pu/pg": Symbol(GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Hybrid Generic Phyrexian Mana
+    "2/wp": Symbol(TWO_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/2": Symbol(TWO_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pw": Symbol(TWO_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pw/2": Symbol(TWO_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/up": Symbol(TWO_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/2": Symbol(TWO_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pu": Symbol(TWO_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pu/2": Symbol(TWO_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/bp": Symbol(TWO_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/2": Symbol(TWO_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pb": Symbol(TWO_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pb/2": Symbol(TWO_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/rp": Symbol(TWO_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/2": Symbol(TWO_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pr": Symbol(TWO_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pr/2": Symbol(TWO_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/gp": Symbol(TWO_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/2": Symbol(TWO_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pg": Symbol(TWO_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pg/2": Symbol(TWO_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/cp": Symbol(TWO_COLORLESS_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "cp/2": Symbol(TWO_COLORLESS_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/pc": Symbol(TWO_COLORLESS_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pc/2": Symbol(TWO_COLORLESS_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # Snow Hybrid Mana
     "s/c": Symbol(SNOW_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "c/s": Symbol(SNOW_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),

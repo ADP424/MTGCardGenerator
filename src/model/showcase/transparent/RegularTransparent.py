@@ -50,12 +50,16 @@ class RegularTransparent(RegularCard):
 
         # Title Text
         self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
 
         # Type Text
         self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
 
         # Rules Text
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
+        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)

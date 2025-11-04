@@ -581,14 +581,15 @@ class RegularCard:
         """
 
         # A {UCS} or {EMOJI} tag without a corresponding ending tag means the rest of the text should use that font
-        if text.count("{UCS}") > (text.count("{/UCS}") + text.count("{\\UCS}")):
+        lower_text = text.lower()
+        if lower_text.count("{UCS}") > (lower_text.count("{/UCS}") + lower_text.count("{\\UCS}")):
             text += "{/UCS}"
-        if text.count("{EMOJI}") > (text.count("{/EMOJI}") + text.count("{\\EMOJI}")):
+        if lower_text.count("{EMOJI}") > (lower_text.count("{/EMOJI}") + lower_text.count("{\\EMOJI}")):
             text += "{/EMOJI}"
 
         pattern = re.compile(
             r"(\{UCS\}.*?(?:\{\/UCS\}|\{\\UCS\})|\{EMOJI\}.*?(?:\{\/EMOJI\}|\{\\EMOJI\}))",
-            re.DOTALL,
+            re.DOTALL | re.IGNORECASE,
         )
 
         chunks: list[tuple[str, str]] = []
@@ -1084,8 +1085,8 @@ class RegularCard:
             "{cardname}", self.get_metadata(CARD_TITLE).replace("{skip}", ""), new_text, flags=re.IGNORECASE
         )
         new_text = re.sub("{-}", "—", new_text)
-        new_text = re.sub("{ln}", "\n", new_text)
-        new_text = re.sub("{center}", "", new_text)
+        new_text = re.sub("{ln}", "\n", new_text, flags=re.IGNORECASE)
+        new_text = re.sub("{center}", "", new_text, flags=re.IGNORECASE)
         return new_text
 
     def _get_symbol_metrics(
@@ -1175,14 +1176,14 @@ class RegularCard:
 
         text = self._replace_text_placeholders(text)
 
-        sections = re.split(r"(\{flavor\}|\{divider\})", text)
+        sections = re.split(r"(\{flavor\}|\{divider\})", text, flags=re.IGNORECASE)
         rules_text_blocks: list[tuple[str, str]] = []
         current_type = "rules"
         for part in sections:
-            if part == "{flavor}":
+            if part.lower() == "{flavor}":
                 current_type = "flavor"
                 continue
-            elif part == "{divider}":
+            elif part.lower() == "{divider}":
                 current_type = "rules"
                 continue
             elif part.strip() == "":
@@ -1314,7 +1315,7 @@ class RegularCard:
                     indent = bullet_width
                 elif kind == "dice":
                     dice_section_width = self._get_rules_text_fragment_length(f"{value} | ", curr_font)
-                    curr_fragment.append(("dice", f"{value} | ", curr_font))
+                    curr_fragment.append(("dice", value, curr_font))
                     curr_width += dice_section_width
                 elif kind == "spacing":
                     draw_text = False if value == "start" else True
@@ -1584,15 +1585,25 @@ class RegularCard:
                             else:
                                 dice_row_toggle = False
                             dice_section_y = curr_y
+
                         draw.text(
                             (curr_x, curr_y),
                             value,
                             font=frag_font,
                             fill=curr_font_color,
-                            stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                            stroke_width=(1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                             stroke_fill="black",
                         )
                         curr_x += self._get_rules_text_fragment_length(value, frag_font)
+                        draw.text(
+                            (curr_x, curr_y),
+                            " | ",
+                            font=frag_font,
+                            fill=curr_font_color,
+                            stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+                            stroke_fill="black",
+                        )
+                        curr_x += self._get_rules_text_fragment_length(" | ", frag_font)
 
                 curr_y += line_height
 

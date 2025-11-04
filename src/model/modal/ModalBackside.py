@@ -1,3 +1,4 @@
+from constants import CARD_FRAME_LAYOUT_EXTRAS
 from model.modal.ModalFrontside import ModalFrontside
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
@@ -50,13 +51,28 @@ class ModalBackside(ModalFrontside):
         )
 
         # Title Text
-        self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Type Text
-        self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        self.POWER_TOUGHNESS_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Reminder Text/Box
         self.REMINDER_TYPE_HINT_FONT_COLOR = (0, 0, 0)
