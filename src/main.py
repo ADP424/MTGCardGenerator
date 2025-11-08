@@ -75,6 +75,10 @@ from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
+from model.token.transform.backside.RegularTokenTransformBackside import RegularTokenTransformBackside
+from model.token.transform.backside.TextlessTokenTransformBackside import TextlessTokenTransformBackside
+from model.token.transform.frontside.RegularTokenTransformFrontside import RegularTokenTransformFrontside
+from model.token.transform.frontside.TextlessTokenTransformFrontside import TextlessTokenTransformFrontside
 from model.transform.TransformBackside import TransformBackside
 from model.transform.TransformFrontside import TransformFrontside
 from utils import cardname_to_filename, get_card_key, open_image, paste_image
@@ -131,6 +135,11 @@ def process_spreadsheets(
         "textless token": TextlessToken,
         "short token": ShortToken,
         "tall token": TallToken,
+        # Transform Token
+        "regular token transform frontside": RegularTokenTransformFrontside,
+        "regular token transform backside": RegularTokenTransformBackside,
+        "textless token transform frontside": TextlessTokenTransformFrontside,
+        "textless token transform backside": TextlessTokenTransformBackside,
         # Planeswalker
         "regular planeswalker": RegularPlaneswalker,
         # Saga
@@ -341,7 +350,15 @@ def process_spreadsheets(
                 for key, value in card.metadata.items():
                     if (
                         not isinstance(value, int)
-                        and key not in (CARD_SET, CARD_ARTIST, CARD_OVERLAYS, CARD_FRONTSIDE, CARD_CATEGORY, CARD_FRAME_LAYOUT_EXTRAS)
+                        and key
+                        not in (
+                            CARD_SET,
+                            CARD_ARTIST,
+                            CARD_OVERLAYS,
+                            CARD_FRONTSIDE,
+                            CARD_CATEGORY,
+                            CARD_FRAME_LAYOUT_EXTRAS,
+                        )
                         and len(value) == 0
                     ):
                         card.set_metadata(key, original_card.get_metadata(key))
