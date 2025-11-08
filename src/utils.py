@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 from PIL import Image
 
@@ -247,3 +248,54 @@ def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
     result.alpha_composite(image, (symbol_x, symbol_y))
 
     return result
+
+
+def str_to_int(string: str, default: int) -> int:
+    """
+    Convert a string to an int if able. Otherwise, return the default.
+
+    Parameters
+    ----------
+    string: str
+        The string to convert to an integer.
+
+    default: int
+        The integer to return if the conversion isn't possible.
+
+    Returns
+    -------
+    int
+        The `string` converted to an int, or `default` if conversion failed.
+    """
+
+    try:
+        return int(string)
+    except ValueError:
+        return default
+
+
+def str_to_datetime(string: str, default: datetime, str_format: str = "%m/%d/%Y") -> datetime:
+    """
+    Convert a string to a datetime object of the given form if able. Otherwise, return the default.
+
+    Parameters
+    ----------
+    string: str
+        The string to convert to a datetime object.
+
+    default: int
+        The integer to return if the conversion isn't possible.
+
+    str_format: str, default : "%m/%d/%Y"
+        The format of the date in `string`.
+
+    Returns
+    -------
+    int
+        The `string` converted to a datetime object, or `default` if conversion failed.
+    """
+
+    try:
+        return datetime.strptime(string, str_format)
+    except ValueError:
+        return default

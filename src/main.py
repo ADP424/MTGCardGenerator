@@ -81,7 +81,7 @@ from model.token.transform.frontside.RegularTokenTransformFrontside import Regul
 from model.token.transform.frontside.TextlessTokenTransformFrontside import TextlessTokenTransformFrontside
 from model.transform.TransformBackside import TransformBackside
 from model.transform.TransformFrontside import TransformFrontside
-from utils import cardname_to_filename, get_card_key, open_image, paste_image
+from utils import cardname_to_filename, get_card_key, open_image, paste_image, str_to_datetime, str_to_int
 
 
 def process_spreadsheets(
@@ -192,25 +192,11 @@ def process_spreadsheets(
                 for extra in FRAME_LAYOUT_EXTRAS_LIST:
                     extra_idx = card_frame_layout.find(extra)
                     if card_frame_layout.find(extra) >= 0:
-                        old_frame_layout = values.get(CARD_FRAME_LAYOUT, "")
-                        values[CARD_FRAME_LAYOUT] = (
-                            old_frame_layout[:extra_idx] + old_frame_layout[extra_idx + len(extra) :]
-                        )
+                        card_frame_layout = card_frame_layout[:extra_idx] + card_frame_layout[extra_idx + len(extra) :]
                         values[CARD_FRAME_LAYOUT_EXTRAS].append(extra.strip())
+                values[CARD_FRAME_LAYOUT] = card_frame_layout
 
                 raw_cards[card_key] = values
-
-    def str_to_int(string: str, default: int) -> int:
-        try:
-            return int(string)
-        except ValueError:
-            return default
-
-    def str_to_datetime(string: str, default: datetime) -> datetime:
-        try:
-            return datetime.strptime(string, "%m/%d/%Y")
-        except ValueError:
-            return default
 
     def get_sorted_keys():
         return sorted(
@@ -277,12 +263,12 @@ def process_spreadsheets(
     def card_on_set_whitelist(card_set: str):
         if card_sets_whitelist is None:
             return True
-        return card_set in card_sets_whitelist
+        return card_set.lower() in [set.lower() for set in card_sets_whitelist]
 
     def card_on_category_whitelist(card_category: str):
         if card_categories_whitelist is None:
             return True
-        return card_category in card_categories_whitelist
+        return card_category.lower() in [category.lower() for category in card_categories_whitelist]
 
     filtered_cards: dict[str, dict[str, str]] = {}
     for key, metadata in raw_cards.items():
