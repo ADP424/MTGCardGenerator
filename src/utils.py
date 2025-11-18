@@ -130,7 +130,7 @@ def cardname_to_filename(card_name: str) -> str:
 def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "") -> str:
     """
     Return a card's unique identifier based on its title, additional titles, and descriptor.
-    Removes any formatting placeholders like "{UCS}".
+    Remove any formatting placeholders like "{UCS}".
 
     Parameters
     ----------
@@ -164,18 +164,30 @@ def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], 
 
 def int_to_roman_numeral(num: int) -> str:
     """
-    Convert an integer to its Roman numeral representation. Can handle values between 1 and 3999 (inclusive).
+    Convert a decimal number to its Roman numeral representation.
+    This function handles positive integers. For numbers 4,000 and above, it uses vinculum (overline) notation
+    where a bar over numerals means they are multiplied by 1,000. For example, V̅ = 5,000, X̅ = 10,000.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     num: int
-        The number to convert to a Roman numeral. Returns an empty string if not 1 <= `num` <= 3999.
+        The positive integer to convert.
+
+    Returns:
+    --------
+    str
+        The Roman numeral representation of `num`.
+
+    Raises:
+    -------
+    ValueError
+        If the input is zero or negative.
     """
 
-    if not (1 <= num <= 3999):
-        return ""
+    if num <= 0:
+        raise ValueError("Roman numerals cannot be zero or negative.")
 
-    numeral_map = [
+    val_symbol_pairs = [
         (1000, "M"),
         (900, "CM"),
         (500, "D"),
@@ -191,12 +203,45 @@ def int_to_roman_numeral(num: int) -> str:
         (1, "I"),
     ]
 
-    roman_numeral = ""
-    for value, symbol in numeral_map:
-        while num >= value:
-            roman_numeral += symbol
-            num -= value
-    return roman_numeral
+    OVERLINE = "\u0305"
+
+    def convert_under_4000(n: int) -> str:
+        """
+        Convert a number less than 4000 to Roman numerals.
+        """
+
+        result = ""
+        for value, symbol in val_symbol_pairs:
+            while n >= value:
+                result += symbol
+                n -= value
+        return result
+
+    def add_overline(text: str) -> str:
+        """
+        Add an overline to each character in the text.
+        """
+
+        return "".join(char + OVERLINE for char in text)
+
+    if num < 4000:
+        return convert_under_4000(num)
+
+    result = ""
+
+    thousands = num // 1000
+    remainder = num % 1000
+
+    if thousands > 0:
+        if thousands >= 4000:
+            result = add_overline(int_to_roman_numeral(thousands))
+        else:
+            result = add_overline(convert_under_4000(thousands))
+
+    if remainder > 0:
+        result += convert_under_4000(remainder)
+
+    return result
 
 
 def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:

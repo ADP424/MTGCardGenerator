@@ -455,21 +455,67 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
         log()
 
 
-def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
+def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: list[str] = None):
     tile_image_width = (MAX_TILING_WIDTH // CARD_TILE_WIDTH) * CARD_TILE_WIDTH
     tile_image_height = (MAX_TILING_HEIGHT // CARD_TILE_HEIGHT) * CARD_TILE_HEIGHT
+
+    if tile_nums is not None:
+        tile_num_pairs = []
+        max_tile_num = {}
+
+        for num in tile_nums:
+            category, tile_num = num.split("-")
+            tile_num = int(tile_num)
+            tile_num_pairs.append((category, str(tile_num)))
+
+            if category not in max_tile_num or tile_num > max_tile_num[category]:
+                max_tile_num[category] = tile_num
+    else:
+        tile_num_pairs = None
+        max_tile_num = None
 
     for card_set, spreadsheet in card_sets.items():
         output_path = f"{OUTPUT_TILES_PATH}/{card_set}"
         log(f"Processing set at '{output_path}'...")
         increase_log_indent()
 
-        tile_image: dict[str, int] = {}
+        tile_image: dict[str, Image.Image] = {}
         tile_num: dict[str, int] = {}
         curr_width: dict[str, int] = {}
         curr_height: dict[str, int] = {}
 
         def tile_card(card: RegularCard):
+            card_category = card.get_metadata(CARD_CATEGORY).lower()
+
+            if not tile_image.get(card_category, False):
+                tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
+                tile_num[card_category] = 1
+                curr_width[card_category] = 0
+                curr_height[card_category] = 0
+
+            if (
+                tile_num_pairs is not None
+                and (card_category, str(tile_num[card_category])) not in tile_num_pairs
+                and (card_category, "*") not in tile_num_pairs
+            ):
+                log("Not in provided tile nums. Skipping...")
+
+                curr_width[card_category] += CARD_TILE_WIDTH
+                if curr_width[card_category] > tile_image_width - CARD_TILE_WIDTH:
+                    curr_width[card_category] = 0
+                    curr_height[card_category] += CARD_TILE_HEIGHT
+                if curr_height[card_category] > tile_image_height - CARD_TILE_HEIGHT:
+                    curr_height[card_category] = 0
+                    tile_num[card_category] += 1
+                    if (
+                        max_tile_num is not None
+                        and card_category in max_tile_num
+                        and tile_num[card_category] > max_tile_num[card_category]
+                    ):
+                        log(f"Reached end of requested tiles for {card_category}. Skipping remaining cards...")
+                        return
+                return
+
             card.create_layers()
             final_card = card.render_card()
             if card.FOOTER_ROTATION == 90:
@@ -477,13 +523,6 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
             elif card.FOOTER_ROTATION == 270:
                 final_card = final_card.transpose(Image.Transpose.ROTATE_90)
             final_card = final_card.resize((CARD_TILE_WIDTH, CARD_TILE_HEIGHT))
-
-            card_category = card.get_metadata(CARD_CATEGORY).lower()
-            if not tile_image.get(card_category, False):
-                tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
-                tile_num[card_category] = 1
-                curr_width[card_category] = 0
-                curr_height[card_category] = 0
 
             if curr_width[card_category] > tile_image_width - CARD_TILE_WIDTH:
                 curr_width[card_category] = 0
@@ -497,6 +536,13 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
                 tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
                 curr_height[card_category] = 0
                 tile_num[card_category] += 1
+                if (
+                    max_tile_num is not None
+                    and card_category in max_tile_num
+                    and tile_num[card_category] > max_tile_num[card_category]
+                ):
+                    log(f"Reached end of requested tiles for {card_category}. Skipping remaining cards...")
+                    return
 
             tile_image[card_category] = paste_image(
                 final_card, tile_image[card_category], (curr_width[card_category], curr_height[card_category])
@@ -531,7 +577,11 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]]):
             decrease_log_indent()
 
         for category in tile_image.keys():
-            if curr_width[category] > 0 or curr_height[category] > 0:
+            if (
+                (tile_num_pairs is None)
+                or ((category, str(tile_num[category])) in tile_num_pairs)
+                and (curr_width[category] > 0 or curr_height[category] > 0)
+            ):
                 os.makedirs(f"{output_path}/{category}", exist_ok=True)
                 tile_image[category].save(f"{output_path}/{category}/{tile_num[category]}.png")
 
@@ -550,6 +600,12 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             # Transform
             "transform frontside": "regular",
             "transform backside": "regular",
+            # Modal
+            "modal frontside": "regular",
+            "modal backside": "regular",
+            # Split TODO: SPLIT ART EXTRACTION POSSIBLE BUT NOT IMPLEMENTED
+            "regular split": "split",
+            "regular fuse": "split",
             # Token -- Not Allowed
             # Planeswalker -- Not Allowed
             # Vehicle
@@ -564,19 +620,33 @@ def capture_art(card_sets: dict[str, dict[str, RegularCard]]):
             # Battle -- Not Allowed
             # Room -- Not Allowed
             # Showcase
+            "sketch": "regular",
         }
 
         blacklisted_frames = (
             "regular/eldrazi",
+            "regular/transform/front/borderless",
+            "regular/transform/front/extended",
+            "regular/transform/back/borderless",
+            "regular/transform/back/extended",
+            "regular/modal/borderless",
+            "regular/modal/extended",
+            "regular/modal/helper",
+            "regular/modal/nickname",
+            "regular/modal/short",
             "adventure/storybook/",
             "battle/",
             "planeswalker/",
             "room/",
+            "token/",
             "showcase/draconic/",
             "showcase/full_text/",
+            "showcase/future/",
             "showcase/japan/",
+            "showcase/lotr/",
+            "showcase/promo/",
             "showcase/transparent/",
-            "token/",
+            "showcase/zendikar/",
         )
 
         def frame_supported(frame_path: str) -> bool:
@@ -724,6 +794,7 @@ def main(
     card_sets_whitelist: list[str] = None,
     card_categories_whitelist: list[str] = None,
     sort: bool = True,
+    tile_nums: list[str] = None,
 ):
     """
     Run the program.
@@ -747,6 +818,10 @@ def main(
 
     sort: bool, default: False
         Whether to automatically sort the cards by date, then by name, or not.
+
+    tile_nums: list[str], optional
+        The category/number pairs for which tiles to process during the tiling action.
+        Written as "{category}-{num}" like "regular-12". Processes all by default.
     """
 
     reset_log()
@@ -756,7 +831,7 @@ def main(
         render_cards(card_sets)
     elif action == ACTIONS[1]:
         log("Tiling cards...")
-        render_tiled_cards(card_sets)
+        render_tiled_cards(card_sets, tile_nums)
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
         capture_art(card_sets)
@@ -815,6 +890,17 @@ if __name__ == "__main__":
         ),
         dest="sort",
     )
+    parser.add_argument(
+        "-tn",
+        "--tile-nums",
+        nargs="+",
+        help=(
+            "Only process the tiles with these categories and numbers, written as '{category}-{num}' like "
+            "'regular-12'. You can also enter '{category}-*' to process all tiles from that category. "
+            "Only relevant for the 'tile' action."
+        ),
+        dest="tile_nums",
+    )
 
     args = parser.parse_args()
     main(
@@ -823,4 +909,5 @@ if __name__ == "__main__":
         args.card_sets_whitelist,
         args.card_categories_whitelist,
         args.sort,
+        args.tile_nums,
     )
