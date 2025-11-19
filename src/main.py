@@ -88,6 +88,8 @@ def process_spreadsheets(
     card_names_whitelist: list[str] = None,
     card_sets_whitelist: list[str] = None,
     card_categories_whitelist: list[str] = None,
+    oldest_date: datetime = None,
+    latest_date: datetime = None,
     sort: bool = True,
 ) -> dict[str, dict[str, RegularCard]]:
     """
@@ -103,6 +105,12 @@ def process_spreadsheets(
 
     card_categories_whitelist: list[str], optional
         The names of the card categories to process. Process all of them by default.
+
+    oldest_date: datetime, optional
+        The earliest date to process cards from.
+
+    latest_date: datetime, optional
+        The latest date to process cards from.
 
     sort: bool, default: True
         Whether to sort the sheet by date, then by name, or not.
@@ -269,6 +277,15 @@ def process_spreadsheets(
         if card_categories_whitelist is None:
             return True
         return card_category.lower() in [category.lower() for category in card_categories_whitelist]
+    
+    def card_within_date_range(card_creation_date: str):
+        nonlocal oldest_date, latest_date
+        if oldest_date is None:
+            oldest_date = datetime.min
+        if latest_date is None:
+            latest_date = datetime.max
+        converted_creation_date = str_to_datetime(card_creation_date, None)
+        return converted_creation_date is None or (oldest_date <= converted_creation_date <= latest_date)
 
     filtered_cards: dict[str, dict[str, str]] = {}
     for key, metadata in raw_cards.items():
@@ -277,10 +294,12 @@ def process_spreadsheets(
         card_descriptor = metadata.get(CARD_DESCRIPTOR, "")
         card_set = metadata.get(CARD_SET, "").lower()
         card_category = metadata.get(CARD_CATEGORY, "").lower()
+        card_creation_date = metadata.get(CARD_CREATION_DATE)
         if (
             not card_on_card_name_whitelist(card_title, card_additional_titles, card_descriptor)
             or not card_on_set_whitelist(card_set)
             or not card_on_category_whitelist(card_category)
+            or not card_within_date_range(card_creation_date)
         ):
             continue
         filtered_cards[key] = metadata
@@ -388,6 +407,14 @@ def process_spreadsheets(
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_sets[card_set][card_key]
+
+    # Remove cards with blank creation dates, if date filtering is on
+    if oldest_date > datetime.min or latest_date < datetime.max:
+        for card_set in card_sets:
+            for card_name, card in list(card_sets[card_set].items()):
+                card_creation_date = card.get_metadata(CARD_CREATION_DATE)
+                if len(card_creation_date) == 0:
+                    del card_sets[card_set][card_name]
 
     if sort:
         sorted_card_sets = {}
@@ -793,6 +820,8 @@ def main(
     card_names_whitelist: list[str] = None,
     card_sets_whitelist: list[str] = None,
     card_categories_whitelist: list[str] = None,
+    oldest_date: datetime = None,
+    latest_date: datetime = None,
     sort: bool = True,
     tile_nums: list[str] = None,
 ):
@@ -816,6 +845,12 @@ def main(
         The names of the categories to include cards of in performing the action on.
         By default, perform the action on all cards.
 
+    oldest_date: datetime, optional
+        The earliest date to process cards from.
+
+    latest_date: datetime, optional
+        The latest date to process cards from.
+
     sort: bool, default: False
         Whether to automatically sort the cards by date, then by name, or not.
 
@@ -825,7 +860,7 @@ def main(
     """
 
     reset_log()
-    card_sets = process_spreadsheets(card_names_whitelist, card_sets_whitelist, card_categories_whitelist, sort)
+    card_sets = process_spreadsheets(card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort)
     if action == ACTIONS[0]:
         log("Rendering cards...")
         render_cards(card_sets)
@@ -880,6 +915,22 @@ if __name__ == "__main__":
         dest="card_categories_whitelist",
     )
     parser.add_argument(
+        "-od",
+        "--oldest-date",
+        nargs=1,
+        type=lambda string: datetime.strptime(string, '%m/%d/%Y'),
+        help="The oldest card creation date to process cards from, in 'MM/DD/YYYY' format.",
+        dest="oldest_date",
+    )
+    parser.add_argument(
+        "-ld",
+        "--latest-date",
+        nargs=1,
+        type=lambda string: datetime.strptime(string, '%m/%d/%Y'),
+        help="The latest card creation date to process cards from, in 'MM/DD/YYYY' format.",
+        dest="latest_date",
+    )
+    parser.add_argument(
         "-st",
         "--sort",
         action="store_false",
@@ -908,6 +959,8 @@ if __name__ == "__main__":
         args.card_names_whitelist,
         args.card_sets_whitelist,
         args.card_categories_whitelist,
+        args.oldest_date[0],
+        args.latest_date[0],
         args.sort,
         args.tile_nums,
     )
