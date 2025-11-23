@@ -48,11 +48,8 @@ class RegularFuse(RegularSplit):
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
-        footer_largest_index: int = 999,
     ):
-        super().__init__(
-            metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
-        )
+        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
 
         # First Rules Box
         self.FIRST_RULES_BOX_HEIGHT = 430

@@ -19,6 +19,7 @@ from constants import (
     CARD_CATEGORY,
     CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
+    CARD_FOOTER_LARGEST_INDEX,
     CARD_FRAME_LAYOUT,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_FRAMES,
@@ -44,6 +45,7 @@ from constants import (
     OUTPUT_TILES_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
+from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
@@ -162,6 +164,8 @@ def process_spreadsheets(
         "transform battle": TransformBattle,
         # Room
         "regular room": RegularRoom,
+        # Edifice
+        "regular edifice": RegularEdifice,
         # Showcase
         "regular transparent": RegularTransparent,
         "full text": FullText,
@@ -177,6 +181,11 @@ def process_spreadsheets(
         "lotr ring": RingLOTR,
         "lotr scroll": ScrollLOTR,
     }
+
+    if oldest_date is None:
+        oldest_date = datetime.min
+    if latest_date is None:
+        latest_date = datetime.max
 
     card_sets: dict[str, dict[str, RegularCard]] = {}
 
@@ -244,7 +253,7 @@ def process_spreadsheets(
         category = card.get(CARD_CATEGORY, "")
         card_set = card.get(CARD_SET, "")
         if len(card_set) > 0 and len(category) > 0:
-            card["footer_largest_index"] = category_indices[card_set][category]
+            card[CARD_FOOTER_LARGEST_INDEX] = category_indices[card_set][category]
 
     # Cull any cards not on the whitelist
     def card_on_card_name_whitelist(card_title: str, card_additional_titles: str, card_descriptor: str):
@@ -277,13 +286,8 @@ def process_spreadsheets(
         if card_categories_whitelist is None:
             return True
         return card_category.lower() in [category.lower() for category in card_categories_whitelist]
-    
+
     def card_within_date_range(card_creation_date: str):
-        nonlocal oldest_date, latest_date
-        if oldest_date is None:
-            oldest_date = datetime.min
-        if latest_date is None:
-            latest_date = datetime.max
         converted_creation_date = str_to_datetime(card_creation_date, None)
         return converted_creation_date is None or (oldest_date <= converted_creation_date <= latest_date)
 
@@ -860,7 +864,9 @@ def main(
     """
 
     reset_log()
-    card_sets = process_spreadsheets(card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort)
+    card_sets = process_spreadsheets(
+        card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort
+    )
     if action == ACTIONS[0]:
         log("Rendering cards...")
         render_cards(card_sets)
@@ -918,7 +924,7 @@ if __name__ == "__main__":
         "-od",
         "--oldest-date",
         nargs=1,
-        type=lambda string: datetime.strptime(string, '%m/%d/%Y'),
+        type=lambda string: datetime.strptime(string, "%m/%d/%Y"),
         help="The oldest card creation date to process cards from, in 'MM/DD/YYYY' format.",
         dest="oldest_date",
     )
@@ -926,7 +932,7 @@ if __name__ == "__main__":
         "-ld",
         "--latest-date",
         nargs=1,
-        type=lambda string: datetime.strptime(string, '%m/%d/%Y'),
+        type=lambda string: datetime.strptime(string, "%m/%d/%Y"),
         help="The latest card creation date to process cards from, in 'MM/DD/YYYY' format.",
         dest="latest_date",
     )
@@ -959,8 +965,8 @@ if __name__ == "__main__":
         args.card_names_whitelist,
         args.card_sets_whitelist,
         args.card_categories_whitelist,
-        args.oldest_date[0],
-        args.latest_date[0],
+        args.oldest_date[0] if args.oldest_date is not None else None,
+        args.latest_date[0] if args.latest_date is not None else None,
         args.sort,
         args.tile_nums,
     )

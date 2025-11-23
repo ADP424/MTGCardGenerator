@@ -43,11 +43,8 @@ class ShortToken(RegularToken):
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
-        footer_largest_index: int = 999,
     ):
-        super().__init__(
-            metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers, footer_largest_index
-        )
+        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
 
         # Type Box
         self.TYPE_BOX_Y = 1420

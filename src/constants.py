@@ -48,6 +48,7 @@ CARD_OVERLAYS = "Overlay(s)"
 CARD_INDEX = "Index"
 CARD_BACKSIDES = "Transform Backsides"
 CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
+CARD_FOOTER_LARGEST_INDEX = "Footer Largest_Index"
 
 ##################
 # FILE LOCATIONS #
@@ -117,6 +118,7 @@ HYBRID_MANA_SYMBOL_SIZE_MULT = 1.25
 
 # Watermark
 WATERMARK_COLORS = {
+    # regular
     "white": (183, 157, 88),
     "blue": (140, 172, 197),
     "black": (94, 94, 94),
@@ -127,7 +129,15 @@ WATERMARK_COLORS = {
     "artifact": (100, 125, 134),
     "colorless": (100, 125, 134),
     "land": (94, 84, 72),
-    "purple": (181, 108, 236),
+    # pycok
+    "purple": (100, 32, 156),
+    "yellow": (242, 181, 40),
+    "cyan": (38, 185, 179),
+    "orange": (226, 110, 21),
+    "pink": (228, 143, 175),
+    "edifice": (61, 40, 23),
+    # the one set
+    "triangle": (181, 108, 236),
 }
 
 # Rarity to Initial (For Footer)

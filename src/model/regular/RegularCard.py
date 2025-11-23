@@ -6,6 +6,7 @@ from constants import (
     ARTIST_BRUSH,
     CARD_ADDITIONAL_TITLES,
     CARD_DESCRIPTOR,
+    CARD_FOOTER_LARGEST_INDEX,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_OVERLAYS,
     CARD_TRANSFORM_HINT,
@@ -88,7 +89,6 @@ class RegularCard:
         collector_layers: list[Layer] = None,
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
-        footer_largest_index: int = 999,
     ):
         self.metadata = metadata if metadata is not None else {}
         self.art_layer = art_layer if art_layer is not None else Layer(None)
@@ -96,7 +96,6 @@ class RegularCard:
         self.collector_layers = collector_layers if collector_layers is not None else []
         self.text_layers = text_layers if text_layers is not None else []
         self.overlay_layers = overlay_layers if overlay_layers is not None else []
-        self.footer_largest_index = footer_largest_index
 
         # Overall Card
         self.CARD_WIDTH = 1500
@@ -712,7 +711,7 @@ class RegularCard:
         footer_height = self.FOOTER_HEIGHT
         footer_rotation = self.FOOTER_ROTATION
 
-        index = self.get_metadata(CARD_INDEX).zfill(len(str(self.footer_largest_index)))
+        index = self.get_metadata(CARD_INDEX).zfill(len(str(self.get_metadata(CARD_FOOTER_LARGEST_INDEX))))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
 
         footer_font = ImageFont.truetype(GOTHAM_BOLD, self.FOOTER_FONT_SIZE)
@@ -729,7 +728,9 @@ class RegularCard:
             add_total_to_footer = int(self.get_metadata(ADD_TOTAL_TO_FOOTER)) > 0
         except ValueError:
             add_total_to_footer = False
-        collector_number_text = f"{index}{f"/{self.footer_largest_index}" if add_total_to_footer else ""}"
+        collector_number_text = (
+            f"{index}{f"/{self.get_metadata(CARD_FOOTER_LARGEST_INDEX)}" if add_total_to_footer else ""}"
+        )
         self._draw_ucs_chunks(
             draw,
             (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE),
