@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import MINYEAR, datetime
 import re
 from PIL import Image
 
@@ -295,7 +295,7 @@ def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
     return result
 
 
-def str_to_int(string: str, default: int) -> int:
+def str_to_int(string: str, default: int = 0) -> int:
     """
     Convert a string to an int if able. Otherwise, return the default.
 
@@ -304,7 +304,7 @@ def str_to_int(string: str, default: int) -> int:
     string: str
         The string to convert to an integer.
 
-    default: int
+    default: int, default : 0
         The integer to return if the conversion isn't possible.
 
     Returns
@@ -319,7 +319,7 @@ def str_to_int(string: str, default: int) -> int:
         return default
 
 
-def str_to_datetime(string: str, default: datetime, str_format: str = "%m/%d/%Y") -> datetime:
+def str_to_datetime(string: str, default: datetime = datetime(MINYEAR, 1, 1), str_format: str = "%m/%d/%Y") -> datetime:
     """
     Convert a string to a datetime object of the given form if able. Otherwise, return the default.
 
@@ -328,8 +328,8 @@ def str_to_datetime(string: str, default: datetime, str_format: str = "%m/%d/%Y"
     string: str
         The string to convert to a datetime object.
 
-    default: int
-        The integer to return if the conversion isn't possible.
+    default: datetime, default : datetime(MINYEAR, 1, 1)
+        The datetime to return if the conversion isn't possible.
 
     str_format: str, default : "%m/%d/%Y"
         The format of the date in `string`.

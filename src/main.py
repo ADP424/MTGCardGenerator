@@ -3,6 +3,7 @@ import csv
 import glob
 import os
 import re
+from typing import Callable
 from PIL import Image
 
 from datetime import MINYEAR, datetime
@@ -65,6 +66,8 @@ from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
 from model.showcase.Sketch import Sketch
 from model.showcase.Zendikar import Zendikar
+from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
+from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
@@ -92,7 +95,7 @@ def process_spreadsheets(
     card_categories_whitelist: list[str] = None,
     oldest_date: datetime = None,
     latest_date: datetime = None,
-    sort: bool = True,
+    sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None,
 ) -> dict[str, dict[str, RegularCard]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
@@ -114,8 +117,8 @@ def process_spreadsheets(
     latest_date: datetime, optional
         The latest date to process cards from.
 
-    sort: bool, default: True
-        Whether to sort the sheet by date, then by name, or not.
+    sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]], optional
+        Which card sheet columns to sort the cards by, plus their default values.
 
     Returns
     -------
@@ -177,6 +180,9 @@ def process_spreadsheets(
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
         "open house promo": OpenHousePromo,
+        # Showcase Full Art Basic Lands
+        "full art basic thb": FullArtBasicTHB,
+        "full art basic snc": FullArtBasicSNC,
         # Showcase LOTR
         "lotr ring": RingLOTR,
         "lotr scroll": ScrollLOTR,
@@ -420,17 +426,24 @@ def process_spreadsheets(
                 if len(card_creation_date) == 0:
                     del card_sets[card_set][card_name]
 
-    if sort:
+    if sort_by is not None:
         sorted_card_sets = {}
         for card_set in card_sets:
             sorted_card_sets[card_set] = dict(
                 sorted(
                     card_sets[card_set].items(),
                     key=lambda card: (
-                        str_to_datetime(card[1].get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                        str_to_int(card[1].get_metadata(CARD_ORDERER), 0),
-                        card[1].get_metadata(CARD_TITLE),
+                        str_to_datetime(card[1].get_metadata(sort_by[0]), datetime(MINYEAR, 1, 1)),
+                        str_to_int(card[1].get_metadata(sort_by[1]), 0),
+                        card[1].get_metadata(sort_by[2]),
                     ),
+                )
+            )
+        for card_set in card_sets:
+            sorted_card_sets[card_set] = dict(
+                sorted(
+                    card_sets[card_set].items(),
+                    key=lambda card: tuple(sort[1](card[1].get_metadata(sort[0])) for sort in sort_by),
                 )
             )
         return sorted_card_sets
@@ -826,7 +839,8 @@ def main(
     card_categories_whitelist: list[str] = None,
     oldest_date: datetime = None,
     latest_date: datetime = None,
-    sort: bool = True,
+    sort_by_date: bool = True,
+    sort_by_orderer: bool = True,
     tile_nums: list[str] = None,
 ):
     """
@@ -855,17 +869,29 @@ def main(
     latest_date: datetime, optional
         The latest date to process cards from.
 
-    sort: bool, default: False
+    sort_by_date: bool, default: False
         Whether to automatically sort the cards by date, then by name, or not.
+
+    sort_by_orderer: bool, default: False
+        Whether to automatically sort the cards by the orderer column, then by date, then name, or not.
 
     tile_nums: list[str], optional
         The category/number pairs for which tiles to process during the tiling action.
         Written as "{category}-{num}" like "regular-12". Processes all by default.
     """
 
+    sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None
+    if sort_by_date:
+        sort_by = ((CARD_CREATION_DATE, str_to_datetime), (CARD_ORDERER, str_to_int), (CARD_TITLE, str))
+    if sort_by_orderer:
+        if sort_by is not None:
+            log("ERROR: User supplied multiple conflicting sort commands.")
+            return
+        sort_by = ((CARD_ORDERER, str_to_int), (CARD_CREATION_DATE, str_to_datetime), (CARD_TITLE, str))
+
     reset_log()
     card_sets = process_spreadsheets(
-        card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort
+        card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort_by
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")
@@ -937,15 +963,26 @@ if __name__ == "__main__":
         dest="latest_date",
     )
     parser.add_argument(
-        "-st",
-        "--sort",
-        action="store_false",
+        "-sbd",
+        "--sort-by-date",
+        action="store_true",
         help=(
             "Whether to sort the provided cards by date (ascending) then card name (ascending)."
-            "If false, it will take the order given in the spreadsheets, one spreadsheet after another. "
-            "This matters for what order cards are indexed on in their footer (and for the order when tiling)."
+            "Sorting matters for what order cards are indexed on in their footer (and for the order when tiling)."
         ),
-        dest="sort",
+        dest="sort_by_date",
+    )
+    parser.add_argument(
+        "-sbo",
+        "--sort-by-orderer",
+        action="store_true",
+        help=(
+            "Whether to sort the provided cards by the 'orderer' column or not."
+            "This column is usually for ordering transform backsides, but it can be used to sort whole "
+            "sheets if every card is given an 'orderer' value. Cards with the same 'orderer' value are "
+            "sorted by date, then name. Cards without an 'orderer' value are considered 'orderer' 0."
+        ),
+        dest="sort_by_orderer",
     )
     parser.add_argument(
         "-tn",
@@ -967,6 +1004,7 @@ if __name__ == "__main__":
         args.card_categories_whitelist,
         args.oldest_date[0] if args.oldest_date is not None else None,
         args.latest_date[0] if args.latest_date is not None else None,
-        args.sort,
+        args.sort_by_date,
+        args.sort_by_orderer,
         args.tile_nums,
     )

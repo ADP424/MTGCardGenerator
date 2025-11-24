@@ -163,6 +163,13 @@ RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/red.png")
 GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/green.png")
 COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/colorless.png")
 
+# Mono-Colored Mana (PYCOK)
+PURPLE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/pycok/purple.png")
+YELLOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/pycok/yellow.png")
+CYAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/pycok/cyan.png")
+ORANGE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/pycok/orange.png")
+PINK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/pycok/pink.png")
+
 # Numbered Mana
 ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/0.png")
 ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/mono/1.png")
@@ -359,6 +366,12 @@ SYMBOL_PLACEHOLDER_KEY = {
     "r": Symbol(RED_MANA),
     "g": Symbol(GREEN_MANA),
     "c": Symbol(COLORLESS_MANA),
+    # Mono-Colored Mana (PYCOK)
+    "pp": Symbol(PURPLE_MANA),
+    "yw": Symbol(YELLOW_MANA),
+    "cy": Symbol(CYAN_MANA),
+    "or": Symbol(ORANGE_MANA),
+    "pk": Symbol(PINK_MANA),
     # Numbered Mana
     "0": Symbol(ZERO_MANA),
     "1": Symbol(ONE_MANA),

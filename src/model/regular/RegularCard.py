@@ -1005,6 +1005,11 @@ class RegularCard:
             text = text.replace("{last}", "")
             overlay = True
 
+        centered = False
+        if "{center}" in text:
+            text = text.replace("{center}", "")
+            centered = True
+
         segments = []
         last_end = 0
         for match in COLOR_TAG_PATTERN.finditer(text):
@@ -1048,7 +1053,13 @@ class RegularCard:
 
         ascent = type_font.getmetrics()[0]
         y_pos = (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2
-        x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
+
+        if centered:
+            x_pos = (self.SET_SYMBOL_X - self.TYPE_X - type_length) // 2 + int(
+                self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size
+            )
+        else:
+            x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
         for seg_text, color in segments:
             self._draw_ucs_chunks(
@@ -1123,7 +1134,7 @@ class RegularCard:
         scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
         width = int(symbol.image.width * scale)
         height = int(symbol.image.height * scale)
-        symbol_image = symbol.get_formatted_image(width, height, self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
+        symbol_image = symbol.get_formatted_image(width, height, int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size))
         return symbol_image.width, symbol_image.height, symbol_image
 
     def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont) -> int:
