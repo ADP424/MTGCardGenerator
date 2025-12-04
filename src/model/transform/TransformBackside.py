@@ -49,7 +49,7 @@ class TransformBackside(RegularCard):
         self.TITLE_BOX_WIDTH = 1183
 
         # Title Text
-        self.TITLE_WIDTH = 1158
+        self.TITLE_WIDTH = 1140
         self.TITLE_FONT_COLOR = (255, 255, 255)
 
         # Type Text

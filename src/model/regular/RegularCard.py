@@ -13,6 +13,7 @@ from constants import (
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
     DICE_SECTION_PATH,
+    LATO_BOLD_ITALICS,
     RULES_DIVIDING_LINE,
     INPUT_ART_PATH,
     BELEREN_BOLD_SMALL_CAPS,
@@ -135,6 +136,7 @@ class RegularCard:
         self.TYPE_WIDTH = 1244 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1173
         self.TYPE_MAX_FONT_SIZE = 67
         self.TYPE_MIN_FONT_SIZE = 6
+        self.TYPE_FONT = BELEREN_BOLD
         self.TYPE_FONT_COLOR = (0, 0, 0)
         self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
@@ -152,6 +154,7 @@ class RegularCard:
         self.RULES_TEXT_HEIGHT = 623
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
+        self.RULES_TEXT_FONT_BOLD_ITALICS = LATO_BOLD_ITALICS
         self.RULES_TEXT_MAX_FONT_SIZE = 78
         self.RULES_TEXT_MIN_FONT_SIZE = 6
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
@@ -168,6 +171,7 @@ class RegularCard:
         self.POWER_TOUGHNESS_Y = 1866
         self.POWER_TOUGHNESS_WIDTH = 252
         self.POWER_TOUGHNESS_HEIGHT = 124
+        self.POWER_TOUGHNESS_FONT = BELEREN_BOLD_SMALL_CAPS
         self.POWER_TOUGHNESS_FONT_SIZE = 80
         self.POWER_TOUGHNESS_FONT_COLOR = (
             (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
@@ -191,6 +195,9 @@ class RegularCard:
         self.FOOTER_Y = 1968
         self.FOOTER_WIDTH = 1304
         self.FOOTER_HEIGHT = 152
+        self.FOOTER_FONT = GOTHAM_BOLD
+        self.ARTIST_FONT = BELEREN_BOLD_SMALL_CAPS
+        self.LEGAL_FONT = MPLANTIN
         self.FOOTER_FONT_SIZE = 35
         self.FOOTER_FONT_OUTLINE_SIZE = 3
         self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
@@ -714,9 +721,9 @@ class RegularCard:
         index = self.get_metadata(CARD_INDEX).zfill(len(str(self.get_metadata(CARD_FOOTER_LARGEST_INDEX))))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
 
-        footer_font = ImageFont.truetype(GOTHAM_BOLD, self.FOOTER_FONT_SIZE)
-        artist_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.FOOTER_FONT_SIZE)
-        legal_font = ImageFont.truetype(MPLANTIN, self.FOOTER_FONT_SIZE)
+        footer_font = ImageFont.truetype(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
+        artist_font = ImageFont.truetype(self.ARTIST_FONT, self.FOOTER_FONT_SIZE)
+        legal_font = ImageFont.truetype(self.LEGAL_FONT, self.FOOTER_FONT_SIZE)
 
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
@@ -1027,7 +1034,7 @@ class RegularCard:
             segments.append((text[last_end:], self.TYPE_FONT_COLOR))
 
         font_size = self.TYPE_MAX_FONT_SIZE
-        type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+        type_font = ImageFont.truetype(self.TYPE_FONT, font_size)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
@@ -1043,7 +1050,7 @@ class RegularCard:
         type_length = get_type_length()
         while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
-            type_font = ImageFont.truetype(BELEREN_BOLD, font_size)
+            type_font = ImageFont.truetype(self.TYPE_FONT, font_size)
             symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
             type_length = get_type_length()
@@ -1224,6 +1231,10 @@ class RegularCard:
                         fragments.append(("format", "italic_on"))
                     elif token in ("\\i", "/i"):
                         fragments.append(("format", "italic_off"))
+                    elif token in ("bi", "ib"):
+                        fragments.append(("format", "bold_italic_on"))
+                    elif token in ("\\bi", "/bi", "\\ib", "/ib"):
+                        fragments.append(("format", "bold_italic_off"))
                     elif token == "ucs":
                         fragments.append(("format", "ucs_on"))
                     elif token in ("\\ucs", "/ucs"):
@@ -1264,6 +1275,7 @@ class RegularCard:
             frags: list[tuple[str, str]],
             regular_font: ImageFont.FreeTypeFont,
             italic_font: ImageFont.FreeTypeFont,
+            bold_italic_font: ImageFont.FreeTypeFont,
             symbol_font: ImageFont.FreeTypeFont,
             emoji_font: ImageFont.FreeTypeFont,
         ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
@@ -1275,7 +1287,7 @@ class RegularCard:
             lines = []
             curr_fragment = []
             curr_width = 0
-            curr_main_font = regular_font  # regular vs italics
+            curr_main_font = regular_font  # regular vs italics vs bold italics
             curr_font = regular_font  # regular vs italics vs symbol vs emoji
 
             indent = 0
@@ -1295,6 +1307,12 @@ class RegularCard:
                         curr_main_font = italic_font
                         curr_font = italic_font
                     elif value == "italic_off":
+                        curr_main_font = regular_font
+                        curr_font = regular_font
+                    elif value == "bold_italic_on":
+                        curr_main_font = bold_italic_font
+                        curr_font = bold_italic_font
+                    elif value == "bold_italic_off":
                         curr_main_font = regular_font
                         curr_font = regular_font
                     elif value == "ucs_on":
@@ -1370,6 +1388,7 @@ class RegularCard:
         for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
             rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
             italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
+            bold_italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_BOLD_ITALICS, font_size)
             symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
@@ -1389,7 +1408,7 @@ class RegularCard:
                     fragments = parse_fragments(line)
                     if fragments:
                         rules_lines[-1] += wrap_text_fragments(
-                            fragments, target_font, italics_font, symbol_font, emoji_font
+                            fragments, target_font, italics_font, bold_italics_font, symbol_font, emoji_font
                         )
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
@@ -1691,7 +1710,7 @@ class RegularCard:
         if last_end < len(text):
             segments.append((text[last_end:], self.POWER_TOUGHNESS_FONT_COLOR))
 
-        power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_font = ImageFont.truetype(self.POWER_TOUGHNESS_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
 

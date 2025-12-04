@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
     CARD_ADDITIONAL_TITLES,
+    CARD_FRAME_LAYOUT_EXTRAS,
     CARD_TRANSFORM_HINT,
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
@@ -77,8 +78,18 @@ class ModalFrontside(RegularCard):
         self.REMINDER_MANA_FONT_SIZE = 55
         self.REMINDER_TYPE_MAX_FONT_SIZE = 50
         self.REMINDER_MANA_MIN_FONT_SIZE = 6
-        self.REMINDER_TYPE_HINT_FONT_COLOR = (255, 255, 255)
-        self.REMINDER_MANA_HINT_FONT_COLOR = (255, 255, 255)
+        self.REMINDER_TYPE_HINT_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
+        self.REMINDER_MANA_HINT_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
         self.REMINDER_TYPE_MANA_GAP = 25
 
     def create_layers(

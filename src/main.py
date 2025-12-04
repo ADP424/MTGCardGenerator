@@ -51,6 +51,7 @@ from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
+from model.omen.RegularOmen import RegularOmen
 from model.regular.RegularCard import RegularCard
 from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
@@ -64,6 +65,7 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
+from model.showcase.Playtest import Playtest
 from model.showcase.Sketch import Sketch
 from model.showcase.Zendikar import Zendikar
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
@@ -162,6 +164,8 @@ def process_spreadsheets(
         "regular class": RegularClass,
         # Adventure
         "regular adventure": RegularAdventure,
+        # Omen
+        "regular omen": RegularOmen,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,
@@ -176,6 +180,7 @@ def process_spreadsheets(
         "future shifted": FutureShifted,
         "zendikar": Zendikar,
         "sketch": Sketch,
+        "playtest": Playtest,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,

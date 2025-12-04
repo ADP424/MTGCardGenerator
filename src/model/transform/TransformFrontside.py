@@ -54,7 +54,7 @@ class TransformFrontside(RegularCard):
 
         # Title Text
         self.TITLE_X = 240
-        self.TITLE_WIDTH = 1158
+        self.TITLE_WIDTH = 1140
 
         # Reverse Power & Toughness Text
         self.REVERSE_POWER_TOUGHNESS_X = 1301

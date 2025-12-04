@@ -65,7 +65,7 @@ class RegularAdventure(RegularCard):
         self.ADVENTURE_MANA_COST_SYMBOL_SPACING = 5
 
         # Adventure Title Text
-        self.ADVENTURE_TITLE_X = 120
+        self.ADVENTURE_TITLE_X = 123
         self.ADVENTURE_TITLE_BOTTOM_Y = 1400
         self.ADVENTURE_TITLE_WIDTH = 625
         self.ADVENTURE_TITLE_MAX_FONT_SIZE = 70
@@ -164,7 +164,9 @@ class RegularAdventure(RegularCard):
         full_title_bottom_y = self.TITLE_BOTTOM_Y
         full_title_width = self.TITLE_WIDTH
         full_title_box_height = self.TITLE_BOX_HEIGHT
+        full_title_max_font_size = self.TITLE_MAX_FONT_SIZE
         full_title_font_color = self.TITLE_FONT_COLOR
+
         main_title = self.get_metadata(CARD_TITLE)
         main_mana_cost_x = self.mana_cost_x
 
@@ -177,6 +179,7 @@ class RegularAdventure(RegularCard):
         self.TITLE_BOTTOM_Y = self.ADVENTURE_TITLE_BOTTOM_Y
         self.TITLE_WIDTH = self.ADVENTURE_TITLE_WIDTH
         self.TITLE_BOX_HEIGHT = self.ADVENTURE_TITLE_BOX_HEIGHT
+        self.TITLE_MAX_FONT_SIZE = self.ADVENTURE_TITLE_MAX_FONT_SIZE
         self.TITLE_FONT_COLOR = self.ADVENTURE_TITLE_FONT_COLOR
         self.set_metadata(CARD_TITLE, adventure_title)
         self.mana_cost_x = self.adventure_mana_cost_x
@@ -187,7 +190,9 @@ class RegularAdventure(RegularCard):
         self.TITLE_BOTTOM_Y = full_title_bottom_y
         self.TITLE_WIDTH = full_title_width
         self.TITLE_BOX_HEIGHT = full_title_box_height
+        self.TITLE_MAX_FONT_SIZE = full_title_max_font_size
         self.TITLE_FONT_COLOR = full_title_font_color
+
         self.set_metadata(CARD_TITLE, main_title)
         self.mana_cost_x = main_mana_cost_x
 

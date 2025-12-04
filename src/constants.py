@@ -76,9 +76,16 @@ DICE_SECTION_PATH = "images/other/dice_section"
 MPLANTIN = "fonts/mplantin.ttf"
 MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
 MPLANTIN_BOLD = "fonts/mplantin-bold.ttf"
+
 BELEREN_BOLD = "fonts/beleren-bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
+
 GOTHAM_BOLD = "fonts/gotham-bold.ttf"
+
+LATO = "fonts/lato.ttf"
+LATO_ITALICS = "fonts/lato-italics.ttf"
+LATO_BOLD = "fonts/lato-bold.ttf"
+LATO_BOLD_ITALICS = "fonts/lato-bold-italics.ttf"
 
 
 ###########################
@@ -238,6 +245,7 @@ TWO_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/black.png")
 TWO_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/red.png")
 TWO_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/green.png")
 TWO_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/colorless.png")
+TWO_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/generic/snow.png")
 
 # Hybrid Phyrexian Mana
 WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/phyrexian/white_blue.png")
@@ -351,6 +359,40 @@ FUTURE_SHIFTED_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/futur
 
 FUTURE_SHIFTED_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/variable/x.png")
 
+# Showcase Future Shifted Mana Symbols
+PLAYTEST_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/white.png")
+PLAYTEST_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/blue.png")
+PLAYTEST_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/black.png")
+PLAYTEST_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/red.png")
+PLAYTEST_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/green.png")
+PLAYTEST_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/colorless.png")
+
+PLAYTEST_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/0.png")
+PLAYTEST_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/1.png")
+PLAYTEST_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/2.png")
+PLAYTEST_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/3.png")
+PLAYTEST_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/4.png")
+PLAYTEST_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/5.png")
+PLAYTEST_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/6.png")
+PLAYTEST_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/7.png")
+PLAYTEST_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/8.png")
+PLAYTEST_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/9.png")
+PLAYTEST_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/10.png")
+PLAYTEST_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/11.png")
+PLAYTEST_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/12.png")
+PLAYTEST_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/13.png")
+PLAYTEST_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/14.png")
+PLAYTEST_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/15.png")
+PLAYTEST_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/16.png")
+PLAYTEST_SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/17.png")
+PLAYTEST_EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/18.png")
+PLAYTEST_NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/19.png")
+PLAYTEST_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/20.png")
+
+PLAYTEST_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/x.png")
+PLAYTEST_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/y.png")
+PLAYTEST_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/z.png")
+
 
 ###########
 # SYMBOLS #
@@ -463,6 +505,8 @@ SYMBOL_PLACEHOLDER_KEY = {
     "g/2": Symbol(TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "2/c": Symbol(TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "c/2": Symbol(TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/s": Symbol(TWO_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "s/2": Symbol(TWO_SNOW_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     # Hybrid Phyrexian Mana
     "wp/up": Symbol(WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "pw/pu": Symbol(WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
@@ -737,6 +781,42 @@ FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY = {
     "u/g": Symbol(FUTURE_SHIFTED_GREEN_BLUE_MANA),
     # Variable Mana
     "x": Symbol(FUTURE_SHIFTED_X_MANA),
+}
+
+PLAYTEST_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(PLAYTEST_WHITE_MANA),
+    "u": Symbol(PLAYTEST_BLUE_MANA),
+    "b": Symbol(PLAYTEST_BLACK_MANA),
+    "r": Symbol(PLAYTEST_RED_MANA),
+    "g": Symbol(PLAYTEST_GREEN_MANA),
+    "c": Symbol(PLAYTEST_COLORLESS_MANA),
+    # Numbered Mana
+    "0": Symbol(PLAYTEST_ZERO_MANA),
+    "1": Symbol(PLAYTEST_ONE_MANA),
+    "2": Symbol(PLAYTEST_TWO_MANA),
+    "3": Symbol(PLAYTEST_THREE_MANA),
+    "4": Symbol(PLAYTEST_FOUR_MANA),
+    "5": Symbol(PLAYTEST_FIVE_MANA),
+    "6": Symbol(PLAYTEST_SIX_MANA),
+    "7": Symbol(PLAYTEST_SEVEN_MANA),
+    "8": Symbol(PLAYTEST_EIGHT_MANA),
+    "9": Symbol(PLAYTEST_NINE_MANA),
+    "10": Symbol(PLAYTEST_TEN_MANA),
+    "11": Symbol(PLAYTEST_ELEVEN_MANA),
+    "12": Symbol(PLAYTEST_TWELVE_MANA),
+    "13": Symbol(PLAYTEST_THIRTEEN_MANA),
+    "14": Symbol(PLAYTEST_FOURTEEN_MANA),
+    "15": Symbol(PLAYTEST_FIFTEEN_MANA),
+    "16": Symbol(PLAYTEST_SIXTEEN_MANA),
+    "17": Symbol(PLAYTEST_SEVENTEEN_MANA),
+    "18": Symbol(PLAYTEST_EIGHTEEN_MANA),
+    "19": Symbol(PLAYTEST_NINETEEN_MANA),
+    "20": Symbol(PLAYTEST_TWENTY_MANA),
+    # Variable Mana
+    "x": Symbol(PLAYTEST_X_MANA),
+    "y": Symbol(PLAYTEST_Y_MANA),
+    "z": Symbol(PLAYTEST_Z_MANA),
 }
 
 # Planeswalker Abilities
