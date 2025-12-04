@@ -14,7 +14,7 @@ from constants import (
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from log import log
-from utils import add_drop_shadow
+from utils import add_drop_shadow, paste_image, str_to_int
 
 
 class Playtest(RegularCard):
@@ -135,6 +135,45 @@ class Playtest(RegularCard):
         self.FOOTER_Y = 1956
         self.FOOTER_WIDTH = 1135
         self.FOOTER_HEIGHT = 100
+
+    def render_card(self, close_images: bool = True) -> Image.Image:
+        """
+        Merge all layers into one image.
+
+        Returns
+        -------
+        Image
+            The merged image.
+
+        close_images: bool, default : True
+            Whether to close the images used in the card layers or not.
+            This means the card cannot be rendered again, but it frees memory.
+        """
+
+        art_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
+        art_image = paste_image(self.art_layer.image, art_image, (0, 0))
+
+        composite_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
+        for layer in self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers:
+            composite_image = paste_image(layer.image, composite_image, layer.position)
+            if close_images and layer.image:
+                layer.image.close()
+                layer.image = None
+
+        for extra in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS):
+            if extra[:6] == "rotate":
+                degrees = str_to_int(extra[6:], None)
+                if degrees == None:
+                    log("Unable to process rotation command in frame layout.")
+                    break
+                composite_image = composite_image.rotate(degrees)
+
+        full_image = paste_image(composite_image, art_image, (0, 0))
+        if close_images:
+            art_image.close()
+            composite_image.close()
+
+        return full_image
 
     def _create_mana_cost_layer(self):
         """

@@ -217,12 +217,13 @@ def process_spreadsheets(
 
                 values[CARD_FRAME_LAYOUT_EXTRAS] = []
                 card_frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
-                for extra in FRAME_LAYOUT_EXTRAS_LIST:
-                    extra_idx = card_frame_layout.find(extra)
-                    if card_frame_layout.find(extra) >= 0:
-                        card_frame_layout = card_frame_layout[:extra_idx] + card_frame_layout[extra_idx + len(extra) :]
-                        values[CARD_FRAME_LAYOUT_EXTRAS].append(extra.strip())
-                values[CARD_FRAME_LAYOUT] = card_frame_layout
+                for extra_pattern in FRAME_LAYOUT_EXTRAS_LIST:
+                    extras = re.findall(extra_pattern, card_frame_layout)
+                    if len(extras) >= 1:
+                        values[CARD_FRAME_LAYOUT_EXTRAS].append(extras[-1].strip())
+                    for extra in extras:
+                        card_frame_layout = card_frame_layout.replace(extra, "")
+                values[CARD_FRAME_LAYOUT] = card_frame_layout.strip()
 
                 raw_cards[card_key] = values
 
