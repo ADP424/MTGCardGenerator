@@ -14,7 +14,7 @@ from constants import (
 from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
 from log import log
-from utils import add_drop_shadow, paste_image, str_to_int
+from utils import add_drop_shadow, paste_image, str_to_float
 
 
 class Playtest(RegularCard):
@@ -162,8 +162,8 @@ class Playtest(RegularCard):
 
         for extra in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS):
             if extra[:6] == "rotate":
-                degrees = str_to_int(extra[6:], None)
-                if degrees == None:
+                degrees = str_to_float(extra[6:], None)
+                if degrees is None:
                     log("Unable to process rotation command in frame layout.")
                     break
                 composite_image = composite_image.rotate(degrees)

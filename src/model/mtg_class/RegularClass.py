@@ -85,11 +85,6 @@ class RegularClass(RegularCard):
         self.SET_SYMBOL_Y = 1795
         self.SET_SYMBOL_WIDTH = 80
 
-        # Separate the card mana cost from the level mana costs
-        costs = self.get_metadata(CARD_MANA_COST).split("\n")
-        self.level_costs = [level_cost.strip() for level_cost in costs[1:]]
-        self.set_metadata(CARD_MANA_COST, costs[0].strip())
-
         # Determine the heights and y-values of each subclass/level rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
 
@@ -198,6 +193,19 @@ class RegularClass(RegularCard):
         if create_level_headers_layers:
             self._create_level_headers_layers()
 
+    def _create_mana_cost_layer(self):
+        """
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
+        and append it to `self.text_layers`.
+        """
+
+        full_mana_cost = self.get_metadata(CARD_MANA_COST)
+
+        self.set_metadata(CARD_MANA_COST, full_mana_cost.split("\n")[0])
+        super()._create_mana_cost_layer()
+
+        self.set_metadata(CARD_MANA_COST, full_mana_cost)
+
     def _create_watermark_layer(self):
         """
         Process a watermark image and append it to `self.collector_layers`.
@@ -275,6 +283,9 @@ class RegularClass(RegularCard):
         Create the level mana costs and headers as text layers on top of the header frames.
         """
 
+        costs = self.get_metadata(CARD_MANA_COST).split("\n")
+        level_costs = [level_cost.strip() for level_cost in costs[1:]]
+
         level_font = ImageFont.truetype(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
         colon_font = ImageFont.truetype(
             self.LEVEL_FONT, int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE)
@@ -291,7 +302,7 @@ class RegularClass(RegularCard):
             draw = ImageDraw.Draw(image)
 
             # Draw the mana cost
-            cost = re.sub(r"{+|}+", " ", self.level_costs[idx] if idx < len(self.level_costs) else "")
+            cost = re.sub(r"{+|}+", " ", level_costs[idx] if idx < len(level_costs) else "")
             cost = re.sub(r"\s+", " ", cost)
             cost = cost.strip()
 

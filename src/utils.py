@@ -127,7 +127,9 @@ def cardname_to_filename(card_name: str) -> str:
     return file_name
 
 
-def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "") -> str:
+def get_card_key(
+    card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "", card_spellbook: str = ""
+) -> str:
     """
     Return a card's unique identifier based on its title, additional titles, and descriptor.
     Remove any formatting placeholders like "{UCS}".
@@ -142,6 +144,9 @@ def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], 
 
     card_descriptor: str, optional
         The extra descriptor of the card, if it has one.
+
+    card_spellbook: str, optional
+        The spellbook this card belongs to, if it belongs to one.
 
     Returns
     -------
@@ -158,6 +163,7 @@ def get_card_key(card_title: str, card_additional_titles: str | list[str] = [], 
         if len(title) > 0:
             card_key += f" - {title}"
     card_key += f" - {re.sub(r"{.*?}", "", card_descriptor)}" if len(card_descriptor) > 0 else ""
+    card_key += f" - {re.sub(r"{.*?}", "", card_spellbook)}" if len(card_spellbook) > 0 else ""
 
     return card_key
 
@@ -315,6 +321,30 @@ def str_to_int(string: str, default: int = 0) -> int:
 
     try:
         return int(string)
+    except ValueError:
+        return default
+
+
+def str_to_float(string: str, default: float = 0) -> float:
+    """
+    Convert a string to a float if able. Otherwise, return the default.
+
+    Parameters
+    ----------
+    string: str
+        The string to convert to an integer.
+
+    default: float, default : 0
+        The float to return if the conversion isn't possible.
+
+    Returns
+    -------
+    float
+        The `string` converted to a float, or `default` if conversion failed.
+    """
+
+    try:
+        return float(string)
     except ValueError:
         return default
 

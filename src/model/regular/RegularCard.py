@@ -9,6 +9,7 @@ from constants import (
     CARD_FOOTER_LARGEST_INDEX,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_OVERLAYS,
+    CARD_SPELLBOOK,
     CARD_TRANSFORM_HINT,
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
@@ -711,12 +712,7 @@ class RegularCard:
         creation_date = self.get_metadata(CARD_CREATION_DATE)
         language = self.get_metadata(CARD_LANGUAGE)
         artist = self.get_metadata(CARD_ARTIST)
-
-        footer_x = self.FOOTER_X
-        footer_y = self.FOOTER_Y
-        footer_width = self.FOOTER_WIDTH
-        footer_height = self.FOOTER_HEIGHT
-        footer_rotation = self.FOOTER_ROTATION
+        spellbook = self.get_metadata(CARD_SPELLBOOK)
 
         index = self.get_metadata(CARD_INDEX).zfill(len(str(self.get_metadata(CARD_FOOTER_LARGEST_INDEX))))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
@@ -728,7 +724,7 @@ class RegularCard:
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
 
-        image = Image.new("RGBA", (footer_width, footer_height), (0, 0, 0, 0))
+        image = Image.new("RGBA", (self.FOOTER_WIDTH, self.FOOTER_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         try:
@@ -749,6 +745,26 @@ class RegularCard:
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
         )
+
+        # Render the spellbook name (if this is part of a spellbook)
+        spellbook_text = ""
+        if len(spellbook) > 0:
+            spellbook_text = f"SB:{spellbook}"
+            collector_number_text_width = (
+                self._get_ucs_chunks_length(collector_number_text, footer_font, symbol_backup_font, emoji_backup_font)
+                + self.FOOTER_FONT_OUTLINE_SIZE
+            )
+            self._draw_ucs_chunks(
+                draw,
+                (collector_number_text_width + self.FOOTER_TAB_LENGTH, self.FOOTER_FONT_OUTLINE_SIZE),
+                spellbook_text,
+                footer_font,
+                symbol_backup_font,
+                emoji_backup_font,
+                fill="white",
+                stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
+                stroke_fill="black",
+            )
 
         top_left_bounding_box = footer_font.getbbox(collector_number_text)
         collector_number_text_height = (
@@ -772,7 +788,9 @@ class RegularCard:
         rarity_artist_x = (
             max(
                 self._get_ucs_chunks_length(collector_number_text, footer_font, symbol_backup_font, emoji_backup_font)
-                + self.FOOTER_FONT_OUTLINE_SIZE,
+                + self.FOOTER_FONT_OUTLINE_SIZE
+                + (self.FOOTER_TAB_LENGTH + self.FOOTER_FONT_OUTLINE_SIZE if len(spellbook) > 0 else 0)
+                + self._get_ucs_chunks_length(spellbook_text, footer_font, symbol_backup_font, emoji_backup_font),
                 self._get_ucs_chunks_length(set_info_text, footer_font, symbol_backup_font, emoji_backup_font)
                 + self.FOOTER_FONT_OUTLINE_SIZE,
             )
@@ -822,7 +840,7 @@ class RegularCard:
         )
         self._draw_ucs_chunks(
             draw,
-            (footer_width - creation_date_width, set_info_y),
+            (self.FOOTER_WIDTH - creation_date_width, set_info_y),
             creation_date,
             legal_font,
             symbol_backup_font,
@@ -832,13 +850,13 @@ class RegularCard:
             stroke_fill="black",
         )
 
-        if footer_rotation == 90:
+        if self.FOOTER_ROTATION == 90:
             image = image.transpose(Image.Transpose.ROTATE_90)
-        elif footer_rotation == 180:
+        elif self.FOOTER_ROTATION == 180:
             image = image.transpose(Image.Transpose.ROTATE_180)
-        if footer_rotation == 270:
+        if self.FOOTER_ROTATION == 270:
             image = image.transpose(Image.Transpose.ROTATE_270)
-        self.text_layers.append(Layer(image, (footer_x, footer_y)))
+        self.text_layers.append(Layer(image, (self.FOOTER_X, self.FOOTER_Y)))
 
     def _create_mana_cost_layer(self):
         """

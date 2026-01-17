@@ -120,11 +120,6 @@ class RegularPlaneswalker(RegularCard):
         self.HOLO_STAMP_X = 660
         self.HOLO_STAMP_Y = 1894
 
-        # Separate mana and ability costs
-        costs = self.get_metadata(CARD_MANA_COST).split("\n")
-        self.ability_costs = [ability_cost.strip() for ability_cost in costs[1:]]
-        self.set_metadata(CARD_MANA_COST, costs[0].strip())
-
         # Determine the heights and y-values of each ability rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
 
@@ -288,6 +283,9 @@ class RegularPlaneswalker(RegularCard):
         Create the frames for the costs of each planeswalker abilities, above the rest of the frame.
         """
 
+        costs = self.get_metadata(CARD_MANA_COST).split("\n")
+        self.ability_costs = [ability_cost.strip() for ability_cost in costs[1:]]
+
         ability_costs_image = Image.new(
             "RGBA",
             (self.RULES_BOX_WIDTH + (self.RULES_BOX_X - self.ABILITY_COST_FRAME_X), self.RULES_BOX_HEIGHT),
@@ -331,6 +329,19 @@ class RegularPlaneswalker(RegularCard):
             self.ability_text_y_axes.append(self.RULES_BOX_Y + paste_y + ability_border.height // 2)
 
         self.frame_layers.append(Layer(ability_costs_image, (self.ABILITY_COST_FRAME_X, self.RULES_BOX_Y)))
+
+    def _create_mana_cost_layer(self):
+        """
+        Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
+        and append it to `self.text_layers`.
+        """
+
+        full_mana_cost = self.get_metadata(CARD_MANA_COST)
+
+        self.set_metadata(CARD_MANA_COST, full_mana_cost.split("\n")[0])
+        super()._create_mana_cost_layer()
+
+        self.set_metadata(CARD_MANA_COST, full_mana_cost)
 
     def _create_rules_text_layer(self):
         """

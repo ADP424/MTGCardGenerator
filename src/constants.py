@@ -41,6 +41,7 @@ CARD_ORDERER = "Orderer"
 CARD_TRANSFORM_HINT = "Transform Hint"
 CARD_FRONTSIDE = "Transform Frontside"
 CARD_ORIGINAL = "Original"
+CARD_SPELLBOOKS = "Spellbook(s)"
 
 CARD_OVERLAYS = "Overlay(s)"
 
@@ -48,7 +49,8 @@ CARD_OVERLAYS = "Overlay(s)"
 CARD_INDEX = "Index"
 CARD_BACKSIDES = "Transform Backsides"
 CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
-CARD_FOOTER_LARGEST_INDEX = "Footer Largest_Index"
+CARD_FOOTER_LARGEST_INDEX = "Footer Largest Index"
+CARD_SPELLBOOK = "Spellbook"
 
 ##################
 # FILE LOCATIONS #
@@ -160,8 +162,8 @@ FRAME_LAYOUT_EXTRAS_LIST = (
     r"light ",
     r" vehicle",
     r"vehicle ",
-    r"rotate-?\d+ ",
-    r" rotate-?\d+",
+    r"rotate[+-]?(?:\d+(?:\.\d+)?|\.\d+) ",
+    r" rotate[+-]?(?:\d+(?:\.\d+)?|\.\d+)",
 )
 
 # Splitter for Coloring Text

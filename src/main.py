@@ -1,4 +1,5 @@
 import argparse
+import copy
 import csv
 import glob
 import os
@@ -6,7 +7,7 @@ import re
 from typing import Callable
 from PIL import Image
 
-from datetime import MINYEAR, datetime
+from datetime import datetime
 
 from constants import (
     ACTIONS,
@@ -32,6 +33,8 @@ from constants import (
     CARD_OVERLAYS,
     CARD_RARITY,
     CARD_SET,
+    CARD_SPELLBOOK,
+    CARD_SPELLBOOKS,
     CARD_TILE_HEIGHT,
     CARD_TILE_WIDTH,
     CARD_TITLE,
@@ -215,32 +218,64 @@ def process_spreadsheets(
                 if len(card_title) == 0:
                     continue
 
-                values[CARD_FRAME_LAYOUT_EXTRAS] = []
-                card_frame_layout = values.get(CARD_FRAME_LAYOUT, "").lower()
-                for extra_pattern in FRAME_LAYOUT_EXTRAS_LIST:
-                    extras = re.findall(extra_pattern, card_frame_layout)
-                    if len(extras) >= 1:
-                        values[CARD_FRAME_LAYOUT_EXTRAS].append(extras[-1].strip())
-                    for extra in extras:
-                        card_frame_layout = card_frame_layout.replace(extra, "")
-                values[CARD_FRAME_LAYOUT] = card_frame_layout.strip()
-
                 raw_cards[card_key] = values
 
     def get_sorted_keys():
-        return sorted(
-            raw_cards.keys(),
-            key=lambda key: (
-                str_to_datetime(raw_cards[key].get(CARD_CREATION_DATE, ""), datetime(MINYEAR, 1, 1)),
-                str_to_int(raw_cards[key].get(CARD_ORDERER, ""), 0),
-                raw_cards[key].get(CARD_TITLE, ""),
-            ),
-        )
+        if sort_by is not None:
+            return sorted(
+                raw_cards.keys(),
+                key=lambda card_key: tuple(sort[1](raw_cards[card_key].get(sort[0], "")) for sort in sort_by),
+            )
+        return raw_cards.keys()
 
     sorted_keys = get_sorted_keys()
 
+    # Replace missing columns in alternate cards with copies from their originals
+    for card_key in sorted_keys:
+        card = raw_cards[card_key]
+        card_title = card.get(CARD_TITLE, None)
+        card_additional_titles = card.get(CARD_ADDITIONAL_TITLES, None)
+        card_descriptor = card.get(CARD_DESCRIPTOR, None)
+        card_original_title = card.get(CARD_ORIGINAL, None)
+
+        # skip if this isn't an alternate
+        if len(card_descriptor) == 0 and len(card_original_title) == 0:
+            continue
+
+        original_card = None
+        if len(card_original_title) > 0:
+            original_card = raw_cards.get(card_original_title, None)
+            if original_card is None:
+                log(f"Could not find '{card_original_title}' as an original card of an alternate.")
+
+        if original_card is None and len(card_descriptor) > 0:
+            original_card = raw_cards.get(get_card_key(card_title, card_additional_titles), None)
+
+        if original_card is not None:
+            for key, value in card.items():
+                if (
+                    not isinstance(value, int)
+                    and key
+                    not in (
+                        CARD_SET,
+                        CARD_ARTIST,
+                        CARD_OVERLAYS,
+                        CARD_FRONTSIDE,
+                        CARD_CATEGORY,
+                        CARD_FRAME_LAYOUT_EXTRAS,
+                        CARD_SPELLBOOKS,
+                    )
+                    and len(value) == 0
+                ):
+                    card[key] = original_card[key]
+        else:
+            log(f"Could not find '{card_title}' as an original card of an alternate.")
+
+    # Resort now that alternates have all the correct columns
+    sorted_keys = get_sorted_keys()
+
     # Add indices to all the cards, for collector info
-    category_indices: dict[str : dict[str, int]] = {}
+    category_indices: dict[str, dict[str, int]] = {}
     for key in sorted_keys:
         card = raw_cards[key]
         if len(card.get(CARD_FRONTSIDE, "")) > 0:
@@ -320,10 +355,21 @@ def process_spreadsheets(
             continue
         filtered_cards[key] = metadata
 
-    # Give each card a class depending on its frame layout
+    # Give each card a class depending on its frame layout (and sort out its frame layout)
     for key, metadata in filtered_cards.items():
         frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
-        subclass = layout_to_subclass.get(frame_layout, RegularCard)
+
+        metadata[CARD_FRAME_LAYOUT_EXTRAS] = []
+        card_frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
+        for extra_pattern in FRAME_LAYOUT_EXTRAS_LIST:
+            extras = re.findall(extra_pattern, card_frame_layout)
+            if len(extras) >= 1:
+                metadata[CARD_FRAME_LAYOUT_EXTRAS].append(extras[-1].strip())
+            for extra in extras:
+                card_frame_layout = card_frame_layout.replace(extra, "")
+        metadata[CARD_FRAME_LAYOUT] = card_frame_layout.strip()
+
+        subclass = layout_to_subclass.get(metadata[CARD_FRAME_LAYOUT], RegularCard)
 
         card_set = metadata.get(CARD_SET, "")
         if card_set not in card_sets:
@@ -335,18 +381,13 @@ def process_spreadsheets(
     def get_sorted_cards(card_set: str):
         return sorted(
             card_sets[card_set].values(),
-            key=lambda card: (
-                str_to_datetime(card.get_metadata(CARD_CREATION_DATE), datetime(MINYEAR, 1, 1)),
-                str_to_int(card.get_metadata(CARD_ORDERER), 0),
-                card.get_metadata(CARD_TITLE),
-            ),
+            key=lambda card: tuple(sort[1](card.get_metadata(sort[0])) for sort in sort_by),
         )
 
+    # Give each alternate card a subclass based on their frame layout (now that they have one)
     for card_set in card_sets:
         sorted_cards = get_sorted_cards(card_set)
 
-        # Give each alternate card a subclass based on their frame layout (now that they have one)
-        # Also replace empty columns in alternates with their original card's values
         for card in sorted_cards:
             card_title = card.get_metadata(CARD_TITLE)
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
@@ -368,21 +409,6 @@ def process_spreadsheets(
                 original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles))
 
             if original_card is not None:
-                for key, value in card.metadata.items():
-                    if (
-                        not isinstance(value, int)
-                        and key
-                        not in (
-                            CARD_SET,
-                            CARD_ARTIST,
-                            CARD_OVERLAYS,
-                            CARD_FRONTSIDE,
-                            CARD_CATEGORY,
-                            CARD_FRAME_LAYOUT_EXTRAS,
-                        )
-                        and len(value) == 0
-                    ):
-                        card.set_metadata(key, original_card.get_metadata(key))
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
                 if subclass is not RegularCard:
@@ -410,7 +436,8 @@ def process_spreadsheets(
             if frontside_card is not None:
                 for key, value in card.metadata.items():
                     if (
-                        key in (CARD_INDEX, CARD_CATEGORY, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE)
+                        key
+                        in (CARD_INDEX, CARD_CATEGORY, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE, CARD_SPELLBOOKS)
                         and len(value) == 0
                     ):
                         card.set_metadata(key, frontside_card.get_metadata(key))
@@ -432,19 +459,59 @@ def process_spreadsheets(
                 if len(card_creation_date) == 0:
                     del card_sets[card_set][card_name]
 
+    # Add spellbook versions of cards with spellbooks
+    for card_set in card_sets:
+        sorted_cards = get_sorted_cards(card_set)
+        new_cards: dict[str, RegularCard] = {}
+        spellbook_indices: dict[str, int] = {}
+
+        for card in sorted_cards:
+            spellbooks_raw = card.get_metadata(CARD_SPELLBOOKS, "")
+            if len(spellbooks_raw) == 0:
+                continue
+
+            for line in spellbooks_raw.splitlines():
+                spellbook_name = line.strip()
+                if len(spellbook_name) == 0:
+                    continue
+
+                if spellbook_indices.get(spellbook_name, False):
+                    spellbook_indices[spellbook_name] += 1
+                else:
+                    spellbook_indices[spellbook_name] = 1
+
+                clone_metadata = copy.deepcopy(card.metadata)
+                clone_backsides = []
+                for backside in clone_metadata.get(CARD_BACKSIDES, []):
+                    clone_backside_metadata = copy.deepcopy(backside.metadata)
+                    clone_backside_metadata[CARD_CATEGORY] = spellbook_name
+                    clone_backside_metadata[CARD_SPELLBOOK] = spellbook_name
+                    clone_backside_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
+                    clone_backsides.append(backside.__class__(metadata=clone_backside_metadata))
+                clone_metadata[CARD_BACKSIDES] = clone_backsides
+
+                # Set the category to its spellbook and tag it as a spellbook copy
+                clone_metadata[CARD_CATEGORY] = spellbook_name
+                clone_metadata[CARD_SPELLBOOK] = spellbook_name
+                clone_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
+
+                card_title = card.get_metadata(CARD_TITLE)
+                card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+                card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+                spellbook_key = get_card_key(card_title, card_additional_titles, card_descriptor, spellbook_name)
+                new_cards[spellbook_key] = card.__class__(metadata=clone_metadata)
+
+        for card in new_cards.values():
+            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
+            card.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
+            for backside in card.get_metadata(CARD_BACKSIDES):
+                backside.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
+
+        card_sets[card_set].update(new_cards)
+
+    # If sorting is on, sort by the given columns
     if sort_by is not None:
         sorted_card_sets = {}
-        for card_set in card_sets:
-            sorted_card_sets[card_set] = dict(
-                sorted(
-                    card_sets[card_set].items(),
-                    key=lambda card: (
-                        str_to_datetime(card[1].get_metadata(sort_by[0]), datetime(MINYEAR, 1, 1)),
-                        str_to_int(card[1].get_metadata(sort_by[1]), 0),
-                        card[1].get_metadata(sort_by[2]),
-                    ),
-                )
-            )
         for card_set in card_sets:
             sorted_card_sets[card_set] = dict(
                 sorted(
@@ -464,10 +531,15 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
         increase_log_indent()
 
         def render_card(card: RegularCard):
+            card_category = card.get_metadata(CARD_CATEGORY)
+            if card_category.lower() == "{skip}":
+                return
+
             card_title = card.get_metadata(CARD_TITLE)
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
 
             card.create_layers()
             final_card = card.render_card()
@@ -478,7 +550,8 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
             card_title = card.get_metadata(CARD_TITLE)
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
 
             log(f"Processing '{card_key}'...")
             increase_log_indent()
@@ -489,7 +562,10 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
                 backside_title = backside.get_metadata(CARD_TITLE)
                 backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                backside_key = get_card_key(backside_title, backside_additional_titles, backside_descriptor)
+                backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
+                backside_key = get_card_key(
+                    backside_title, backside_additional_titles, backside_descriptor, backside_spellbook
+                )
 
                 log(f"Processing '{backside_key}'...")
                 increase_log_indent()
@@ -515,11 +591,11 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
 
         for num in tile_nums:
             category, tile_num = num.split("-")
-            tile_num = int(tile_num)
-            tile_num_pairs.append((category, str(tile_num)))
-
-            if category not in max_tile_num or tile_num > max_tile_num[category]:
-                max_tile_num[category] = tile_num
+            converted_tile_num = str_to_int(tile_num)
+            if converted_tile_num > 0 or tile_num == "*":
+                tile_num_pairs.append((category, tile_num))
+                if category not in max_tile_num or converted_tile_num > max_tile_num[category]:
+                    max_tile_num[category] = str_to_int(tile_num, float("inf"))
     else:
         tile_num_pairs = None
         max_tile_num = None
@@ -536,6 +612,8 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
 
         def tile_card(card: RegularCard):
             card_category = card.get_metadata(CARD_CATEGORY).lower()
+            if card_category.lower() == "{skip}":
+                return
 
             if not tile_image.get(card_category, False):
                 tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
@@ -604,7 +682,8 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
             card_title = card.get_metadata(CARD_TITLE)
             card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
+            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
 
             log(f"Tiling '{card_key}'...")
             increase_log_indent()
@@ -615,7 +694,10 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
                 backside_title = backside.get_metadata(CARD_TITLE)
                 backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                backside_key = get_card_key(backside_title, backside_additional_titles, backside_descriptor)
+                backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
+                backside_key = get_card_key(
+                    backside_title, backside_additional_titles, backside_descriptor, backside_spellbook
+                )
 
                 log(f"Tiling '{backside_key}'...")
                 increase_log_indent()
@@ -1010,7 +1092,7 @@ if __name__ == "__main__":
         args.card_categories_whitelist,
         args.oldest_date[0] if args.oldest_date is not None else None,
         args.latest_date[0] if args.latest_date is not None else None,
-        args.sort_by_date,
+        args.sort_by_date or (not args.sort_by_orderer),
         args.sort_by_orderer,
         args.tile_nums,
     )
