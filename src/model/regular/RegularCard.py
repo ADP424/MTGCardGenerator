@@ -476,8 +476,8 @@ class RegularCard:
             return
 
         colors = self.get_metadata(CARD_WATERMARK_COLOR)
+        watermark_color = []
         if len(colors) > 0:
-            watermark_color = []
             for color in colors.split("\n"):
                 color = WATERMARK_COLORS.get(color.lower().strip())
                 if color is not None:
