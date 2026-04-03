@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class TransformFrontside(RegularCard):
@@ -46,7 +46,14 @@ class TransformFrontside(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Box
         self.TITLE_BOX_X = 220
@@ -151,7 +158,9 @@ class TransformFrontside(RegularCard):
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
         image = Image.new(
-            "RGBA", (self.REVERSE_POWER_TOUGHNESS_WIDTH, self.REVERSE_POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0)
+            "RGBA",
+            (self.REVERSE_POWER_TOUGHNESS_WIDTH, self.REVERSE_POWER_TOUGHNESS_HEIGHT),
+            (0, 0, 0, 0),
         )
         draw = ImageDraw.Draw(image)
 

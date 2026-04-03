@@ -7,16 +7,16 @@ from constants import (
     CARD_RULES_TEXT,
     PLANESWALKER_ABILITY_BODY_EVEN,
     PLANESWALKER_ABILITY_BODY_ODD,
-    PLANESWALKER_ABILITY_TOP_EVEN,
-    PLANESWALKER_ABILITY_TOP_ODD,
     PLANESWALKER_ABILITY_COST_BORDER_NEGATIVE,
     PLANESWALKER_ABILITY_COST_BORDER_NEUTRAL,
     PLANESWALKER_ABILITY_COST_BORDER_POSITIVE,
+    PLANESWALKER_ABILITY_TOP_EVEN,
+    PLANESWALKER_ABILITY_TOP_ODD,
 )
-from model.regular.RegularCard import RegularCard
-from model.Layer import Layer
-from utils import paste_image
 from log import log
+from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
+from utils import paste_image
 
 
 class RegularPlaneswalker(RegularCard):
@@ -60,7 +60,14 @@ class RegularPlaneswalker(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Box
         self.TITLE_BOX_X = 90
@@ -270,7 +277,9 @@ class RegularPlaneswalker(RegularCard):
                 )
 
             ability_background = paste_image(
-                ability_background_top, ability_background, (0, curr_y - self.ABILITY_TEXT_MARGIN // 2)
+                ability_background_top,
+                ability_background,
+                (0, curr_y - self.ABILITY_TEXT_MARGIN // 2),
             )
             ability_background = paste_image(ability_background_body, ability_background, (0, body_y))
 
@@ -288,7 +297,10 @@ class RegularPlaneswalker(RegularCard):
 
         ability_costs_image = Image.new(
             "RGBA",
-            (self.RULES_BOX_WIDTH + (self.RULES_BOX_X - self.ABILITY_COST_FRAME_X), self.RULES_BOX_HEIGHT),
+            (
+                self.RULES_BOX_WIDTH + (self.RULES_BOX_X - self.ABILITY_COST_FRAME_X),
+                self.RULES_BOX_HEIGHT,
+            ),
             (0, 0, 0, 0),
         )
         curr_y = 0
@@ -374,7 +386,11 @@ class RegularPlaneswalker(RegularCard):
         ability_cost_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.ABILITY_COST_FONT_SIZE)
 
         for idx, cost in enumerate(self.ability_costs):
-            image = Image.new("RGBA", (self.ABILITY_COST_TEXT_WIDTH, self.ABILITY_COST_TEXT_HEIGHT), (0, 0, 0, 0))
+            image = Image.new(
+                "RGBA",
+                (self.ABILITY_COST_TEXT_WIDTH, self.ABILITY_COST_TEXT_HEIGHT),
+                (0, 0, 0, 0),
+            )
             draw = ImageDraw.Draw(image)
 
             text_width = int(ability_cost_font.getlength(cost))

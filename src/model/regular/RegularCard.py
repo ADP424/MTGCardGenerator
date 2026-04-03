@@ -1,55 +1,63 @@
 import re
+
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
     ADD_TOTAL_TO_FOOTER,
     ARTIST_BRUSH,
+    BELEREN_BOLD,
+    BELEREN_BOLD_SMALL_CAPS,
     CARD_ADDITIONAL_TITLES,
+    CARD_ARTIST,
+    CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
     CARD_FOOTER_LARGEST_INDEX,
     CARD_FRAME_LAYOUT_EXTRAS,
+    CARD_FRAMES,
+    CARD_INDEX,
+    CARD_LANGUAGE,
+    CARD_MANA_COST,
     CARD_OVERLAYS,
+    CARD_POWER_TOUGHNESS,
+    CARD_RARITY,
+    CARD_RULES_TEXT,
+    CARD_SET,
     CARD_SPELLBOOK,
+    CARD_SUBTYPES,
+    CARD_SUPERTYPES,
+    CARD_TITLE,
     CARD_TRANSFORM_HINT,
+    CARD_TYPES,
+    CARD_WATERMARK,
+    CARD_WATERMARK_COLOR,
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
     DICE_SECTION_PATH,
-    LATO_BOLD_ITALICS,
-    RULES_DIVIDING_LINE,
-    INPUT_ART_PATH,
-    BELEREN_BOLD_SMALL_CAPS,
-    CARD_CREATION_DATE,
-    CARD_FRAMES,
-    CARD_INDEX,
-    CARD_TITLE,
-    CARD_SUPERTYPES,
-    CARD_TYPES,
-    CARD_RARITY,
-    CARD_SET,
-    CARD_SUBTYPES,
-    CARD_POWER_TOUGHNESS,
-    CARD_MANA_COST,
-    CARD_LANGUAGE,
-    CARD_ARTIST,
-    GOTHAM_BOLD,
-    OVERLAYS_PATH,
-    RARITY_TO_INITIAL,
-    SET_SYMBOLS_PATH,
-    WATERMARK_COLORS,
-    CARD_WATERMARK_COLOR,
-    CARD_RULES_TEXT,
-    CARD_WATERMARK,
-    WATERMARKS_PATH,
-    MPLANTIN_ITALICS,
     FRAMES_PATH,
-    SYMBOL_PLACEHOLDER_KEY,
+    GOTHAM_BOLD,
+    INPUT_ART_PATH,
+    LATO_BOLD_ITALICS,
     MPLANTIN,
+    MPLANTIN_ITALICS,
+    OVERLAYS_PATH,
     PLACEHOLDER_REGEX,
-    BELEREN_BOLD,
+    RARITY_TO_INITIAL,
+    RULES_DIVIDING_LINE,
+    SET_SYMBOLS_PATH,
+    SYMBOL_PLACEHOLDER_KEY,
+    WATERMARK_COLORS,
+    WATERMARKS_PATH,
 )
 from log import log
 from model.Layer import Layer
-from utils import add_drop_shadow, cardname_to_filename, get_card_key, open_image, paste_image, replace_ticks
+from utils import (
+    add_drop_shadow,
+    cardname_to_filename,
+    get_card_key,
+    open_image,
+    paste_image,
+    replace_ticks,
+)
 
 
 class RegularCard:
@@ -487,7 +495,12 @@ class RegularCard:
             watermark_color = (0, 0, 0)
 
         watermark_height = int(self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE * self.RULES_BOX_HEIGHT)
-        resized = watermark.resize((int((watermark_height / watermark.height) * watermark.width), watermark_height))
+        resized = watermark.resize(
+            (
+                int((watermark_height / watermark.height) * watermark.width),
+                watermark_height,
+            )
+        )
 
         def recolor(image: Image.Image, color: tuple[int, int, int]) -> Image.Image:
             alpha = image.getchannel("A")
@@ -551,7 +564,10 @@ class RegularCard:
             return
 
         rarity_symbol = rarity_symbol.resize(
-            (self.SET_SYMBOL_WIDTH, int((self.SET_SYMBOL_WIDTH / rarity_symbol.width) * rarity_symbol.height))
+            (
+                self.SET_SYMBOL_WIDTH,
+                int((self.SET_SYMBOL_WIDTH / rarity_symbol.width) * rarity_symbol.height),
+            )
         )
         layers = self.collector_layers if not overlay else self.overlay_layers
         layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
@@ -751,12 +767,20 @@ class RegularCard:
         if len(spellbook) > 0:
             spellbook_text = f"SB:{spellbook}"
             collector_number_text_width = (
-                self._get_ucs_chunks_length(collector_number_text, footer_font, symbol_backup_font, emoji_backup_font)
+                self._get_ucs_chunks_length(
+                    collector_number_text,
+                    footer_font,
+                    symbol_backup_font,
+                    emoji_backup_font,
+                )
                 + self.FOOTER_FONT_OUTLINE_SIZE
             )
             self._draw_ucs_chunks(
                 draw,
-                (collector_number_text_width + self.FOOTER_TAB_LENGTH, self.FOOTER_FONT_OUTLINE_SIZE),
+                (
+                    collector_number_text_width + self.FOOTER_TAB_LENGTH,
+                    self.FOOTER_FONT_OUTLINE_SIZE,
+                ),
                 spellbook_text,
                 footer_font,
                 symbol_backup_font,
@@ -787,7 +811,12 @@ class RegularCard:
 
         rarity_artist_x = (
             max(
-                self._get_ucs_chunks_length(collector_number_text, footer_font, symbol_backup_font, emoji_backup_font)
+                self._get_ucs_chunks_length(
+                    collector_number_text,
+                    footer_font,
+                    symbol_backup_font,
+                    emoji_backup_font,
+                )
                 + self.FOOTER_FONT_OUTLINE_SIZE
                 + (self.FOOTER_TAB_LENGTH + self.FOOTER_FONT_OUTLINE_SIZE if len(spellbook) > 0 else 0)
                 + self._get_ucs_chunks_length(spellbook_text, footer_font, symbol_backup_font, emoji_backup_font),
@@ -817,7 +846,10 @@ class RegularCard:
         )
 
         if len(artist) > 0:
-            image.alpha_composite(artist_brush_image, (rarity_artist_x, set_info_y - artist_brush_image.height // 4))
+            image.alpha_composite(
+                artist_brush_image,
+                (rarity_artist_x, set_info_y - artist_brush_image.height // 4),
+            )
         self._draw_ucs_chunks(
             draw,
             (
@@ -899,7 +931,10 @@ class RegularCard:
 
             curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
-                image.alpha_composite(symbol_image, (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2))
+                image.alpha_composite(
+                    symbol_image,
+                    (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2),
+                )
             else:
                 log("The mana cost is too long and has been cut off.")
                 break
@@ -1119,7 +1154,10 @@ class RegularCard:
 
         new_text = text
         new_text = re.sub(
-            "{cardname}", self.get_metadata(CARD_TITLE).replace("{skip}", ""), new_text, flags=re.IGNORECASE
+            "{cardname}",
+            self.get_metadata(CARD_TITLE).replace("{skip}", ""),
+            new_text,
+            flags=re.IGNORECASE,
         )
         new_text = re.sub("{-}", "—", new_text)
         new_text = re.sub("{ln}", "\n", new_text, flags=re.IGNORECASE)
@@ -1426,7 +1464,12 @@ class RegularCard:
                     fragments = parse_fragments(line)
                     if fragments:
                         rules_lines[-1] += wrap_text_fragments(
-                            fragments, target_font, italics_font, bold_italics_font, symbol_font, emoji_font
+                            fragments,
+                            target_font,
+                            italics_font,
+                            bold_italics_font,
+                            symbol_font,
+                            emoji_font,
                         )
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
@@ -1530,7 +1573,9 @@ class RegularCard:
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = margin + (usable_height - content_height) // 2
 
-        def draw_lines(lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]):
+        def draw_lines(
+            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]],
+        ):
             """
             Render lines of text as images.
             """
@@ -1625,10 +1670,14 @@ class RegularCard:
                                 text_height = (ascent - descent + line_height) // 2
                                 dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
                                 dice_section = dice_section.resize(
-                                    (self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + dice_margins)
+                                    (
+                                        self.RULES_TEXT_WIDTH - margin,
+                                        curr_y - dice_section_y + dice_margins,
+                                    )
                                 )
                                 background_image.alpha_composite(
-                                    dice_section, (margin // 2, dice_section_y - 2 * dice_margins)
+                                    dice_section,
+                                    (margin // 2, dice_section_y - 2 * dice_margins),
                                 )
                                 dice_row_toggle = True
                             else:
@@ -1664,10 +1713,14 @@ class RegularCard:
                             text_height = (ascent - descent + line_height) // 2
                             dice_margins = text_height // (2 * self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO)
                             dice_section = dice_section.resize(
-                                (self.RULES_TEXT_WIDTH - margin, curr_y - dice_section_y + text_height // 2)
+                                (
+                                    self.RULES_TEXT_WIDTH - margin,
+                                    curr_y - dice_section_y + text_height // 2,
+                                )
                             )
                             background_image.alpha_composite(
-                                dice_section, (margin // 2, dice_section_y - 2 * dice_margins)
+                                dice_section,
+                                (margin // 2, dice_section_y - 2 * dice_margins),
                             )
                     dice_section_y = -1
 
@@ -1732,12 +1785,21 @@ class RegularCard:
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
 
-        image = Image.new("RGBA", (self.POWER_TOUGHNESS_WIDTH, self.POWER_TOUGHNESS_HEIGHT), (0, 0, 0, 0))
+        image = Image.new(
+            "RGBA",
+            (self.POWER_TOUGHNESS_WIDTH, self.POWER_TOUGHNESS_HEIGHT),
+            (0, 0, 0, 0),
+        )
         draw = ImageDraw.Draw(image)
 
         total_width = int(
             sum(
-                self._get_ucs_chunks_length(seg_text, power_toughness_font, symbol_backup_font, emoji_backup_font)
+                self._get_ucs_chunks_length(
+                    seg_text,
+                    power_toughness_font,
+                    symbol_backup_font,
+                    emoji_backup_font,
+                )
                 for seg_text, _ in segments
             )
         )

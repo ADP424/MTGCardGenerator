@@ -4,10 +4,10 @@ import csv
 import glob
 import os
 import re
-from typing import Callable
-from PIL import Image
-
 from datetime import datetime
+from typing import Callable
+
+from PIL import Image
 
 from constants import (
     ACTIONS,
@@ -49,49 +49,64 @@ from constants import (
     OUTPUT_TILES_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
+from model.adventure.RegularAdventure import RegularAdventure
+from model.battle.Battle import Battle
+from model.battle.TransformBattle import TransformBattle
 from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
-from model.omen.RegularOmen import RegularOmen
-from model.regular.RegularCard import RegularCard
-from model.adventure.RegularAdventure import RegularAdventure
-from model.battle.Battle import Battle
-from model.battle.TransformBattle import TransformBattle
 from model.mtg_class.RegularClass import RegularClass
+from model.omen.RegularOmen import RegularOmen
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
+from model.regular.RegularCard import RegularCard
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
+from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
+from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
-from model.showcase.Playtest import Playtest
-from model.showcase.Sketch import Sketch
-from model.showcase.Zendikar import Zendikar
-from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
-from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
+from model.showcase.Playtest import Playtest
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
 from model.showcase.promo.RegularPromo import RegularPromo
+from model.showcase.Sketch import Sketch
 from model.showcase.transparent.RegularTransparent import RegularTransparent
-from model.split.RegularSplit import RegularSplit
+from model.showcase.Zendikar import Zendikar
 from model.split.fuse.RegularFuse import RegularFuse
+from model.split.RegularSplit import RegularSplit
 from model.token.RegularToken import RegularToken
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
-from model.token.transform.backside.RegularTokenTransformBackside import RegularTokenTransformBackside
-from model.token.transform.backside.TextlessTokenTransformBackside import TextlessTokenTransformBackside
-from model.token.transform.frontside.RegularTokenTransformFrontside import RegularTokenTransformFrontside
-from model.token.transform.frontside.TextlessTokenTransformFrontside import TextlessTokenTransformFrontside
+from model.token.transform.backside.RegularTokenTransformBackside import (
+    RegularTokenTransformBackside,
+)
+from model.token.transform.backside.TextlessTokenTransformBackside import (
+    TextlessTokenTransformBackside,
+)
+from model.token.transform.frontside.RegularTokenTransformFrontside import (
+    RegularTokenTransformFrontside,
+)
+from model.token.transform.frontside.TextlessTokenTransformFrontside import (
+    TextlessTokenTransformFrontside,
+)
 from model.transform.TransformBackside import TransformBackside
 from model.transform.TransformFrontside import TransformFrontside
-from utils import cardname_to_filename, get_card_key, open_image, paste_image, str_to_datetime, str_to_int
+from utils import (
+    cardname_to_filename,
+    get_card_key,
+    open_image,
+    paste_image,
+    str_to_datetime,
+    str_to_int,
+)
 
 
 def process_spreadsheets(
@@ -437,7 +452,14 @@ def process_spreadsheets(
                 for key, value in card.metadata.items():
                     if (
                         key
-                        in (CARD_INDEX, CARD_CATEGORY, CARD_RARITY, CARD_CREATION_DATE, CARD_LANGUAGE, CARD_SPELLBOOKS)
+                        in (
+                            CARD_INDEX,
+                            CARD_CATEGORY,
+                            CARD_RARITY,
+                            CARD_CREATION_DATE,
+                            CARD_LANGUAGE,
+                            CARD_SPELLBOOKS,
+                        )
                         and len(value) == 0
                     ):
                         card.set_metadata(key, frontside_card.get_metadata(key))
@@ -564,7 +586,10 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
                 backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
                 backside_key = get_card_key(
-                    backside_title, backside_additional_titles, backside_descriptor, backside_spellbook
+                    backside_title,
+                    backside_additional_titles,
+                    backside_descriptor,
+                    backside_spellbook,
                 )
 
                 log(f"Processing '{backside_key}'...")
@@ -673,7 +698,9 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
                     return
 
             tile_image[card_category] = paste_image(
-                final_card, tile_image[card_category], (curr_width[card_category], curr_height[card_category])
+                final_card,
+                tile_image[card_category],
+                (curr_width[card_category], curr_height[card_category]),
             )
             final_card.close()
             curr_width[card_category] += CARD_TILE_WIDTH
@@ -696,7 +723,10 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
                 backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
                 backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
                 backside_key = get_card_key(
-                    backside_title, backside_additional_titles, backside_descriptor, backside_spellbook
+                    backside_title,
+                    backside_additional_titles,
+                    backside_descriptor,
+                    backside_spellbook,
                 )
 
                 log(f"Tiling '{backside_key}'...")
@@ -970,16 +1000,29 @@ def main(
 
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None
     if sort_by_date:
-        sort_by = ((CARD_CREATION_DATE, str_to_datetime), (CARD_ORDERER, str_to_int), (CARD_TITLE, str))
+        sort_by = (
+            (CARD_CREATION_DATE, str_to_datetime),
+            (CARD_ORDERER, str_to_int),
+            (CARD_TITLE, str),
+        )
     if sort_by_orderer:
         if sort_by is not None:
             log("ERROR: User supplied multiple conflicting sort commands.")
             return
-        sort_by = ((CARD_ORDERER, str_to_int), (CARD_CREATION_DATE, str_to_datetime), (CARD_TITLE, str))
+        sort_by = (
+            (CARD_ORDERER, str_to_int),
+            (CARD_CREATION_DATE, str_to_datetime),
+            (CARD_TITLE, str),
+        )
 
     reset_log()
     card_sets = process_spreadsheets(
-        card_names_whitelist, card_sets_whitelist, card_categories_whitelist, oldest_date, latest_date, sort_by
+        card_names_whitelist,
+        card_sets_whitelist,
+        card_categories_whitelist,
+        oldest_date,
+        latest_date,
+        sort_by,
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")

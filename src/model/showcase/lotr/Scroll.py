@@ -1,5 +1,5 @@
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class ScrollLOTR(RegularCard):
@@ -43,7 +43,14 @@ class ScrollLOTR(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_WIDTH = 85

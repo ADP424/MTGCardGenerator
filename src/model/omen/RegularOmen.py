@@ -1,6 +1,6 @@
 from model.adventure.RegularAdventure import RegularAdventure
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class RegularOmen(RegularAdventure):
@@ -44,7 +44,14 @@ class RegularOmen(RegularAdventure):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Omen Title Text
         self.ADVENTURE_TITLE_BOTTOM_Y = 1400

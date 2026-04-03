@@ -1,5 +1,7 @@
 import re
+
 from PIL import Image
+
 from constants import (
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_MANA_COST,
@@ -10,10 +12,9 @@ from constants import (
     PLAYTEST_SYMBOL_PLACEHOLDER_KEY,
     SYMBOL_PLACEHOLDER_KEY,
 )
-
-from model.regular.RegularCard import RegularCard
-from model.Layer import Layer
 from log import log
+from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from utils import add_drop_shadow, paste_image, str_to_float
 
 
@@ -58,7 +59,14 @@ class Playtest(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Box
         self.TITLE_BOX_X = 208
@@ -219,7 +227,10 @@ class Playtest(RegularCard):
 
             curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
             if curr_x >= symbol_image.width:
-                image.alpha_composite(symbol_image, (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2))
+                image.alpha_composite(
+                    symbol_image,
+                    (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2),
+                )
             else:
                 log("The mana cost is too long and has been cut off.")
                 break

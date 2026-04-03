@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from model.saga.RegularSaga import RegularSaga
 
 
@@ -47,7 +47,14 @@ class TransformSaga(RegularSaga):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Box
         self.TITLE_BOX_X = 220
@@ -172,7 +179,10 @@ class TransformSaga(RegularSaga):
         text_height = int(bounding_box[3] - bounding_box[1])
         self._draw_ucs_chunks(
             draw,
-            ((power_toughness_width - text_width) // 2, (power_toughness_height - text_height) // 2),
+            (
+                (power_toughness_width - text_width) // 2,
+                (power_toughness_height - text_height) // 2,
+            ),
             text,
             power_toughness_font,
             symbol_backup_font,

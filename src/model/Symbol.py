@@ -67,20 +67,28 @@ class Symbol:
 
         # resize
         resized_image = self.image.resize(
-            (int(new_width * size_ratio[0]), int(new_height * size_ratio[1])), Image.LANCZOS
+            (int(new_width * size_ratio[0]), int(new_height * size_ratio[1])),
+            Image.LANCZOS,
         )
 
         # add outline
         alpha = resized_image.getchannel("A")
         outlined_image = Image.new(
             "RGBA",
-            (resized_image.width + 2 * outline_size, resized_image.height + 2 * outline_size),
+            (
+                resized_image.width + 2 * outline_size,
+                resized_image.height + 2 * outline_size,
+            ),
             (0, 0, 0, 0),
         )
         for dx in range(-outline_size, outline_size + 1):
             for dy in range(-outline_size, outline_size + 1):
                 if dx**2 + dy**2 <= outline_size**2:
-                    outlined_image.paste(outline_color, (dx + outline_size, dy + outline_size), mask=alpha)
+                    outlined_image.paste(
+                        outline_color,
+                        (dx + outline_size, dy + outline_size),
+                        mask=alpha,
+                    )
         outlined_image.paste(resized_image, (outline_size, outline_size), mask=alpha)
 
         return outlined_image

@@ -8,8 +8,8 @@ from constants import (
     CARD_TYPES,
     CARD_WATERMARK_COLOR,
 )
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class RegularSplit(RegularCard):
@@ -53,7 +53,14 @@ class RegularSplit(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Overall Card
         self.CARD_WIDTH = 2100

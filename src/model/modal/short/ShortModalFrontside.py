@@ -1,6 +1,6 @@
+from model.Layer import Layer
 from model.modal.ModalFrontside import ModalFrontside
 from model.regular.RegularCard import RegularCard
-from model.Layer import Layer
 
 
 class ShortModalFrontside(ModalFrontside):
@@ -44,7 +44,14 @@ class ShortModalFrontside(ModalFrontside):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Type Box
         self.TYPE_BOX_Y = 1474

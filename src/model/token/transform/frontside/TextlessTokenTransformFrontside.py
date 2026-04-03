@@ -1,6 +1,6 @@
 from constants import BELEREN_BOLD_SMALL_CAPS
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from model.transform.TransformFrontside import TransformFrontside
 
 
@@ -45,7 +45,14 @@ class TextlessTokenTransformFrontside(TransformFrontside):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Text
         self.TITLE_X = 128

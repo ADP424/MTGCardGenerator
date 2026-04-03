@@ -7,8 +7,8 @@ from constants import (
     SAGA_CHAPTER_DIVIDING_LINE,
     SAGA_CHAPTER_FRAME,
 )
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from utils import int_to_roman_numeral, paste_image
 
 
@@ -53,7 +53,14 @@ class RegularSaga(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Type Box
         self.TYPE_BOX_Y = 1779
@@ -275,7 +282,10 @@ class RegularSaga(RegularCard):
             for _ in range(1, pending_frames + 1):
                 segment_height = height // pending_frames
 
-                paste_y = max(curr_segment_y + (segment_height - chapter_frame.height) // 2, curr_segment_y)
+                paste_y = max(
+                    curr_segment_y + (segment_height - chapter_frame.height) // 2,
+                    curr_segment_y,
+                )
                 chapter_frame_image = paste_image(chapter_frame, chapter_frame_image, (0, paste_y))
 
                 self.chapter_number_y_axes.append(
@@ -294,7 +304,10 @@ class RegularSaga(RegularCard):
         self.frame_layers.append(
             Layer(
                 chapter_frame_image,
-                (self.CHAPTER_NUMBER_X, self.RULES_BOX_Y + self.STATIC_TEXT_HEIGHT + self.STATIC_CHAPTER_TEXT_GAP),
+                (
+                    self.CHAPTER_NUMBER_X,
+                    self.RULES_BOX_Y + self.STATIC_TEXT_HEIGHT + self.STATIC_CHAPTER_TEXT_GAP,
+                ),
             )
         )
 
@@ -381,7 +394,11 @@ class RegularSaga(RegularCard):
         chapter_number_font = ImageFont.truetype(self.CHAPTER_NUMBER_FONT, self.CHAPTER_NUMBER_FONT_SIZE)
 
         for num in range(len(self.chapter_texts)):
-            image = Image.new("RGBA", (self.CHAPTER_NUMBER_WIDTH, self.CHAPTER_NUMBER_HEIGHT), (0, 0, 0, 0))
+            image = Image.new(
+                "RGBA",
+                (self.CHAPTER_NUMBER_WIDTH, self.CHAPTER_NUMBER_HEIGHT),
+                (0, 0, 0, 0),
+            )
             draw = ImageDraw.Draw(image)
             numeral = int_to_roman_numeral(num + 1)
 

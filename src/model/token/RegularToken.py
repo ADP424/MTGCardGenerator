@@ -1,6 +1,6 @@
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_FRAME_LAYOUT_EXTRAS
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class RegularToken(RegularCard):
@@ -45,7 +45,14 @@ class RegularToken(RegularCard):
         overlay_layers: list[Layer] = None,
         footer_largest_index: int = 999,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Text
         self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS

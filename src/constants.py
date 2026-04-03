@@ -150,7 +150,15 @@ WATERMARK_COLORS = {
 }
 
 # Rarity to Initial (For Footer)
-RARITY_TO_INITIAL = {"common": "C", "uncommon": "U", "rare": "R", "mythic": "M", "land": "L", "lato": "O", "token": "T"}
+RARITY_TO_INITIAL = {
+    "common": "C",
+    "uncommon": "U",
+    "rare": "R",
+    "mythic": "M",
+    "land": "L",
+    "lato": "O",
+    "token": "T",
+}
 
 # Card Frame Layout Extras
 FRAME_LAYOUT_EXTRAS_LIST = (

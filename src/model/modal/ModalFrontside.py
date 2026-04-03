@@ -9,8 +9,8 @@ from constants import (
     PLACEHOLDER_REGEX,
 )
 from log import log
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from utils import replace_ticks
 
 
@@ -55,7 +55,14 @@ class ModalFrontside(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Title Box
         self.TITLE_BOX_X = 220
@@ -195,7 +202,12 @@ class ModalFrontside(RegularCard):
             segment_text = match.group(4)
 
             if match.start() > last_end:
-                segments.append((type_hint[last_end : match.start()], self.REMINDER_TYPE_HINT_FONT_COLOR))
+                segments.append(
+                    (
+                        type_hint[last_end : match.start()],
+                        self.REMINDER_TYPE_HINT_FONT_COLOR,
+                    )
+                )
 
             segments.append((segment_text, color))
             last_end = match.end()
@@ -298,7 +310,10 @@ class ModalFrontside(RegularCard):
                     ascent = curr_font.getmetrics()[0]
                     if value:
                         draw.text(
-                            (curr_x, self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - min(text_height, ascent)),
+                            (
+                                curr_x,
+                                self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - min(text_height, ascent),
+                            ),
                             value,
                             font=curr_font,
                             anchor="lt",

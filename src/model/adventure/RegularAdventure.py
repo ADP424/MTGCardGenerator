@@ -7,8 +7,8 @@ from constants import (
     CARD_TITLE,
     CARD_TYPES,
 )
-from model.regular.RegularCard import RegularCard
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class RegularAdventure(RegularCard):
@@ -52,7 +52,14 @@ class RegularAdventure(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Adventure Title Box
         self.ADVENTURE_TITLE_BOX_X = 95

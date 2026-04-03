@@ -1,5 +1,6 @@
-from datetime import MINYEAR, datetime
 import re
+from datetime import MINYEAR, datetime
+
 from PIL import Image
 
 
@@ -128,7 +129,10 @@ def cardname_to_filename(card_name: str) -> str:
 
 
 def get_card_key(
-    card_title: str, card_additional_titles: str | list[str] = [], card_descriptor: str = "", card_spellbook: str = ""
+    card_title: str,
+    card_additional_titles: str | list[str] = [],
+    card_descriptor: str = "",
+    card_spellbook: str = "",
 ) -> str:
     """
     Return a card's unique identifier based on its title, additional titles, and descriptor.
@@ -349,7 +353,11 @@ def str_to_float(string: str, default: float = 0) -> float:
         return default
 
 
-def str_to_datetime(string: str, default: datetime = datetime(MINYEAR, 1, 1), str_format: str = "%m/%d/%Y") -> datetime:
+def str_to_datetime(
+    string: str,
+    default: datetime = datetime(MINYEAR, 1, 1),
+    str_format: str = "%m/%d/%Y",
+) -> datetime:
     """
     Convert a string to a datetime object of the given form if able. Otherwise, return the default.
 

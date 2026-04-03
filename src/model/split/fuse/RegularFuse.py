@@ -1,10 +1,6 @@
-from constants import (
-    CARD_ADDITIONAL_TITLES,
-    CARD_RULES_TEXT,
-    CARD_TITLE,
-)
-from model.regular.RegularCard import RegularCard
+from constants import CARD_ADDITIONAL_TITLES, CARD_RULES_TEXT, CARD_TITLE
 from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 from model.split.RegularSplit import RegularSplit
 
 
@@ -49,7 +45,14 @@ class RegularFuse(RegularSplit):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # First Rules Box
         self.FIRST_RULES_BOX_HEIGHT = 430

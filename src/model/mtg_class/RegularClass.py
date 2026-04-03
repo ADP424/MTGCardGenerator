@@ -1,4 +1,5 @@
 import re
+
 from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
@@ -10,9 +11,9 @@ from constants import (
     MPLANTIN,
     SYMBOL_PLACEHOLDER_KEY,
 )
-from model.regular.RegularCard import RegularCard
-from model.Layer import Layer
 from log import log
+from model.Layer import Layer
+from model.regular.RegularCard import RegularCard
 
 
 class RegularClass(RegularCard):
@@ -56,7 +57,14 @@ class RegularClass(RegularCard):
         text_layers: list[Layer] = None,
         overlay_layers: list[Layer] = None,
     ):
-        super().__init__(metadata, art_layer, frame_layers, collector_layers, text_layers, overlay_layers)
+        super().__init__(
+            metadata,
+            art_layer,
+            frame_layers,
+            collector_layers,
+            text_layers,
+            overlay_layers,
+        )
 
         # Type Box
         self.TYPE_BOX_Y = 1779
@@ -288,7 +296,8 @@ class RegularClass(RegularCard):
 
         level_font = ImageFont.truetype(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
         colon_font = ImageFont.truetype(
-            self.LEVEL_FONT, int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE)
+            self.LEVEL_FONT,
+            int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE),
         )
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.LEVEL_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.LEVEL_FONT_SIZE)
@@ -321,7 +330,11 @@ class RegularClass(RegularCard):
 
                     if curr_x < self.RULES_TEXT_WIDTH:
                         image.alpha_composite(
-                            symbol_image, (curr_x, (CLASS_HEADER.image.height - symbol_image.height) // 2)
+                            symbol_image,
+                            (
+                                curr_x,
+                                (CLASS_HEADER.image.height - symbol_image.height) // 2,
+                            ),
                         )
                     else:
                         log("The mana cost is too long and has been cut off.")
