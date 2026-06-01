@@ -60,6 +60,7 @@ from model.modal.short.ShortModalFrontside import ShortModalFrontside
 from model.mtg_class.RegularClass import RegularClass
 from model.omen.RegularOmen import RegularOmen
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
+from model.prepare.RegularPrepare import RegularPrepare
 from model.regular.RegularCard import RegularCard
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
@@ -184,6 +185,8 @@ def process_spreadsheets(
         "regular adventure": RegularAdventure,
         # Omen
         "regular omen": RegularOmen,
+        # Prepare
+        "regular prepare": RegularPrepare,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,
