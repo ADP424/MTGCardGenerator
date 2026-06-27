@@ -89,6 +89,11 @@ LATO_ITALICS = "fonts/lato-italics.ttf"
 LATO_BOLD = "fonts/lato-bold.ttf"
 LATO_BOLD_ITALICS = "fonts/lato-bold-italics.ttf"
 
+COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate-gothic-bold.ttf"
+
+NEUE_KABEL = "fonts/neue-kabel.ttf"
+NEUE_KABEL_ITALICS = "fonts/neue-kabel-italics.ttf"
+NEUE_KABEL_BOLD_ITALICS = "fonts/neue-kabel-bold-italics.ttf"
 
 ###########################
 # FORMATTING & DIMENSIONS #
@@ -168,6 +173,10 @@ FRAME_LAYOUT_EXTRAS_LIST = (
     r"white ",
     r" light",
     r"light ",
+    r" black",
+    r"black ",
+    r" dark",
+    r"dark ",
     r" vehicle",
     r"vehicle ",
     r"rotate[+-]?(?:\d+(?:\.\d+)?|\.\d+) ",

@@ -1,6 +1,6 @@
 import re
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
     CARD_FRAME_LAYOUT_EXTRAS,
@@ -75,10 +75,7 @@ class Playtest(RegularCard):
         self.TITLE_BOX_HEIGHT = 128
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 70
-        self.MANA_COST_SYMBOL_SPACING = 6
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 0
 
         # Title Text
         self.TITLE_X = 232
@@ -198,38 +195,70 @@ class Playtest(RegularCard):
             text = text.replace("{last}", "")
             overlay = True
 
+        text = self._preprocess_mana_cost_text(text)
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
 
         image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
+        # Compute font size whose cap-height matches MANA_COST_SYMBOL_SIZE, for text tokens.
+        _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
+        while _text_font_size > 1:
+            _f = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+            _bbox = _f.getbbox("M")
+            if (_bbox[3] - _bbox[1]) <= self.MANA_COST_SYMBOL_SIZE:
+                break
+            _text_font_size -= 1
+        _mana_text_font = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+
+        # Build element list right-to-left (playtest renders reversed).
+        sentinel = self._MANA_COST_TEXT_SENTINEL
+        elements: list[Image.Image] = []
+        for sym in reversed(text.split(" ")):
+            sym = sym.strip()
+            forced_text = sym.startswith(sentinel)
+            if forced_text:
+                display = sym[len(sentinel) :].replace("\x00SP\x00", " ")
+            else:
+                display = sym
+                symbol = PLAYTEST_SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
+                if symbol is None:
+                    log(f"Unknown placeholder for playtest card: '{{{sym.lower()}}}'. Using regular symbol...")
+                    symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
+                if symbol is not None:
+                    scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
+                    width = int(symbol.image.width * scale)
+                    height = int(symbol.image.height * scale)
+                    elements.append(
+                        add_drop_shadow(
+                            symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
+                            self.MANA_COST_SYMBOL_SHADOW_OFFSET,
+                        )
+                    )
+                    continue
+                else:
+                    log(f"STILL unknown placeholder: '{{{sym.lower()}}}'.")
+            # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE.
+            bbox = _mana_text_font.getbbox(display)
+            text_w = max(int(_mana_text_font.getlength(display)), 1)
+            text_img = Image.new("RGBA", (text_w, self.MANA_COST_SYMBOL_SIZE), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(text_img)
+            cap_height = bbox[3] - bbox[1]
+            text_y = (self.MANA_COST_SYMBOL_SIZE - cap_height) // 2 - bbox[1]
+            draw.text((0, text_y), display, font=_mana_text_font, fill=self.MANA_COST_TEXT_COLOR)
+            elements.append(text_img)
+
         if self.MANA_COST_SYMBOL_SPACING > 0:
             curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING - self.MANA_COST_SYMBOL_OUTLINE_SIZE
         else:
             curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_OUTLINE_SIZE
-        for sym in reversed(text.split(" ")):
-            symbol = PLAYTEST_SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
-            if symbol is None:
-                log(f"Unknown placeholder for playtest card: '{{{sym.strip().lower()}}}'. Using regular symbol...")
-                symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
-                if symbol is None:
-                    log(f"STILL unknown placeholder: '{{{sym.strip().lower()}}}'.")
-                    continue
-
-            scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
-            width = int(symbol.image.width * scale)
-            height = int(symbol.image.height * scale)
-            symbol_image = add_drop_shadow(
-                symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
-                self.MANA_COST_SYMBOL_SHADOW_OFFSET,
-            )
-
-            curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
-            if curr_x >= symbol_image.width:
+        for elem_image in elements:
+            curr_x -= elem_image.width + self.MANA_COST_SYMBOL_SPACING
+            if curr_x >= 0:
                 image.alpha_composite(
-                    symbol_image,
-                    (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2),
+                    elem_image,
+                    (int(curr_x), (self.TITLE_BOX_HEIGHT - elem_image.height) // 2),
                 )
             else:
                 log("The mana cost is too long and has been cut off.")

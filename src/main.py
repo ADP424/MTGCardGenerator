@@ -73,6 +73,7 @@ from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
 from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
+from model.showcase.Monopoly import Monopoly
 from model.showcase.Playtest import Playtest
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
@@ -202,6 +203,7 @@ def process_spreadsheets(
         "zendikar": Zendikar,
         "sketch": Sketch,
         "playtest": Playtest,
+        "monopoly": Monopoly,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,

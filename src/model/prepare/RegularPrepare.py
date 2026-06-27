@@ -100,7 +100,7 @@ class RegularPrepare(RegularAdventure):
         self.RULES_TEXT_X = 112
         self.RULES_TEXT_Y = 1315
         self.RULES_TEXT_WIDTH = 632
-        self.RULES_TEXT_HEIGHT = 618
+        self.RULES_TEXT_HEIGHT = 623
 
         # Prepare Spell Rules Text
         self.ADVENTURE_RULES_TEXT_X = 754

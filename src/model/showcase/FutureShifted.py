@@ -272,6 +272,7 @@ class FutureShifted(RegularCard):
         if len(text) == 0 or "{skip}" in text:
             return
 
+        text = self._preprocess_mana_cost_text(text)
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -279,9 +280,14 @@ class FutureShifted(RegularCard):
         image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
 
         num = 1
+        sentinel = self._MANA_COST_TEXT_SENTINEL
         for sym in text.split(" "):
             if num > 6:
                 log("Future shifted frames can only support up to six mana cost symbols. Skipping '{sym}'...")
+
+            if sym.startswith(sentinel):
+                log(f"Future shifted frames do not support text tokens in mana cost; skipping '{sym[len(sentinel):]}'.")
+                continue
 
             symbol = FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
             if symbol is None:

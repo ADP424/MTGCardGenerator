@@ -1,4 +1,4 @@
-import re
+﻿import re
 
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
@@ -120,8 +120,11 @@ class RegularCard:
         # Mana Cost
         self.MANA_COST_SYMBOL_SIZE = 70
         self.MANA_COST_SYMBOL_SPACING = 6
+        self.MANA_COST_ALIGN = "right"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
         self.MANA_COST_SYMBOL_OUTLINE_SIZE = 0
+        self.MANA_COST_TEXT_FONT = BELEREN_BOLD
+        self.MANA_COST_TEXT_COLOR = (0, 0, 0)
 
         # Title Text
         self.TITLE_X = 128
@@ -147,6 +150,7 @@ class RegularCard:
         self.TYPE_MIN_FONT_SIZE = 6
         self.TYPE_FONT = BELEREN_BOLD
         self.TYPE_FONT_COLOR = (0, 0, 0)
+        self.TYPE_TEXT_ALIGN = "left"
         self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
@@ -890,6 +894,22 @@ class RegularCard:
             image = image.transpose(Image.Transpose.ROTATE_270)
         self.text_layers.append(Layer(image, (self.FOOTER_X, self.FOOTER_Y)))
 
+    _MANA_COST_TEXT_SENTINEL = "\x00TEXT\x00"
+
+    @staticmethod
+    def _preprocess_mana_cost_text(text: str) -> str:
+        """
+        Replace {text}...{/text} spans with sentinel-prefixed tokens so their contents
+        are never looked up as symbols. Must be called before brace-stripping.
+        Spaces inside the span are encoded as \x00SP\x00 to survive the later split.
+        """
+        return re.sub(
+            r"\{text\}(.*?)\{/text\}",
+            lambda m: RegularCard._MANA_COST_TEXT_SENTINEL + m.group(1).replace(" ", "\x00SP\x00"),
+            text,
+            flags=re.IGNORECASE,
+        )
+
     def _create_mana_cost_layer(self):
         """
         Process MTG mana cost into the mana cost header, exchanging mana placeholders for symbols,
@@ -905,41 +925,102 @@ class RegularCard:
             text = text.replace("{last}", "")
             overlay = True
 
+        centered = False
+        if "{center}" in text:
+            text = text.replace("{center}", "")
+            centered = True
+
+        text = RegularCard._preprocess_mana_cost_text(text)
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
 
         image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
-        if self.MANA_COST_SYMBOL_SPACING > 0:
-            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING - self.MANA_COST_SYMBOL_OUTLINE_SIZE
-        else:
-            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_OUTLINE_SIZE
-        for sym in reversed(text.split(" ")):
-            symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.strip().lower(), None)
-            if symbol is None:
-                log(f"Unknown placeholder: '{{{sym.strip().lower()}}}'")
-                continue
+        # Compute the font size whose cap-height matches MANA_COST_SYMBOL_SIZE, for text tokens.
+        _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
+        while _text_font_size > 1:
+            _f = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+            _bbox = _f.getbbox("M")
+            if (_bbox[3] - _bbox[1]) <= self.MANA_COST_SYMBOL_SIZE:
+                break
+            _text_font_size -= 1
+        _mana_text_font = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
 
-            scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
-            width = int(symbol.image.width * scale)
-            height = int(symbol.image.height * scale)
-            symbol_image = add_drop_shadow(
-                symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
-                self.MANA_COST_SYMBOL_SHADOW_OFFSET,
-            )
+        # Each element is (image, is_text_token) so spacing logic can differentiate.
+        elements: list[tuple[Image.Image, bool]] = []
+        sentinel = RegularCard._MANA_COST_TEXT_SENTINEL
+        for sym in text.split(" "):
+            sym = sym.strip()
+            forced_text = sym.startswith(sentinel)
+            if forced_text:
+                display = sym[len(sentinel) :].replace("\x00SP\x00", " ")
+            else:
+                display = sym
+                symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
+                if symbol is not None:
+                    scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
+                    width = int(symbol.image.width * scale)
+                    height = int(symbol.image.height * scale)
+                    sym_img = add_drop_shadow(
+                        symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
+                        self.MANA_COST_SYMBOL_SHADOW_OFFSET,
+                    )
+                    elements.append((sym_img, False))
+                    continue
+            # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE.
+            bbox = _mana_text_font.getbbox(display)
+            text_w = max(int(_mana_text_font.getlength(display)), 1)
+            text_img = Image.new("RGBA", (text_w, self.MANA_COST_SYMBOL_SIZE), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(text_img)
+            cap_height = bbox[3] - bbox[1]
+            text_y = (self.MANA_COST_SYMBOL_SIZE - cap_height) // 2 - bbox[1]
+            draw.text((0, text_y), display, font=_mana_text_font, fill=self.MANA_COST_TEXT_COLOR)
+            elements.append((text_img, True))
 
-            curr_x -= symbol_image.width + self.MANA_COST_SYMBOL_SPACING
-            if curr_x >= symbol_image.width:
+        if not elements:
+            return
+
+        def _spacing(i: int) -> int:
+            """Gap between element i and element i+1."""
+            if elements[i][1] and elements[i + 1][1]:
+                return self.MANA_COST_SYMBOL_SPACING // 2
+            return self.MANA_COST_SYMBOL_SPACING
+
+        total_width = sum(e.width for e, _ in elements) + sum(_spacing(i) for i in range(len(elements) - 1))
+
+        text_align = "center" if centered else self.MANA_COST_ALIGN
+        if text_align == "center":
+            curr_x = (self.TITLE_BOX_WIDTH - total_width) // 2
+        elif text_align == "left":
+            if self.MANA_COST_SYMBOL_SPACING > 0:
+                curr_x = self.MANA_COST_SYMBOL_SPACING + self.MANA_COST_SYMBOL_OUTLINE_SIZE
+            else:
+                curr_x = self.MANA_COST_SYMBOL_OUTLINE_SIZE
+        else:  # right (default)
+            if self.MANA_COST_SYMBOL_SPACING > 0:
+                curr_x = (
+                    self.TITLE_BOX_WIDTH
+                    - total_width
+                    - self.MANA_COST_SYMBOL_SPACING
+                    - self.MANA_COST_SYMBOL_OUTLINE_SIZE
+                )
+            else:
+                curr_x = self.TITLE_BOX_WIDTH - total_width - self.MANA_COST_SYMBOL_OUTLINE_SIZE
+
+        start_x = curr_x
+        for i, (elem_image, _) in enumerate(elements):
+            if curr_x + elem_image.width <= self.TITLE_BOX_WIDTH:
                 image.alpha_composite(
-                    symbol_image,
-                    (int(curr_x), (self.TITLE_BOX_HEIGHT - symbol_image.height) // 2),
+                    elem_image,
+                    (int(curr_x), (self.TITLE_BOX_HEIGHT - elem_image.height) // 2),
                 )
             else:
                 log("The mana cost is too long and has been cut off.")
                 break
+            curr_x += elem_image.width + (_spacing(i) if i < len(elements) - 1 else 0)
 
-        self.mana_cost_x = self.TITLE_BOX_X + curr_x - self.MANA_COST_SYMBOL_SPACING
+        self.mana_cost_x = self.TITLE_BOX_X + start_x - self.MANA_COST_SYMBOL_SPACING
 
         layers = self.text_layers if not overlay else self.overlay_layers
         layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
@@ -1114,12 +1195,13 @@ class RegularCard:
         ascent = type_font.getmetrics()[0]
         y_pos = (self.TYPE_BOTTOM_Y - self.TYPE_BOX_Y - ascent) // 2
 
-        if centered:
+        text_align = self.TYPE_TEXT_ALIGN if not centered else "center"
+        if text_align == "left":
+            x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
+        elif text_align == "center":
             x_pos = (self.SET_SYMBOL_X - self.TYPE_X - type_length) // 2 + int(
                 self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size
             )
-        else:
-            x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
         for seg_text, color in segments:
             self._draw_ucs_chunks(
@@ -1572,6 +1654,7 @@ class RegularCard:
 
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = margin + (usable_height - content_height) // 2
+        font_ascent = ImageFont.truetype(self.RULES_TEXT_FONT, font_size).getmetrics()[0]
 
         def draw_lines(
             lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]],
@@ -1639,7 +1722,7 @@ class RegularCard:
                                 symbol_image,
                                 (
                                     int(curr_x),
-                                    int(curr_y + self.RULES_TEXT_MANA_SYMBOL_SPACING),
+                                    int(curr_y + font_ascent - symbol_image.height),
                                 ),
                             )
                         else:
