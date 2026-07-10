@@ -36,7 +36,6 @@ from constants import (
     FRAMES_PATH,
     GOTHAM_BOLD,
     INPUT_ART_PATH,
-    LATO_BOLD_ITALICS,
     MPLANTIN,
     MPLANTIN_ITALICS,
     OVERLAYS_PATH,
@@ -167,7 +166,6 @@ class RegularCard:
         self.RULES_TEXT_HEIGHT = 623
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
-        self.RULES_TEXT_FONT_BOLD_ITALICS = LATO_BOLD_ITALICS
         self.RULES_TEXT_MAX_FONT_SIZE = 78
         self.RULES_TEXT_MIN_FONT_SIZE = 6
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
@@ -1369,10 +1367,6 @@ class RegularCard:
                         fragments.append(("format", "italic_on"))
                     elif token in ("\\i", "/i"):
                         fragments.append(("format", "italic_off"))
-                    elif token in ("bi", "ib"):
-                        fragments.append(("format", "bold_italic_on"))
-                    elif token in ("\\bi", "/bi", "\\ib", "/ib"):
-                        fragments.append(("format", "bold_italic_off"))
                     elif token == "ucs":
                         fragments.append(("format", "ucs_on"))
                     elif token in ("\\ucs", "/ucs"):
@@ -1413,7 +1407,6 @@ class RegularCard:
             frags: list[tuple[str, str]],
             regular_font: ImageFont.FreeTypeFont,
             italic_font: ImageFont.FreeTypeFont,
-            bold_italic_font: ImageFont.FreeTypeFont,
             symbol_font: ImageFont.FreeTypeFont,
             emoji_font: ImageFont.FreeTypeFont,
         ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
@@ -1425,7 +1418,7 @@ class RegularCard:
             lines = []
             curr_fragment = []
             curr_width = 0
-            curr_main_font = regular_font  # regular vs italics vs bold italics
+            curr_main_font = regular_font  # regular vs italics
             curr_font = regular_font  # regular vs italics vs symbol vs emoji
 
             indent = 0
@@ -1445,12 +1438,6 @@ class RegularCard:
                         curr_main_font = italic_font
                         curr_font = italic_font
                     elif value == "italic_off":
-                        curr_main_font = regular_font
-                        curr_font = regular_font
-                    elif value == "bold_italic_on":
-                        curr_main_font = bold_italic_font
-                        curr_font = bold_italic_font
-                    elif value == "bold_italic_off":
                         curr_main_font = regular_font
                         curr_font = regular_font
                     elif value == "ucs_on":
@@ -1526,7 +1513,6 @@ class RegularCard:
         for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
             rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
             italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
-            bold_italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_BOLD_ITALICS, font_size)
             symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
             emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
 
@@ -1549,7 +1535,6 @@ class RegularCard:
                             fragments,
                             target_font,
                             italics_font,
-                            bold_italics_font,
                             symbol_font,
                             emoji_font,
                         )

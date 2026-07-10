@@ -25,7 +25,6 @@ images/art/overlay/*
 
 # log/debug
 log.txt
-images/svg_to_png.py
 
 # Claude
 CLAUDE.md

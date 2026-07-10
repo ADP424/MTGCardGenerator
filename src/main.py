@@ -66,6 +66,7 @@ from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
+from model.showcase.Coup import Coup
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
 from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.FullText import FullText
@@ -204,6 +205,7 @@ def process_spreadsheets(
         "sketch": Sketch,
         "playtest": Playtest,
         "monopoly": Monopoly,
+        "coup": Coup,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
@@ -923,7 +925,7 @@ def audit_art(card_sets: dict[str, dict[str, RegularCard]]):
             card_path = f"{art_path}/{card_filename}.png"
 
             card_frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
-            if "full text" in card_frame_layout:
+            if "full text" in card_frame_layout or "monopoly" in card_frame_layout:
                 card_filenames.append(card_filename)
                 return
 

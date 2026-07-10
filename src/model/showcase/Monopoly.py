@@ -2,7 +2,6 @@ from constants import (
     CARD_FRAME_LAYOUT_EXTRAS,
     COPPERPLATE_GOTHIC_BOLD,
     NEUE_KABEL,
-    NEUE_KABEL_BOLD_ITALICS,
     NEUE_KABEL_ITALICS,
 )
 from model.Layer import Layer
@@ -11,7 +10,8 @@ from model.regular.RegularCard import RegularCard
 
 class Monopoly(RegularCard):
     """
-    A layered image representing a card and all the collection info on it, with all relevant card metadata.
+    A layered image representing a monopoly showcase card and all the collection info on it,
+    with all relevant card metadata.
 
     Attributes
     ----------
@@ -66,7 +66,6 @@ class Monopoly(RegularCard):
 
         # Mana Cost
         self.MANA_COST_SYMBOL_SIZE = 80
-        self.MANA_COST_SYMBOL_SPACING = 6
         self.MANA_COST_ALIGN = "center"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
         self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
@@ -123,9 +122,7 @@ class Monopoly(RegularCard):
         self.RULES_TEXT_HEIGHT = 1083
         self.RULES_TEXT_FONT = NEUE_KABEL
         self.RULES_TEXT_FONT_ITALICS = NEUE_KABEL_ITALICS
-        self.RULES_TEXT_FONT_BOLD_ITALICS = NEUE_KABEL_BOLD_ITALICS
         self.RULES_TEXT_MAX_FONT_SIZE = 150
-        self.RULES_TEXT_MIN_FONT_SIZE = 6
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_X = 700
