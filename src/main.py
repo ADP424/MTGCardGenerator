@@ -52,6 +52,7 @@ from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
+from model.conspiracy.Conspiracy import Conspiracy
 from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
@@ -194,6 +195,8 @@ def process_spreadsheets(
         "transform battle": TransformBattle,
         # Room
         "regular room": RegularRoom,
+        # Conspiracy
+        "conspiracy": Conspiracy,
         # Edifice
         "regular edifice": RegularEdifice,
         # Showcase

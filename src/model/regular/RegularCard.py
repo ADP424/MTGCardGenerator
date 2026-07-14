@@ -1639,7 +1639,11 @@ class RegularCard:
 
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = margin + (usable_height - content_height) // 2
-        font_ascent = ImageFont.truetype(self.RULES_TEXT_FONT, font_size).getmetrics()[0]
+        _rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
+        # Vertical center of a capital letter, measured from the top of the glyph cell (curr_y).
+        # Used to center inline symbols on the line rather than resting them on the baseline.
+        _cap_bbox = _rules_font.getbbox("H")
+        font_cap_center = (_cap_bbox[1] + _cap_bbox[3]) / 2
 
         def draw_lines(
             lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]],
@@ -1707,7 +1711,7 @@ class RegularCard:
                                 symbol_image,
                                 (
                                     int(curr_x),
-                                    int(curr_y + font_ascent - symbol_image.height),
+                                    int(curr_y + font_cap_center - symbol_image.height / 2),
                                 ),
                             )
                         else:
