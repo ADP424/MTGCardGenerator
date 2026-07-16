@@ -53,6 +53,7 @@ from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.conspiracy.Conspiracy import Conspiracy
+from model.dungeon.Dungeon import Dungeon
 from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
@@ -197,6 +198,8 @@ def process_spreadsheets(
         "regular room": RegularRoom,
         # Conspiracy
         "conspiracy": Conspiracy,
+        # Dungeon
+        "dungeon": Dungeon,
         # Edifice
         "regular edifice": RegularEdifice,
         # Showcase

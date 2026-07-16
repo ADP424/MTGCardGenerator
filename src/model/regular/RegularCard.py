@@ -51,6 +51,7 @@ from log import log
 from model.Layer import Layer
 from utils import (
     add_drop_shadow,
+    apply_alpha_mask,
     cardname_to_filename,
     get_card_key,
     open_image,
@@ -65,28 +66,28 @@ class RegularCard:
 
     Attributes
     ----------
-    metadata : dict[str, str | list], default : {}
+    metadata : dict[str, str | list], optional
         Information about the card (title, mana cost, rules text, frame, etc.)
 
-    base_width : int, default : None
+    base_width : int, optional
         The width of the root image. Determined by the frame layout in the metadata if not given.
 
-    base_height : int, default : None
+    base_height : int, optional
         The height of the root image. Determined by the frame layout in the metadata if not given.
 
     art_layer : Layer, optional
         The art to use in the art slot of the frame. Renders first, before the frame layers.
 
-    frame_layers : list[Layer], default : []
+    frame_layers : list[Layer], optional
         The layers of card frames. Lower-index layers are rendered first. Renders after art, before collector info.
 
-    collector_layers : list[Layer], default : []
+    collector_layers : list[Layer], optional
         The layers of collector info. Lower-index layers are rendered first. Renders after frames, before text.
 
-    text_layers : list[Layer], default : []
+    text_layers : list[Layer], optional
         The layers of card text. Lower-index layers are rendered first. Renders after collector info and frames.
 
-    overlay_layers : list[Layer], default : []
+    overlay_layers : list[Layer], optional
         Any additional layers to render above everything else on the card. Rendered absolutely last.
     """
 
@@ -254,28 +255,28 @@ class RegularCard:
         create_frame_layers: bool, default: True
             Whether to put the card's frames on or not.
 
-        create_watermark_layer: bool, default : True
+        create_watermark_layer: bool, default: True
             Whether to put the watermark on the card or not.
 
-        create_rarity_symbol_layer: bool, default : True
+        create_rarity_symbol_layer: bool, default: True
             Whether to put the rarity/set symbol on the card or not.
 
-        create_footer_layer: bool, default : True
+        create_footer_layer: bool, default: True
             Whether to put the footer collector info on the bottom of the card or not.
 
-        create_mana_cost_layer: bool, default : True
+        create_mana_cost_layer: bool, default: True
             Whether to put the mana cost of the card on it or not.
 
-        create_title_layer: bool, default : True
+        create_title_layer: bool, default: True
             Whether to put the title of the card on it or not.
 
-        create_type_layer: bool, default : True
+        create_type_layer: bool, default: True
             Whether to put the type line of the card on it or not.
 
-        create_rules_text_layer: bool, default : True
+        create_rules_text_layer: bool, default: True
             Whether to put the rules text of the card on it or not.
 
-        create_power_toughness_layer: bool, default : True
+        create_power_toughness_layer: bool, default: True
             Whether to put the power & toughness of the card on it or not.
 
         create_overlay_layers: bool, default: True
@@ -323,7 +324,7 @@ class RegularCard:
         Image
             The merged image.
 
-        close_images: bool, default : True
+        close_images: bool, default: True
             Whether to close the images used in the card layers or not.
             This means the card cannot be rendered again, but it frees memory.
         """
@@ -349,7 +350,7 @@ class RegularCard:
         key: str
             The metadata entry to fetch the value of.
 
-        default: any, default : ""
+        default: any, default: ""
             The default value to return if the metadata entry isn't found.
 
         Returns
@@ -372,7 +373,7 @@ class RegularCard:
         value: str
             The value to set the metadata entry to.
 
-        append: bool, default : False
+        append: bool, default: False
             Whether to append the value to the existing value of the metadata entry or not.
         """
 
@@ -386,9 +387,14 @@ class RegularCard:
             else:
                 log(f"The value of '{key}' is not a list.")
 
-    def _create_art_layer(self):
+    def _create_art_layer(self, log_errors: bool = True):
         """
         Create the art layer of the card from the art folder.
+
+        Parameters
+        ----------
+        log_errors: bool, default: True
+            Whether to log when art isn't found for the card or not.
         """
 
         card_title = self.get_metadata(CARD_TITLE)
@@ -400,12 +406,8 @@ class RegularCard:
 
         art_path = f"{INPUT_ART_PATH}/{card_set}/{filename}.png"
         art_image = open_image(art_path)
-        if art_image is None:
-            base_art_path = f"{INPUT_ART_PATH}/{filename}.png"
-            log(f"Couldn't find art under '{art_path}'. Trying under '{base_art_path}'.")
-            art_image = open_image(base_art_path)
-        if art_image is None:
-            log(f"Couldn't find an image with this card's name, '{filename}', in the art directory.")
+        if art_image is None and log_errors:
+            log(f"Couldn't find art under '{art_path}'.")
 
         self.art_layer = Layer(art_image)
 
@@ -445,13 +447,9 @@ class RegularCard:
                     base = mask.getchannel("A").resize(frame.size)
                     combined_mask = ImageChops.multiply(combined_mask, base)
 
-                # This is the important part: preserving the r, g, b and alpha separation to prevent banding
-                r, g, b, original_alpha = frame.split()
-                new_alpha = ImageChops.multiply(original_alpha, combined_mask)
-                new_frame = Image.merge("RGBA", (r, g, b, new_alpha))
-
+                # Preserves the r, g, b and alpha separation to prevent banding
+                frame = apply_alpha_mask(frame, combined_mask)
                 pending_masks.clear()
-                frame = new_frame
 
             if before:
                 self.frame_layers.append(Layer(frame))

@@ -10,7 +10,7 @@ class Layer:
     image: Image
         The image displayed on the layer.
 
-    position: tuple[int, int], default : (0, 0)
+    position: tuple[int, int], default: (0, 0)
         The position of the layer relative to the top left corner of the image.
     """
 

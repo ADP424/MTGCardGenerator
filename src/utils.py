@@ -1,7 +1,9 @@
 import re
 from datetime import MINYEAR, datetime
 
-from PIL import Image
+from PIL import Image, ImageChops
+
+from log import log
 
 
 def open_image(filepath: str) -> Image.Image | None:
@@ -53,6 +55,162 @@ def paste_image(image: Image.Image, base_image: Image.Image, position: tuple[int
         temp.paste(image, position)
         return Image.alpha_composite(base_image, temp)
     return base_image
+
+
+def apply_alpha_mask(image: Image.Image, mask: Image.Image) -> Image.Image:
+    """
+    Multiply an image's alpha by a mask, preserving RGB to avoid banding.
+
+    Parameters
+    ----------
+    image: Image
+        The image to mask. Converted to RGBA if it isn't already.
+
+    mask: Image
+        The mask to multiply the image's alpha by. Resized to `image`'s size if they don't match.
+
+    Returns
+    -------
+    Image
+        `image` with its alpha channel multiplied by `mask`.
+    """
+
+    image = image.convert("RGBA")
+    r, g, b, alpha = image.split()
+    if mask.size != image.size:
+        mask = mask.resize(image.size)
+    return Image.merge("RGBA", (r, g, b, ImageChops.multiply(alpha, mask)))
+
+
+def allocate_by_weight(weights: list[float], total: int, minimum: int | list[int]) -> list[int]:
+    """
+    Split `total` whole units between items with the given weights, never going under each item's
+    minimum. Uses the largest-remainder method, breaking ties in favour of heavier items.
+
+    Parameters
+    ----------
+    weights : list[float]
+        The relative share each item wants.
+
+    total : int
+        The number of units to hand out.
+
+    minimum : int | list[int]
+        The fewest units any one item may get, either one value for all items or one per item.
+
+    Returns
+    -------
+    list[int]
+        A unit count per item, summing to `total` where possible.
+    """
+
+    count = len(weights)
+    if count == 0:
+        return []
+    minimums = minimum if isinstance(minimum, list) else [minimum] * count
+    safe = [max(weight, 0.01) for weight in weights]
+    total_weight = sum(safe)
+
+    ideals = [total * weight / total_weight for weight in safe]
+    result = [max(int(ideal), minimums[index]) for index, ideal in enumerate(ideals)]
+
+    difference = total - sum(result)
+    if difference > 0:
+        order = sorted(range(count), key=lambda i: (ideals[i] - result[i], safe[i]), reverse=True)
+        for index in range(difference):
+            result[order[index % count]] += 1
+    while sum(result) > total:
+        shrinkable = [index for index in range(count) if result[index] > minimums[index]]
+        if not shrinkable:
+            log("Tried to allocate more units than the total allows even at each item's minimum. Some will overflow.")
+            break
+        result[max(shrinkable, key=lambda i: result[i])] -= 1
+
+    return result
+
+
+def union_alpha_channel(canvas: Image.Image, alpha: Image.Image, position: tuple[int, int]):
+    """
+    Union an alpha channel into an "L" canvas, keeping whichever is more opaque.
+
+    Parameters
+    ----------
+    canvas : Image
+        The "L" canvas to union `alpha` into, modified in place.
+
+    alpha : Image
+        The alpha channel to union into `canvas`.
+
+    position : tuple[int, int]
+        Where `alpha`'s top left corner goes on `canvas`.
+    """
+
+    box = (position[0], position[1], position[0] + alpha.width, position[1] + alpha.height)
+    canvas.paste(ImageChops.lighter(canvas.crop(box), alpha), box)
+
+
+def subtract_intervals(start: int, end: int, intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """
+    Return the parts of [start, end) that no interval covers.
+
+    Parameters
+    ----------
+    start : int
+        The start of the range to cut up.
+
+    end : int
+        The end of the range to cut up.
+
+    intervals : list[tuple[int, int]]
+        The ranges to remove from it.
+
+    Returns
+    -------
+    list[tuple[int, int]]
+        Whatever is left, left to right.
+    """
+
+    pieces = [(start, end)]
+    for gap_start, gap_end in intervals:
+        remaining: list[tuple[int, int]] = []
+        for piece_start, piece_end in pieces:
+            if gap_end <= piece_start or gap_start >= piece_end:
+                remaining.append((piece_start, piece_end))
+                continue
+            if gap_start > piece_start:
+                remaining.append((piece_start, gap_start))
+            if gap_end < piece_end:
+                remaining.append((gap_end, piece_end))
+        pieces = remaining
+    return [piece for piece in pieces if piece[1] > piece[0]]
+
+
+def alpha_composite_clipped(base: Image.Image, piece: Image.Image, position: tuple[int, int]):
+    """
+    Alpha composite a piece onto a base image, cropping it to whatever lands on the base image.
+
+    Parameters
+    ----------
+    base : Image
+        The RGBA image to composite `piece` onto, modified in place.
+
+    piece : Image
+        The image to composite onto `base`.
+
+    position : tuple[int, int]
+        Where `piece`'s top left corner goes on `base`.
+    """
+
+    x, y = position
+    left = max(-x, 0)
+    top = max(-y, 0)
+    right = min(piece.width, base.width - x)
+    bottom = min(piece.height, base.height - y)
+    if right <= left or bottom <= top:
+        return
+    if (left, top, right, bottom) != (0, 0, piece.width, piece.height):
+        piece = piece.crop((left, top, right, bottom))
+    base.alpha_composite(piece, dest=(x + left, y + top))
 
 
 def replace_ticks(word: str) -> str:
@@ -314,7 +472,7 @@ def str_to_int(string: str, default: int = 0) -> int:
     string: str
         The string to convert to an integer.
 
-    default: int, default : 0
+    default: int, default: 0
         The integer to return if the conversion isn't possible.
 
     Returns
@@ -338,7 +496,7 @@ def str_to_float(string: str, default: float = 0) -> float:
     string: str
         The string to convert to an integer.
 
-    default: float, default : 0
+    default: float, default: 0
         The float to return if the conversion isn't possible.
 
     Returns
@@ -366,10 +524,10 @@ def str_to_datetime(
     string: str
         The string to convert to a datetime object.
 
-    default: datetime, default : datetime(MINYEAR, 1, 1)
+    default: datetime, default: datetime(MINYEAR, 1, 1)
         The datetime to return if the conversion isn't possible.
 
-    str_format: str, default : "%m/%d/%Y"
+    str_format: str, default: "%m/%d/%Y"
         The format of the date in `string`.
 
     Returns

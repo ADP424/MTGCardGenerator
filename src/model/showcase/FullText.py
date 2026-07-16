@@ -9,28 +9,28 @@ class FullText(RegularCard):
 
     Attributes
     ----------
-    metadata : dict[str, str | list], default : {}
+    metadata : dict[str, str | list], optional
         Information about the card (title, mana cost, rules text, frame, etc.)
 
-    base_width : int, default : None
+    base_width : int, optional
         The width of the root image. Determined by the frame layout in the metadata if not given.
 
-    base_height : int, default : None
+    base_height : int, optional
         The height of the root image. Determined by the frame layout in the metadata if not given.
 
     art_layer : Layer, optional
         The art to use in the art slot of the frame. Renders first, before the frame layers.
 
-    frame_layers : list[Layer], default : []
+    frame_layers : list[Layer], optional
         The layers of card frames. Lower-index layers are rendered first. Renders after art, before collector info.
 
-    collector_layers : list[Layer], default : []
+    collector_layers : list[Layer], optional
         The layers of collector info. Lower-index layers are rendered first. Renders after frames, before text.
 
-    text_layers : list[Layer], default : []
+    text_layers : list[Layer], optional
         The layers of card text. Lower-index layers are rendered first. Renders after collector info and frames.
 
-    overlay_layers : list[Layer], default : []
+    overlay_layers : list[Layer], optional
         Any additional layers to render above everything else on the card. Rendered absolutely last.
     """
 
@@ -88,37 +88,37 @@ class FullText(RegularCard):
 
         Parameters
         ----------
-        create_art_layer: bool, default : True
+        create_art_layer: bool, default: True
             Whether to put the card's art in or not.
 
-        create_frame_layers: bool, default : True
+        create_frame_layers: bool, default: True
             Whether to put the card's frames on or not.
 
-        create_watermark_layer: bool, default : True
+        create_watermark_layer: bool, default: True
             Whether to put the watermark on the card or not.
 
-        create_rarity_symbol_layer: bool, default : True
+        create_rarity_symbol_layer: bool, default: True
             Whether to put the rarity/set symbol on the card or not.
 
-        create_footer_layer: bool, default : True
+        create_footer_layer: bool, default: True
             Whether to put the footer collector info on the bottom of the card or not.
 
-        create_mana_cost_layer: bool, default : True
+        create_mana_cost_layer: bool, default: True
             Whether to put the mana cost of the card on it or not.
 
-        create_title_layer: bool, default : True
+        create_title_layer: bool, default: True
             Whether to put the title of the card on it or not.
 
-        create_type_layer: bool, default : True
+        create_type_layer: bool, default: True
             Whether to put the type line of the card on it or not.
 
-        create_rules_text_layer: bool, default : True
+        create_rules_text_layer: bool, default: True
             Whether to put the rules text of the card on it or not.
 
-        create_power_toughness_layer: bool, default : True
+        create_power_toughness_layer: bool, default: True
             Whether to put the power & toughness of the card on it or not.
 
-        create_overlay_layers: bool, default : True
+        create_overlay_layers: bool, default: True
             Whether to put the overlays on top of the card after everything else or not.
         """
 

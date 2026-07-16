@@ -10,7 +10,7 @@ class Symbol:
     image: Image
         The image of the symbol.
 
-    size_ratio: float | tuple[float, float], default : 1.0
+    size_ratio: float | tuple[float, float], default: 1.0
         The ratio of the size of this symbol to the regular size the symbol would appear as.
         If given as a tuple of (width, height), width and height ratios are computed separately.
     """
@@ -42,13 +42,13 @@ class Symbol:
         new_height: int, optional
             The height to resize the image to. Keeps its original height if left blank.
 
-        outline_size: int, default : 0
+        outline_size: int, default: 0
             The size of the outline to draw around the image.
 
-        outline_color: tuple[int, int, int]: default : (0, 0, 0)
+        outline_color: tuple[int, int, int]: default: (0, 0, 0)
             The color of the outline to draw around the image.
 
-        ignore_size_ratio: bool, default : False
+        ignore_size_ratio: bool, default: False
             Whether to ignore the size ratio passed into the constructor and just render the image at its normal size.
 
         Returns
