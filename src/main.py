@@ -54,6 +54,7 @@ from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.conspiracy.Conspiracy import Conspiracy
 from model.dungeon.Dungeon import Dungeon
+from model.dungeon.ExpandedDungeon import ExpandedDungeon
 from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
@@ -200,6 +201,7 @@ def process_spreadsheets(
         "conspiracy": Conspiracy,
         # Dungeon
         "dungeon": Dungeon,
+        "expanded dungeon": ExpandedDungeon,
         # Edifice
         "regular edifice": RegularEdifice,
         # Showcase
@@ -485,6 +487,13 @@ def process_spreadsheets(
             card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_sets[card_set][card_key]
+
+    # Resolve expanded dungeons' cross-card {to=...}/{continues=...} targets to the actual
+    # sibling card/room objects they name, now that every card in each set has been constructed
+    for card_set in card_sets:
+        for card in card_sets[card_set].values():
+            if isinstance(card, ExpandedDungeon):
+                card.link_siblings(card_sets[card_set])
 
     # Remove cards with blank creation dates, if date filtering is on
     if oldest_date > datetime.min or latest_date < datetime.max:

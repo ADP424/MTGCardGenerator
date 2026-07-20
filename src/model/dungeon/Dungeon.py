@@ -130,6 +130,12 @@ class Dungeon(RegularCard):
         bottom_pixel_gaps : list[tuple[int, int]], optional
             The ranges of pixels where doorways clip the room's bottom walls away.
 
+        left_pixel_gaps : list[tuple[int, int]], optional
+            The ranges of pixels where doorways clip the room's left wall away.
+
+        right_pixel_gaps : list[tuple[int, int]], optional
+            The ranges of pixels where doorways clip the room's right wall away.
+
         inline : bool, default: False
             Whether the name and the rules text share a single line.
 
@@ -169,6 +175,8 @@ class Dungeon(RegularCard):
             self.pixel_height = 0
             self.top_pixel_gaps: list[tuple[int, int]] = []
             self.bottom_pixel_gaps: list[tuple[int, int]] = []
+            self.left_pixel_gaps: list[tuple[int, int]] = []
+            self.right_pixel_gaps: list[tuple[int, int]] = []
             self.inline = False
             self.name_font_size = 0
             self.body_font_size = 0
@@ -181,30 +189,74 @@ class Dungeon(RegularCard):
 
     class Door:
         """
-        A doorway through the wall between two vertically adjacent rooms. Its opening is a whole number of
-        tiles wide, sits on tile-column boundaries, and is stored in tile columns. `Dungeon` is responsible
-        for converting it to pixels.
+        A doorway through the wall between two adjacent rooms: either a horizontal doorway (in the
+        wall between a room and the one directly below it) or a vertical doorway (in the wall
+        between a room and one directly beside it). Its opening is a whole number of tiles wide,
+        sits on tile boundaries, and is stored in tile units. `Dungeon` is responsible for
+        converting it to pixels.
 
         Attributes
         ----------
+        axis : str
+            `"horizontal"` for a doorway in a top/bottom wall (seam is a row boundary, opening
+            runs along columns), or `"vertical"` for a doorway in a left/right wall (seam is a
+            column boundary, opening runs along rows).
+
         tile_x0 : int
-            The first tile column of the opening.
+            For a horizontal doorway, the first tile column of the opening. For a vertical
+            doorway, the tile column of the wall seam itself.
 
         tile_x1 : int
-            The tile column just past the end of the opening (exclusive end).
+            For a horizontal doorway, the tile column just past the end of the opening (exclusive
+            end). Unused for a vertical doorway.
 
         tile_y : int
-            Grid row of the wall the doorway is in.
+            For a horizontal doorway, the grid row of the wall seam. For a vertical doorway, the
+            first tile row of the opening.
+
+        tile_y1 : int
+            For a vertical doorway, the tile row just past the end of the opening (exclusive end).
+            Unused for a horizontal doorway.
 
         show_arrow : bool
             Whether to draw a direction arrow in this doorway.
+
+        arrow_direction : str
+            Which way the direction arrow should point: `"down"` (or, for an `ExpandedDungeon`
+            cross-card doorway, `"up"`) for a horizontal doorway, or `"left"`/`"right"` for a
+            vertical doorway (the direction from the room whose `{to=...}` named the other, toward
+            that other room) -- or `"up_down"`/`"left_right"` (matching axis) for a doorway both
+            rooms name each other in, drawn with a double-headed arrow instead of a single-headed
+            one that would otherwise arbitrarily point from whichever room was visited first.
+
+        split_half : str | None, default: None
+            For a doorway whose seam is a physical card boundary rather than an interior row/column
+            (an `ExpandedDungeon` cross-card doorway), which half of the doorway
+            piece this card shows: for a horizontal doorway, `"top"` (the card above the seam) or
+            `"bottom"` (the card below it); for a vertical doorway, `"left"` (the card left of the
+            seam) or `"right"` (the card right of it); `None` for an ordinary same-card doorway
+            that shows the whole piece.
         """
 
-        def __init__(self, tile_x0: int, tile_x1: int, tile_y: int, show_arrow: bool):
+        def __init__(
+            self,
+            tile_x0: int,
+            tile_x1: int,
+            tile_y: int,
+            show_arrow: bool,
+            axis: str = "horizontal",
+            tile_y1: int = 0,
+            arrow_direction: str = "down",
+            split_half: str | None = None,
+        ):
+            self.axis = axis
             self.tile_x0 = tile_x0
             self.tile_x1 = tile_x1
             self.tile_y = tile_y
+            self.tile_y1 = tile_y1
             self.show_arrow = show_arrow
+            self.arrow_direction = arrow_direction
+            self.split_half = split_half
 
     def __init__(
         self,
@@ -225,11 +277,7 @@ class Dungeon(RegularCard):
         )
 
         # Dungeon-specific regex for unique dungeon placeholders
-        self.DUNGEON_PLACEHOLDER_REGEX = re.compile(
-            r"\{\s*(rowspan|row|new-?row|id|span|height|to|doors?|nameless|no-?name|no-?arrows?|arrows?)"
-            r"\s*(?:[=:]\s*([^{}]*?))?\s*\}",
-            re.IGNORECASE,
-        )
+        self.DUNGEON_PLACEHOLDER_REGEX = self._get_dungeon_placeholder_regex()
 
         # Title Box
         self.TITLE_BOX_X = 90
@@ -250,19 +298,15 @@ class Dungeon(RegularCard):
         self.TITLE_TEXT_ALIGN = "center"
 
         # Tile Grid
-        self.TILE_SIZE = 80
-        self.GRID_ORIGIN_X = 110
-        self.GRID_ORIGIN_Y = 289
-        self.GRID_COLUMNS = 16  # 16 * 80 = 1280 = 1500 - 2 * 110
-        self.GRID_ROWS = 19  # 19 * 80 = 1520 ~= 1522
+        self._init_grid_constants()
 
         # Room Constraints
         self.MIN_ROOM_COLUMNS = 2
         self.MIN_ROW_TILES = 2
 
         # Room Content
-        self.ROOM_CONTENT_INSET_X = 16
-        self.ROOM_CONTENT_INSET_Y = 16
+        self.ROOM_CONTENT_INSET_X = 32
+        self.ROOM_CONTENT_INSET_Y = 32
         self.ROOM_TEXT_CENTERED = True
         self.ROOM_TEXT_MAX_FONT_SIZE = 52
         self.ROOM_TEXT_MIN_FONT_SIZE = 8
@@ -290,25 +334,8 @@ class Dungeon(RegularCard):
         self.RULES_BOX_HEIGHT = self.GRID_ROWS * self.TILE_SIZE
         self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE = 0.35
 
-        # Walls
-        self.WALL_PATH = "dungeon/wall"
-        self.WALL_SHAPE_FOLDER = "shape"
-        self.WALL_EFFECT_FOLDER = "effect"
-        self.WALL_TEXTURE_PREFIX = "dungeon/wall/texture/"
-        self.WALL_OUTER_PIECE = "outer"
-
-        # Doorways
-        self.WALL_DOORWAY_PIECE = "doorway"
-        self.DOOR_OPENING_COLUMNS = 2
-        self.DOORWAY_PIECE_WIDTH = 240
-        self.DOORWAY_PIECE_HEIGHT = 160
-        self.DOOR_MIN_SHARED_COLUMNS = self.DOOR_OPENING_COLUMNS + 2
-
-        # Arrows
-        self.ARROW_PATH = "dungeon/wall/arrow"
-        self.ARROW_WIDTH = 80
-        self.ARROW_HEIGHT = 80
-        self.ARROW_OFFSET_Y = 0
+        # Walls, doorways, and arrows
+        self._init_wall_constants()
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = float("inf")
@@ -320,6 +347,7 @@ class Dungeon(RegularCard):
 
         self._wall_piece_cache: dict[str, Image.Image | None] = {}
         self._body_measurement_cache: dict[tuple[int, int, int], tuple[int, int, int, int] | None] = {}
+        self._row_tile_heights: list[int] = []
 
         # The rest of __init__ parses everything up front
 
@@ -360,15 +388,6 @@ class Dungeon(RegularCard):
             Apply parsed directives to a room. Returns whether the room was marked nameless.
             """
 
-            def parse_door_targets(value: str) -> list[str]:
-                """
-                Parse a `{to=...}` value into a list of target room identifiers.
-                """
-
-                if value.lower().strip() in ("", "none", "-"):
-                    return []
-                return [part.strip().lower() for part in value.split(",") if part.strip()]
-
             nameless = False
             for key, value in directives:
                 if key in ("row", "newrow"):
@@ -394,7 +413,9 @@ class Dungeon(RegularCard):
                     else:
                         room.pixel_height_multiplier = max(parsed, 0.01)
                 elif key in ("to", "door", "doors"):
-                    room.door_targets = parse_door_targets(value)
+                    if room.door_targets is None:
+                        room.door_targets = []
+                    room.door_targets.extend(self._parse_door_targets(value))
                 elif key in ("nameless", "noname"):
                     nameless = True
                 elif key == "noarrow":
@@ -483,8 +504,16 @@ class Dungeon(RegularCard):
                 capacity = max(bottom_doors[room.index], top_doors[room.index]) * self.DOOR_MIN_SHARED_COLUMNS
                 room.min_columns = max(room.min_columns, capacity)
 
+            # Give every row a min_rows tall enough for any explicit {to=...} doorway
+            self._vertical_door_pair_rows: list[tuple[int, int]] = []
+            for room, other in self._vertical_door_pairs():
+                overlap_start = max(room.row, other.row)
+                overlap_end = min(room.row + room.rowspan, other.row + other.rowspan)
+                self._vertical_door_pair_rows.append((overlap_start, overlap_end))
+
             # Widths come before heights so a wider room wraps its text into fewer lines
             self._compute_room_widths()
+            self._adjust_room_widths_for_text()
             self._compute_row_heights()
             self._finalize_room_rects()
 
@@ -566,7 +595,6 @@ class Dungeon(RegularCard):
                     layout_room(room, size)
 
         # Put a doorway in the wall between each room and every room directly beneath it
-        self.doors = []
         arrows_on = "arrowless" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
         opening = self.DOOR_OPENING_COLUMNS
         minimum = self.DOOR_MIN_SHARED_COLUMNS
@@ -585,19 +613,264 @@ class Dungeon(RegularCard):
 
                 # Center the opening on the shared wall, snapped to a whole tile column
                 tile_x0 = shared_c0 + (shared - opening) // 2
-                self.doors.append(Dungeon.Door(tile_x0, tile_x0 + opening, room.tile_y1, arrows_on and room.arrows))
+                self.doors.append(
+                    Dungeon.Door(tile_x0, tile_x0 + opening, room.tile_y1, arrows_on and room.arrows, axis="horizontal")
+                )
 
-        # Tell each room which pixel ranges of its top and bottom walls the doorways clear away
+        # Put a doorway in the wall between each room and every room its {to=...} explicitly names
+        vertical_opening = self.DOOR_OPENING_ROWS
+        vertical_minimum = self.DOOR_MIN_SHARED_ROWS
+
+        for source, target in self._vertical_door_pairs():
+            # source is whichever room's {to=...} produced this pair
+            left, right = (source, target) if source.tile_x1 <= target.tile_x0 else (target, source)
+
+            shared_r0, shared_r1 = self._get_shared_wall_rows(left, right)
+            shared = shared_r1 - shared_r0
+            if shared < vertical_minimum:
+                log(
+                    f"'{left.label}' and '{right.label}' only share {shared} tile(s) of wall, but a "
+                    f"doorway needs {vertical_minimum}. Heighten one of the rooms, or leave them "
+                    "without a doorway."
+                )
+                continue
+
+            mutual = self._is_mutual_door(source, target)
+            if mutual:
+                arrow_direction = "left_right"
+            else:
+                arrow_direction = "right" if source is left else "left"
+            wants_arrow = (left.arrows or right.arrows) if mutual else source.arrows
+            show_arrow = arrows_on and wants_arrow
+
+            # Center the opening on the shared wall, snapped to a whole tile row
+            tile_y0 = shared_r0 + (shared - vertical_opening) // 2
+            self.doors.append(
+                Dungeon.Door(
+                    left.tile_x1,
+                    0,
+                    tile_y0,
+                    show_arrow,
+                    axis="vertical",
+                    tile_y1=tile_y0 + vertical_opening,
+                    arrow_direction=arrow_direction,
+                )
+            )
+
+        # Tell each room which pixel ranges of its walls the doorways clear away
         for room in self.rooms:
             room.top_pixel_gaps = []
             room.bottom_pixel_gaps = []
+            room.left_pixel_gaps = []
+            room.right_pixel_gaps = []
         for door in self.doors:
-            gap = (self._door_start_x(door), self._door_end_x(door))
-            for room in self.rooms:
-                if room.tile_y1 == door.tile_y:
-                    room.bottom_pixel_gaps.append(gap)
-                elif room.tile_y0 == door.tile_y:
-                    room.top_pixel_gaps.append(gap)
+            if door.axis == "horizontal":
+                gap = (self._door_start_x(door), self._door_end_x(door))
+                for room in self.rooms:
+                    if room.tile_y1 == door.tile_y:
+                        room.bottom_pixel_gaps.append(gap)
+                    elif room.tile_y0 == door.tile_y:
+                        room.top_pixel_gaps.append(gap)
+            else:
+                gap = (self._door_start_y(door), self._door_end_y(door))
+                for room in self.rooms:
+                    if room.tile_x1 == door.tile_x0:
+                        room.right_pixel_gaps.append(gap)
+                    elif room.tile_x0 == door.tile_x0:
+                        room.left_pixel_gaps.append(gap)
+
+    def _init_grid_constants(self):
+        """
+        Set the tile-grid constants (`TILE_SIZE`, `GRID_ORIGIN_X`, `GRID_ORIGIN_Y`,
+        `GRID_COLUMNS`, `GRID_ROWS`). Broken out from the rest of `__init__` so a subclass with a
+        differently-sized grid (e.g. `ExpandedDungeon`) can override just this method -- every
+        room-layout computation that follows in `__init__` depends on these five values, so they
+        must be in their final form before any of it runs.
+        """
+
+        self.TILE_SIZE = 80
+        self.GRID_ORIGIN_X = 110
+        self.GRID_ORIGIN_Y = 289
+        self.GRID_COLUMNS = 16  # 16 * 80 = 1280 = 1500 - 2 * 110
+        self.GRID_ROWS = 19  # 19 * 80 = 1520 ~= 1522
+
+    def _init_wall_constants(self):
+        """
+        Set the wall/doorway/arrow asset-path and geometry constants (`WALL_PATH`,
+        `WALL_TEXTURE_PREFIX`, `ARROW_PATHS`, etc.). Broken out from the rest of `__init__` -- like
+        `_init_grid_constants` -- so a subclass whose wall art lives under a different
+        `images/frames/dungeon/...` folder (e.g. `ExpandedDungeon`, resized/reorganized separately
+        from `Dungeon`'s own `dungeon/regular/wall`) can override just this method. Must run before
+        `__init__` pulls wall-texture lines out of `CARD_FRAMES` (which matches against
+        `WALL_TEXTURE_PREFIX`), so this can't simply be left for a subclass to override via plain
+        attribute assignment after `super().__init__()` returns.
+        """
+
+        # Walls
+        self.WALL_PATH = "dungeon/regular/wall"
+        self.WALL_SHAPE_FOLDER = "shape"
+        self.WALL_EFFECT_FOLDER = "effect"
+        self.WALL_TEXTURE_PREFIX = "dungeon/regular/wall/texture/"
+        self.WALL_OUTER_PIECE = "outer"
+
+        # Doorways
+        self.WALL_HORIZONTAL_DOORWAY_PIECE = "horizontal_doorway"
+        self.WALL_VERTICAL_DOORWAY_PIECE = "vertical_doorway"
+        self.DOOR_OPENING_COLUMNS = 2
+        self.DOOR_OPENING_ROWS = 2
+        self.DOORWAY_PIECE_WIDTH = 240
+        self.DOORWAY_PIECE_HEIGHT = 160
+        self.DOOR_MIN_SHARED_COLUMNS = self.DOOR_OPENING_COLUMNS + 2
+        self.DOOR_MIN_SHARED_ROWS = self.DOOR_OPENING_ROWS + 2
+
+        # Arrows
+        self.ARROW_PATHS = {
+            "down": "dungeon/regular/wall/arrow/down",
+            "left": "dungeon/regular/wall/arrow/left",
+            "right": "dungeon/regular/wall/arrow/right",
+            "left_right": "dungeon/regular/wall/arrow/left_right",
+            "up_down": "dungeon/regular/wall/arrow/up_down",
+        }
+        self.ARROW_WIDTH = 80
+        self.ARROW_HEIGHT = 80
+        self.ARROW_OFFSET_Y = 0
+        self.ARROW_OFFSET_X = 0
+
+    def _get_dungeon_placeholder_regex(self) -> re.Pattern:
+        """
+        Return the regex that recognizes dungeon room directives (`{row}`, `{to=...}`, etc.) in
+        the rules text. Broken out from the rest of `__init__` so a subclass (e.g.
+        `ExpandedDungeon`) can recognize additional directives (like `{continues=...}`) without
+        needing to re-run any of the parsing `__init__` already did by the time such an override
+        could otherwise see the raw rules text.
+        """
+
+        return re.compile(
+            r"\{\s*(rowspan|row|new-?row|id|span|height|to|doors?|nameless|no-?name|no-?arrows?|arrows?)"
+            r"\s*(?:[=:]\s*([^{}]*?))?\s*\}",
+            re.IGNORECASE,
+        )
+
+    def _stamp_outer_wall(self, shape: Image.Image, effect: Image.Image, stamp_wall_piece):
+        """
+        Stamp the card's outer wall border (`WALL_OUTER_PIECE`) onto the whole card. Broken out
+        from `_create_wall_layers` so a subclass whose card isn't one uniform rectangle (e.g.
+        `ExpandedDungeon`, which draws two differently-shaped halves) can stamp a different piece
+        per region instead.
+
+        Parameters
+        ----------
+        shape : Image
+            The "L" silhouette `_create_wall_layers` is building, modified in place.
+
+        effect : Image
+            The RGBA effect image `_create_wall_layers` is building, modified in place.
+
+        stamp_wall_piece : function
+            `_create_wall_layers`'s own `stamp_wall_piece(shape, effect, name, position, size,
+            clip=None, clip_axis_vertical=False)` closure, passed in since it isn't a method.
+        """
+
+        stamp_wall_piece(shape, effect, self.WALL_OUTER_PIECE, (0, 0), (self.CARD_WIDTH, self.CARD_HEIGHT))
+
+    def _is_wall_suppressed(
+        self, room: "Dungeon.Room", edge: str, column: int | None = None, row: int | None = None
+    ) -> bool:
+        """
+        This is always false for a plain Dungeon. Only relevant in subclasses.
+
+        Parameters
+        ----------
+        room : Dungeon.Room
+            The room whose wall tile is being considered.
+
+        edge : str
+            Which edge of the room this tile is on.
+
+        column : int, optional
+            The tile column of the specific wall tile being considered, if the caller has one
+            (`build_wall_images`'s per-tile loop always passes this).
+
+        row : int, optional
+            The tile row of the specific wall tile being considered, if the caller has one.
+        """
+
+        return False
+
+    def _stamp_horizontal_doorway(
+        self, shape: Image.Image, effect: Image.Image, stamp_wall_piece, door: "Dungeon.Door"
+    ):
+        """
+        Stamp a horizontal doorway's art (`WALL_HORIZONTAL_DOORWAY_PIECE`), centered on the seam,
+        at its full size.
+
+        Parameters
+        ----------
+        shape : Image
+            The "L" silhouette `_create_wall_layers` is building, modified in place.
+
+        effect : Image
+            The RGBA effect image `_create_wall_layers` is building, modified in place.
+
+        stamp_wall_piece : function
+            `_create_wall_layers`'s own `stamp_wall_piece(shape, effect, name, position, size,
+            clip=None, clip_axis_vertical=False)` closure, passed in since it isn't a method.
+
+        door : Dungeon.Door
+            The horizontal doorway to stamp.
+        """
+
+        stamp_wall_piece(
+            shape,
+            effect,
+            self.WALL_HORIZONTAL_DOORWAY_PIECE,
+            (
+                self._door_center_x(door) - self.DOORWAY_PIECE_WIDTH // 2,
+                self._get_seam_y(door) - self.DOORWAY_PIECE_HEIGHT // 2,
+            ),
+            (self.DOORWAY_PIECE_WIDTH, self.DOORWAY_PIECE_HEIGHT),
+        )
+
+    def _stamp_vertical_doorway(self, shape: Image.Image, effect: Image.Image, stamp_wall_piece, door: "Dungeon.Door"):
+        """
+        Stamp a vertical doorway's art (`WALL_VERTICAL_DOORWAY_PIECE`), centered on the seam, at its
+        full size.
+
+        Parameters
+        ----------
+        shape : Image
+            The "L" silhouette `_create_wall_layers` is building, modified in place.
+
+        effect : Image
+            The RGBA effect image `_create_wall_layers` is building, modified in place.
+
+        stamp_wall_piece : function
+            `_create_wall_layers`'s own `stamp_wall_piece(shape, effect, name, position, size,
+            clip=None, clip_axis_vertical=False)` closure, passed in since it isn't a method.
+
+        door : Dungeon.Door
+            The vertical doorway to stamp.
+        """
+
+        stamp_wall_piece(
+            shape,
+            effect,
+            self.WALL_VERTICAL_DOORWAY_PIECE,
+            (
+                self._get_seam_x(door) - self.DOORWAY_PIECE_HEIGHT // 2,
+                self._door_center_y(door) - self.DOORWAY_PIECE_WIDTH // 2,
+            ),
+            (self.DOORWAY_PIECE_HEIGHT, self.DOORWAY_PIECE_WIDTH),
+        )
+
+    def _parse_door_targets(self, value: str) -> list[str]:
+        """
+        Parse a `{to=...}` value into a list of target room identifiers
+        """
+
+        if value.lower().strip() in ("", "none", "-"):
+            return []
+        return [part.strip().lower() for part in value.split(",") if part.strip()]
 
     def create_layers(
         self,
@@ -852,6 +1125,8 @@ class Dungeon(RegularCard):
 
         # Grow the two rooms of every under-overlapping doorway until they meet
         def grow(room: "Dungeon.Room", amount: int):
+            if room.index in spanning:
+                return
             stretch = next(run for _, _, run in stretches(row_chains[room.row]) if room in run)
             for _ in range(amount):
                 donors = [
@@ -875,6 +1150,183 @@ class Dungeon(RegularCard):
                     place_all()
             if settled:
                 break
+
+    def _adjust_room_widths_for_text(self):
+        """
+        Refine the base width layout for rooms holding a longer name or more rules text.
+        """
+
+        if not self.rooms:
+            return
+
+        def min_width(room: "Dungeon.Room") -> int:
+            return max(room.min_columns, self.MIN_ROOM_COLUMNS)
+
+        parent: dict = {}
+
+        def find(node):
+            parent.setdefault(node, node)
+            root = node
+            while parent[root] != root:
+                root = parent[root]
+            while parent[node] != root:
+                parent[node], node = root, parent[node]
+            return root
+
+        def union(first, second):
+            first_root, second_root = find(first), find(second)
+            if first_root != second_root:
+                parent[first_root] = second_root
+
+        GRID_LEFT, GRID_RIGHT = "grid-left", "grid-right"
+        for row_index in range(len(self.rows)):
+            occupants = sorted(
+                (room for room in self.rooms if room.row <= row_index < room.row + room.rowspan),
+                key=lambda room: room.tile_x0,
+            )
+            if not occupants:
+                continue
+            union(GRID_LEFT, (occupants[0].index, "L"))
+            union((occupants[-1].index, "R"), GRID_RIGHT)
+            for left, right in zip(occupants, occupants[1:]):
+                union((left.index, "R"), (right.index, "L"))
+
+        seam_of = {(room.index, side): find((room.index, side)) for room in self.rooms for side in ("L", "R")}
+        pinned = {find(GRID_LEFT), find(GRID_RIGHT)}
+
+        seam_pos: dict = {}
+        grows_seam: dict = {}  # seam -> rooms with a right edge is this seam
+        shrinks_seam: dict = {}  # seam -> rooms with a left edge is this seam
+        for room in self.rooms:
+            left_seam, right_seam = seam_of[(room.index, "L")], seam_of[(room.index, "R")]
+            seam_pos[left_seam] = room.tile_x0
+            seam_pos[right_seam] = room.tile_x1
+            grows_seam.setdefault(right_seam, []).append(room)
+            shrinks_seam.setdefault(left_seam, []).append(room)
+        movable = [seam for seam in seam_pos if seam not in pinned]
+
+        def width(room: "Dungeon.Room") -> int:
+            return seam_pos[seam_of[(room.index, "R")]] - seam_pos[seam_of[(room.index, "L")]]
+
+        def sync_rooms():
+            for room in self.rooms:
+                room.tile_x0 = seam_pos[seam_of[(room.index, "L")]]
+                room.tile_x1 = seam_pos[seam_of[(room.index, "R")]]
+
+        # Protected doorways, with the overlap each one starts at
+        protected_pairs: list[tuple["Dungeon.Room", "Dungeon.Room"]] = []
+        for room in self.rooms:
+            partner_row = room.row + room.rowspan
+            if partner_row >= len(self.rows):
+                continue
+            if room.door_targets is None:
+                for other in self.rows[partner_row]:
+                    overlap = min(room.tile_x1, other.tile_x1) - max(room.tile_x0, other.tile_x0)
+                    if overlap >= self.DOOR_MIN_SHARED_COLUMNS:
+                        protected_pairs.append((room, other))
+            else:
+                for identifier in room.door_targets:
+                    other = self.room_ids.get(identifier)
+                    if other is not None and other.row == partner_row:
+                        protected_pairs.append((room, other))
+        baseline_overlaps = [
+            min(first.tile_x1, second.tile_x1) - max(first.tile_x0, second.tile_x0) for first, second in protected_pairs
+        ]
+
+        def doorways_ok() -> bool:
+            for (first, second), baseline in zip(protected_pairs, baseline_overlaps):
+                overlap = min(first.tile_x1, second.tile_x1) - max(first.tile_x0, second.tile_x0)
+                if overlap < min(baseline, self.DOOR_MIN_SHARED_COLUMNS):
+                    return False
+            return True
+
+        def text_weight(room: "Dungeon.Room") -> float:
+            content_width = max((room.tile_x1 - room.tile_x0) * self.TILE_SIZE - 2 * self.ROOM_CONTENT_INSET_X, 1)
+            natural_height = self._measure_room_content(room, self.ROOM_TEXT_MAX_FONT_SIZE, content_width)["height"]
+            if natural_height == float("inf"):
+                natural_height = self.RULES_BOX_HEIGHT
+            return max(natural_height * content_width, 0.01)
+
+        def name_columns(room: "Dungeon.Room") -> int:
+            """
+            Columns a room needs so its single-line name fits without shrinking.
+            """
+
+            if not room.name:
+                return 0
+            size = min(
+                max(int(round(self.ROOM_TEXT_MAX_FONT_SIZE * self.ROOM_NAME_FONT_SCALE)), self.ROOM_NAME_MIN_FONT_SIZE),
+                self.ROOM_NAME_MAX_FONT_SIZE,
+            )
+            font = ImageFont.truetype(self.ROOM_NAME_FONT, size)
+            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, size)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT, size)
+            name_width = int(self._get_ucs_chunks_length(self._get_room_name_text(room), font, symbol_font, emoji_font))
+
+            # Match the margins _measure_room_content leaves around the name inside the room
+            body_margin = int(max(self.ROOM_TEXT_MAX_FONT_SIZE, 1) * 0.25)
+
+            needed = name_width + 2 * body_margin + 2 * self.ROOM_CONTENT_INSET_X
+            return min((needed + self.TILE_SIZE - 1) // self.TILE_SIZE, self.GRID_COLUMNS)
+
+        weight_of = {room.index: text_weight(room) for room in self.rooms}
+        name_of = {room.index: name_columns(room) for room in self.rooms}
+        target_samples: dict = {room.index: [] for room in self.rooms}
+        for row_index in range(len(self.rows)):
+            occupants = sorted(
+                (room for room in self.rooms if room.row <= row_index < room.row + room.rowspan),
+                key=lambda room: room.tile_x0,
+            )
+            if not occupants:
+                continue
+            allocation = allocate_by_weight(
+                [weight_of[room.index] for room in occupants],
+                self.GRID_COLUMNS,
+                [min_width(room) for room in occupants],
+            )
+            for room, value in zip(occupants, allocation):
+                target_samples[room.index].append(value)
+        target_of = {
+            index: max(
+                (sum(samples) / len(samples) if samples else 0.0),
+                float(name_of[index]),
+            )
+            for index, samples in target_samples.items()
+        }
+
+        def move_delta_cost(seam, delta: int) -> float:
+            cost = 0.0
+            for room in grows_seam.get(seam, []):  # right edge
+                deviation = width(room) - target_of[room.index]
+                cost += (deviation + delta) ** 2 - deviation**2
+            for room in shrinks_seam.get(seam, []):  # left edge
+                deviation = width(room) - target_of[room.index]
+                cost += (deviation - delta) ** 2 - deviation**2
+            return cost
+
+        for _ in range(self.GRID_COLUMNS * max(len(self.rooms), 1) * 4):
+            best_seam, best_delta, best_cost = None, 0, -1e-9
+            for seam in movable:
+                for delta in (1, -1):
+                    shrinking = shrinks_seam.get(seam, []) if delta > 0 else grows_seam.get(seam, [])
+                    if any(width(room) - 1 < min_width(room) for room in shrinking):
+                        continue
+                    cost = move_delta_cost(seam, delta)
+                    if cost >= best_cost:
+                        continue
+                    seam_pos[seam] += delta
+                    sync_rooms()
+                    feasible = doorways_ok()
+                    seam_pos[seam] -= delta
+                    sync_rooms()
+                    if feasible:
+                        best_seam, best_delta, best_cost = seam, delta, cost
+            if best_seam is None:
+                break
+            seam_pos[best_seam] += best_delta
+            sync_rooms()
+
+        sync_rooms()
 
     def _compute_row_heights(self):
         """
@@ -931,7 +1383,15 @@ class Dungeon(RegularCard):
             )
             weights.append(max(natural * multiplier, 0.01))
 
-        self._row_tile_heights = allocate_by_weight(weights, self.GRID_ROWS, self.MIN_ROW_TILES)
+        # Rows touched by a vertical doorway need enough combined height to fit it
+        minimums = [self.MIN_ROW_TILES] * count
+        for start, end in self._vertical_door_pair_rows:
+            span = max(end - start, 1)
+            share = -(-self.DOOR_MIN_SHARED_ROWS // span)
+            for index in range(start, end):
+                minimums[index] = max(minimums[index], share)
+
+        self._row_tile_heights = allocate_by_weight(weights, self.GRID_ROWS, minimums)
 
     def _finalize_room_rects(self):
         """
@@ -962,14 +1422,98 @@ class Dungeon(RegularCard):
         low, high = self._get_shared_wall_columns(first, second)
         return max(high - low, 0)
 
+    def _shared_wall_height(self, first: "Dungeon.Room", second: "Dungeon.Room") -> int:
+        """
+        Return how many tile rows of wall two rooms share (0 if they don't overlap vertically).
+        """
+
+        low, high = self._get_shared_wall_rows(first, second)
+        return max(high - low, 0)
+
+    def _is_below(self, room: "Dungeon.Room", other: "Dungeon.Room") -> bool:
+        """
+        Return whether `other` is directly below `room` (its top row-band starts where `room`'s
+        row-band ends), the relationship a horizontal doorway connects.
+        """
+
+        return other.row == room.row + room.rowspan
+
+    def _is_beside(self, room: "Dungeon.Room", other: "Dungeon.Room") -> bool:
+        """
+        Return whether `other` shares at least one row with `room` without either being directly
+        below the other (for a vertical doorway).
+        """
+
+        if self._is_below(room, other) or self._is_below(other, room):
+            return False
+        return room.row < other.row + other.rowspan and other.row < room.row + room.rowspan
+
+    def _vertical_door_pairs(self) -> list[tuple["Dungeon.Room", "Dungeon.Room"]]:
+        """
+        Return every (room, other) pair connected by an explicit `{to=...}` vertical doorway.
+        """
+
+        pairs: list[tuple["Dungeon.Room", "Dungeon.Room"]] = []
+        seen: set[frozenset] = set()
+        for room in self.rooms:
+            if room.door_targets is None:
+                continue
+            for identifier in room.door_targets:
+                other = self.room_ids.get(identifier)
+                if other is None or other is room or not self._is_beside(room, other):
+                    continue
+                key = frozenset((room.index, other.index))
+                if key in seen:
+                    continue
+                seen.add(key)
+                pairs.append((room, other))
+        return pairs
+
+    def _room_names(self, source: "Dungeon.Room", target: "Dungeon.Room", target_card: "Dungeon" = None) -> bool:
+        """
+        Return whether `source`'s own `{to=...}` explicitly names `target`.
+
+        Parameters
+        ----------
+        source : Dungeon.Room
+            The room whose `{to=...}` is being checked.
+
+        target : Dungeon.Room
+            The room `source` might name.
+
+        target_card : Dungeon, optional
+            Irrelevant for plain Dungeons (all the rooms are on one card).
+        """
+
+        return source.door_targets is not None and any(
+            self.room_ids.get(identifier) is target for identifier in source.door_targets
+        )
+
+    def _is_mutual_door(self, room: "Dungeon.Room", other: "Dungeon.Room", other_card: "Dungeon" = None) -> bool:
+        """
+        Return whether `room` and `other` each explicitly name the other in their own `{to=...}`.
+
+        Parameters
+        ----------
+        room : Dungeon.Room
+            One of the two rooms, on this card.
+
+        other : Dungeon.Room
+            The other room. On this same card for a plain `Dungeon`; possibly on a different card
+            for a subclass like `ExpandedDungeon` (see `other_card`).
+
+        other_card : Dungeon, optional
+            Irrelevant for base Dungeons, since it's all on one card.
+        """
+
+        other_self = self if other_card is None else other_card
+        return self._room_names(room, other, other_card) and other_self._room_names(other, room, self)
+
     def _door_targets_for(
         self, room: "Dungeon.Room", min_overlap: int | None = None, log_problems: bool = False
     ) -> list["Dungeon.Room"]:
         """
-        Return the rooms directly below `room` that it should have a doorway to: its explicit
-        `{to=...}` targets, or (when it has none) every room directly beneath it that overlaps it by
-        at least `min_overlap` tiles. "Directly below" means the other room's top edge is on this
-        room's bottom edge.
+        Return the rooms directly below `room` that it should have a horizontal doorway to.
 
         Parameters
         ----------
@@ -981,7 +1525,8 @@ class Dungeon(RegularCard):
             `DOOR_MIN_SHARED_COLUMNS` (a placeable door).
 
         log_problems : bool, default: False
-            Whether to log explicit targets that name an unknown room or one that isn't directly below.
+            Whether to log explicit targets that name an unknown room or one that isn't directly
+            below or beside it.
         """
 
         if min_overlap is None:
@@ -1003,10 +1548,41 @@ class Dungeon(RegularCard):
                 if log_problems:
                     log(f"'{room.label}' has a doorway to '{identifier}', which isn't a room in this dungeon.")
                 continue
-            if other.tile_y0 != room.tile_y1:
+            if self._is_beside(room, other):
+                continue  # handled by _vertical_door_targets_for
+            if not self._is_below(room, other):
                 if log_problems:
                     log(f"'{room.label}' has a doorway to '{other.label}', which isn't directly below it.")
                 continue
+            targets.append(other)
+        return targets
+
+    def _vertical_door_targets_for(self, room: "Dungeon.Room", log_problems: bool = False) -> list["Dungeon.Room"]:
+        """
+        Return the rooms beside `room` that it should have a vertical doorway to.
+        Vertical doorways are never automatic, unlike horizontal ones.
+
+        Parameters
+        ----------
+        room : Dungeon.Room
+            The room whose sideways doorways are wanted.
+
+        log_problems : bool, default: False
+            Whether to log explicit targets that name an unknown room.
+        """
+
+        if room.door_targets is None:
+            return []
+
+        targets: list["Dungeon.Room"] = []
+        for identifier in room.door_targets:
+            other = self.room_ids.get(identifier)
+            if other is None:
+                if log_problems:
+                    log(f"'{room.label}' has a doorway to '{identifier}', which isn't a room in this dungeon.")
+                continue
+            if not self._is_beside(room, other):
+                continue  # handled by _door_targets_for instead
             targets.append(other)
         return targets
 
@@ -1020,19 +1596,43 @@ class Dungeon(RegularCard):
         high = min(first.tile_x1, second.tile_x1)
         return low, high
 
+    def _get_shared_wall_rows(self, first: "Dungeon.Room", second: "Dungeon.Room") -> tuple[int, int]:
+        """
+        Return the tile-row range of wall two rooms share: between the closest of their two top
+        walls and the closest of their two bottom walls, as (start_row, end_row) exclusive.
+        """
+
+        low = max(first.tile_y0, second.tile_y0)
+        high = min(first.tile_y1, second.tile_y1)
+        return low, high
+
     def _door_start_x(self, door: "Dungeon.Door") -> int:
         """
-        Return the pixel x where a doorway's opening begins.
+        Return the pixel x where a horizontal doorway's opening begins.
         """
 
         return self.GRID_ORIGIN_X + door.tile_x0 * self.TILE_SIZE
 
     def _door_end_x(self, door: "Dungeon.Door") -> int:
         """
-        Return the pixel x where a doorway's opening ends.
+        Return the pixel x where a horizontal doorway's opening ends.
         """
 
         return self.GRID_ORIGIN_X + door.tile_x1 * self.TILE_SIZE
+
+    def _door_start_y(self, door: "Dungeon.Door") -> int:
+        """
+        Return the pixel y where a vertical doorway's opening begins.
+        """
+
+        return self.GRID_ORIGIN_Y + door.tile_y * self.TILE_SIZE
+
+    def _door_end_y(self, door: "Dungeon.Door") -> int:
+        """
+        Return the pixel y where a vertical doorway's opening ends.
+        """
+
+        return self.GRID_ORIGIN_Y + door.tile_y1 * self.TILE_SIZE
 
     def _get_room_body_text(self, room: "Dungeon.Room", centered: bool | None = None) -> str:
         """
@@ -1157,7 +1757,7 @@ class Dungeon(RegularCard):
             self.RULES_TEXT_MAX_FONT_SIZE = max(font_size, 1)
             self.RULES_TEXT_MIN_FONT_SIZE = max(font_size, 1)
             self.RULES_TEXT_WIDTH = width if width == float("inf") else max(int(width), 1)
-            self.RULES_TEXT_HEIGHT = float("inf")  # measuring only, so let the text grow as tall as it needs
+            self.RULES_TEXT_HEIGHT = float("inf")
             text = self._get_room_body_text(room)
             self.set_metadata(CARD_RULES_TEXT, text)
 
@@ -1174,7 +1774,7 @@ class Dungeon(RegularCard):
                             first_line_width = get_laid_out_line_width(line, size)
                         line_count += 1
                 if len(blocks) > 1:
-                    line_count = max(line_count, 2)  # a flavor/divider block can never go inline
+                    line_count = max(line_count, 2)
                 result = (content_height, margin, max(line_count, 1), first_line_width)
             except ValueError:
                 result = None
@@ -1206,8 +1806,10 @@ class Dungeon(RegularCard):
         }
 
         if room.name:
+
             # Make the name match the rules text margining
             body_margin = int(max(body_size, 1) * 0.25)
+
             name_width_limit = max(content_width - 2 * body_margin, 1)
             size, width, ascent, descent = fit_room_name(
                 self._get_room_name_text(room), name_width_limit, body_size * self.ROOM_NAME_FONT_SCALE
@@ -1243,7 +1845,7 @@ class Dungeon(RegularCard):
 
         wrapped = measure_body(room, body_size, content_width)
         if wrapped is None:
-            metrics["height"] = float("inf")  # never fits, so the search keeps shrinking
+            metrics["height"] = float("inf")
             return metrics
 
         metrics.update(content_height=wrapped[0], margin=wrapped[1])
@@ -1295,6 +1897,7 @@ class Dungeon(RegularCard):
             position: tuple[int, int],
             size: tuple[int, int],
             clip: tuple[int, int] = None,
+            clip_axis_vertical: bool = False,
         ):
             """
             Stamp a wall piece into the silhouette and the effect image.
@@ -1317,19 +1920,32 @@ class Dungeon(RegularCard):
                 The size the piece is expected to be.
 
             clip : tuple[int, int], optional
-                An absolute (x_start, x_end) range to crop the piece down to. The piece's art stays
-                exactly where it would have been; it's only cut off, never moved or squashed.
+                An absolute range to crop the piece down to, along x by default (a horizontal wall
+                tile clipped by a doorway gap) or along y when `clip_axis_vertical` is set (a
+                vertical wall tile clipped by a doorway gap). The piece's art stays exactly where
+                it would have been; it's only cut off, never moved or squashed.
+
+            clip_axis_vertical : bool, default: False
+                Whether `clip` is a (y_start, y_end) range instead of (x_start, x_end).
             """
 
             left, top = position
             crop = None
             if clip is not None:
-                start = max(clip[0] - left, 0)
-                end = min(clip[1] - left, size[0])
-                if end <= start:
-                    return
-                crop = (start, 0, end, size[1])
-                left += start
+                if clip_axis_vertical:
+                    start = max(clip[0] - top, 0)
+                    end = min(clip[1] - top, size[1])
+                    if end <= start:
+                        return
+                    crop = (0, start, size[0], end)
+                    top += start
+                else:
+                    start = max(clip[0] - left, 0)
+                    end = min(clip[1] - left, size[0])
+                    if end <= start:
+                        return
+                    crop = (start, 0, end, size[1])
+                    left += start
 
             shape_piece = open_wall_piece(self.WALL_SHAPE_FOLDER, name, size)
             if shape_piece is not None:
@@ -1354,7 +1970,7 @@ class Dungeon(RegularCard):
             effect = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
             tile = (self.TILE_SIZE, self.TILE_SIZE)
 
-            stamp_wall_piece(shape, effect, self.WALL_OUTER_PIECE, (0, 0), (self.CARD_WIDTH, self.CARD_HEIGHT))
+            self._stamp_outer_wall(shape, effect, stamp_wall_piece)
 
             for room in self.rooms:
                 for column in range(room.tile_x0, room.tile_x1):
@@ -1365,6 +1981,31 @@ class Dungeon(RegularCard):
                         is_right = column == room.tile_x1 - 1
 
                         if not (is_top or is_bottom or is_left or is_right):
+                            continue
+
+                        if (
+                            is_top
+                            and not (is_left or is_right)
+                            and self._is_wall_suppressed(room, "top", column=column, row=row)
+                        ):
+                            continue
+                        if (
+                            is_bottom
+                            and not (is_left or is_right)
+                            and self._is_wall_suppressed(room, "bottom", column=column, row=row)
+                        ):
+                            continue
+                        if (
+                            is_left
+                            and not (is_top or is_bottom)
+                            and self._is_wall_suppressed(room, "left", column=column, row=row)
+                        ):
+                            continue
+                        if (
+                            is_right
+                            and not (is_top or is_bottom)
+                            and self._is_wall_suppressed(room, "right", column=column, row=row)
+                        ):
                             continue
 
                         x = self.GRID_ORIGIN_X + column * self.TILE_SIZE
@@ -1387,34 +2028,36 @@ class Dungeon(RegularCard):
                         else:
                             name = "right"
 
-                        # Only the top and bottom walls are ever opened up by a doorway
-                        gaps = room.top_pixel_gaps if is_top else (room.bottom_pixel_gaps if is_bottom else [])
-                        visible = subtract_intervals(x, x + self.TILE_SIZE, gaps)
+                        is_vertical_wall = (is_left or is_right) and not (is_top or is_bottom)
+                        if is_vertical_wall:
+                            gaps = room.left_pixel_gaps if is_left else room.right_pixel_gaps
+                            span = (y, y + self.TILE_SIZE)
+                        else:
+                            gaps = room.top_pixel_gaps if is_top else (room.bottom_pixel_gaps if is_bottom else [])
+                            span = (x, x + self.TILE_SIZE)
+
+                        visible = subtract_intervals(span[0], span[1], gaps)
 
                         if not visible:
-                            # A tile a doorway clears entirely still needs its side piece at a corner
-                            if is_left:
-                                stamp_wall_piece(shape, effect, "left", (x, y), tile)
-                            elif is_right:
-                                stamp_wall_piece(shape, effect, "right", (x, y), tile)
+                            if not is_vertical_wall:
+                                if is_left:
+                                    stamp_wall_piece(shape, effect, "left", (x, y), tile)
+                                elif is_right:
+                                    stamp_wall_piece(shape, effect, "right", (x, y), tile)
                             continue
 
                         for start, end in visible:
-                            clip = None if (start, end) == (x, x + self.TILE_SIZE) else (start, end)
-                            stamp_wall_piece(shape, effect, name, (x, y), tile, clip)
+                            clip = None if (start, end) == span else (start, end)
+                            stamp_wall_piece(
+                                shape, effect, name, (x, y), tile, clip, clip_axis_vertical=is_vertical_wall
+                            )
 
             # The doorway pieces go in last on top of the full-length wall
             for door in self.doors:
-                stamp_wall_piece(
-                    shape,
-                    effect,
-                    self.WALL_DOORWAY_PIECE,
-                    (
-                        self._door_center_x(door) - self.DOORWAY_PIECE_WIDTH // 2,
-                        self._get_seam_y(door) - self.DOORWAY_PIECE_HEIGHT // 2,
-                    ),
-                    (self.DOORWAY_PIECE_WIDTH, self.DOORWAY_PIECE_HEIGHT),
-                )
+                if door.axis == "horizontal":
+                    self._stamp_horizontal_doorway(shape, effect, stamp_wall_piece, door)
+                else:
+                    self._stamp_vertical_doorway(shape, effect, stamp_wall_piece, door)
 
             return shape, effect
 
@@ -1469,17 +2112,31 @@ class Dungeon(RegularCard):
 
     def _get_seam_y(self, door: "Dungeon.Door") -> int:
         """
-        Return the pixel centerline of the wall a doorway is in.
+        Return the pixel y centerline of the horizontal wall a doorway is in.
         """
 
         return self.GRID_ORIGIN_Y + door.tile_y * self.TILE_SIZE
 
+    def _get_seam_x(self, door: "Dungeon.Door") -> int:
+        """
+        Return the pixel x centerline of the vertical wall a doorway is in.
+        """
+
+        return self.GRID_ORIGIN_X + door.tile_x0 * self.TILE_SIZE
+
     def _door_center_x(self, door: "Dungeon.Door") -> int:
         """
-        Return the pixel x of the middle of a doorway's opening.
+        Return the pixel x of the middle of a horizontal doorway's opening.
         """
 
         return (self._door_start_x(door) + self._door_end_x(door)) // 2
+
+    def _door_center_y(self, door: "Dungeon.Door") -> int:
+        """
+        Return the pixel y of the middle of a vertical doorway's opening.
+        """
+
+        return (self._door_start_y(door) + self._door_end_y(door)) // 2
 
     def _create_arrow_layers(self):
         """
@@ -1489,24 +2146,32 @@ class Dungeon(RegularCard):
         if not any(door.show_arrow for door in self.doors):
             return
 
-        arrow = open_image(f"{FRAMES_PATH}/{self.ARROW_PATH}.png")
-        if arrow is None:
-            log(f"Could not find the dungeon arrow at '{FRAMES_PATH}/{self.ARROW_PATH}.png'.")
-            return
-        arrow = arrow.convert("RGBA").resize((max(self.ARROW_WIDTH, 1), max(self.ARROW_HEIGHT, 1)))
+        arrows: dict[str, Image.Image] = {}
+        for direction, path in self.ARROW_PATHS.items():
+            arrow = open_image(f"{FRAMES_PATH}/{path}.png")
+            if arrow is None:
+                log(f"Could not find the dungeon arrow at '{FRAMES_PATH}/{path}.png'.")
+                continue
+            arrows[direction] = arrow.convert("RGBA").resize((max(self.ARROW_WIDTH, 1), max(self.ARROW_HEIGHT, 1)))
 
         image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
         for door in self.doors:
             if not door.show_arrow:
                 continue
-            image = paste_image(
-                arrow,
-                image,
-                (
+            arrow = arrows.get(door.arrow_direction)
+            if arrow is None:
+                continue
+            if door.axis == "horizontal":
+                position = (
                     self._door_center_x(door) - arrow.width // 2,
                     self._get_seam_y(door) + self.ARROW_OFFSET_Y - arrow.height // 2,
-                ),
-            )
+                )
+            else:
+                position = (
+                    self._get_seam_x(door) + self.ARROW_OFFSET_X - arrow.width // 2,
+                    self._door_center_y(door) - arrow.height // 2,
+                )
+            image = paste_image(arrow, image, position)
         self.frame_layers.append(Layer(image))
 
     def _create_room_name_layers(self):
