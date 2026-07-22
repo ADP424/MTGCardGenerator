@@ -892,13 +892,12 @@ class RegularCard:
 
     _MANA_COST_TEXT_SENTINEL = "\x00TEXT\x00"
 
-    @staticmethod
     def _preprocess_mana_cost_text(text: str) -> str:
         """
-        Replace {text}...{/text} spans with sentinel-prefixed tokens so their contents
-        are never looked up as symbols. Must be called before brace-stripping.
-        Spaces inside the span are encoded as \x00SP\x00 to survive the later split.
+        Replace {text}...{/text} spans with prefixed tokens so their contents are
+        never looked up as symbols. Must be called before brace-stripping.
         """
+
         return re.sub(
             r"\{text\}(.*?)\{/text\}",
             lambda m: RegularCard._MANA_COST_TEXT_SENTINEL + m.group(1).replace(" ", "\x00SP\x00"),
@@ -933,7 +932,7 @@ class RegularCard:
 
         image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
 
-        # Compute the font size whose cap-height matches MANA_COST_SYMBOL_SIZE, for text tokens.
+        # Compute the font size in line with MANA_COST_SYMBOL_SIZE
         _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
         while _text_font_size > 1:
             _f = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
@@ -943,7 +942,7 @@ class RegularCard:
             _text_font_size -= 1
         _mana_text_font = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
 
-        # Each element is (image, is_text_token) so spacing logic can differentiate.
+        # Each element is (image, is_text_token) so spacing logic can differentiate
         elements: list[tuple[Image.Image, bool]] = []
         sentinel = RegularCard._MANA_COST_TEXT_SENTINEL
         for sym in text.split(" "):
@@ -964,6 +963,7 @@ class RegularCard:
                     )
                     elements.append((sym_img, False))
                     continue
+
             # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE.
             bbox = _mana_text_font.getbbox(display)
             text_w = max(int(_mana_text_font.getlength(display)), 1)
@@ -978,7 +978,10 @@ class RegularCard:
             return
 
         def _spacing(i: int) -> int:
-            """Gap between element i and element i+1."""
+            """
+            Gap between element i and element i+1.
+            """
+
             if elements[i][1] and elements[i + 1][1]:
                 return self.MANA_COST_SYMBOL_SPACING // 2
             return self.MANA_COST_SYMBOL_SPACING

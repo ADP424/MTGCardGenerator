@@ -217,6 +217,16 @@ FRAME_LAYOUT_EXTRAS_LIST = (
     r"bottom middle ",
     r" bottom right",
     r"bottom right ",
+    # Global Dungeon tokens (e.g. "Global Dungeon 2x3", "Global Dungeon Part Titleless"): the
+    # RxC card-grid size (primary only), the "part" role marker, and the title override.
+    r" \d+\s*x\s*\d+",
+    r"\d+\s*x\s*\d+ ",
+    r" part",
+    r"part ",
+    r" titleless",
+    r"titleless ",
+    r" title",
+    r"title ",
 )
 
 # Splitter for Coloring Text

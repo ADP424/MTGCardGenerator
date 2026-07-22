@@ -54,7 +54,8 @@ from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.conspiracy.Conspiracy import Conspiracy
 from model.dungeon.Dungeon import Dungeon
-from model.dungeon.ExpandedDungeon import ExpandedDungeon
+from model.dungeon.ExpandedDungeonGlobal import ExpandedDungeonGlobal
+from model.dungeon.ExpandedDungeonLocal import ExpandedDungeonLocal
 from model.edifice.RegularEdifice import RegularEdifice
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
@@ -201,7 +202,9 @@ def process_spreadsheets(
         "conspiracy": Conspiracy,
         # Dungeon
         "dungeon": Dungeon,
-        "expanded dungeon": ExpandedDungeon,
+        "expanded dungeon": ExpandedDungeonGlobal,
+        "expanded dungeon global": ExpandedDungeonGlobal,
+        "expanded dungeon local": ExpandedDungeonLocal,
         # Edifice
         "regular edifice": RegularEdifice,
         # Showcase
@@ -488,11 +491,12 @@ def process_spreadsheets(
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_sets[card_set][card_key]
 
-    # Resolve expanded dungeons' cross-card {to=...}/{continues=...} targets to the actual
-    # sibling card/room objects they name, now that every card in each set has been constructed
+    # Resolve expanded/global dungeons' cross-card {to=...}/{continues=...} targets (and, for
+    # global dungeons, primary/part linkage) to the actual sibling card/room objects they name, now
+    # that every card in each set has been constructed
     for card_set in card_sets:
         for card in card_sets[card_set].values():
-            if isinstance(card, ExpandedDungeon):
+            if isinstance(card, (ExpandedDungeonLocal, ExpandedDungeonGlobal)):
                 card.link_siblings(card_sets[card_set])
 
     # Remove cards with blank creation dates, if date filtering is on
