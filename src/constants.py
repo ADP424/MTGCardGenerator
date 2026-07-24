@@ -33,7 +33,7 @@ CARD_CREATION_DATE = "Creation Date"
 CARD_SET = "Set"
 CARD_LANGUAGE = "Language"
 CARD_ARTIST = "Artist"
-ADD_TOTAL_TO_FOOTER = "Add Total to Footer?"
+CARD_ADD_TOTAL_TO_FOOTER = "Add Total to Footer?"
 
 CARD_ADDITIONAL_TITLES = "Additional Title(s)"
 CARD_DESCRIPTOR = "Descriptor"
@@ -52,6 +52,37 @@ CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
 CARD_FOOTER_LARGEST_INDEX = "Footer Largest Index"
 CARD_SPELLBOOK = "Spellbook"
 
+# Columns a spreadsheet file/tab must have to be treated as card data (see
+# read_rows_from_csv/read_rows_from_xlsx in main.py)
+REQUIRED_COLUMNS = {
+    CARD_TITLE,
+    CARD_MANA_COST,
+    CARD_RULES_TEXT,
+    CARD_SUPERTYPES,
+    CARD_TYPES,
+    CARD_SUBTYPES,
+    CARD_POWER_TOUGHNESS,
+    CARD_FRAMES,
+    CARD_FRAME_LAYOUT,
+    CARD_RARITY,
+    CARD_WATERMARK,
+    CARD_WATERMARK_COLOR,
+    CARD_CATEGORY,
+    CARD_CREATION_DATE,
+    CARD_SET,
+    CARD_LANGUAGE,
+    CARD_ARTIST,
+    CARD_ADD_TOTAL_TO_FOOTER,
+    CARD_ADDITIONAL_TITLES,
+    CARD_DESCRIPTOR,
+    CARD_ORDERER,
+    CARD_TRANSFORM_HINT,
+    CARD_FRONTSIDE,
+    CARD_ORIGINAL,
+    CARD_SPELLBOOKS,
+    CARD_OVERLAYS,
+}
+
 ##################
 # FILE LOCATIONS #
 ##################
@@ -60,6 +91,8 @@ CARD_SPELLBOOK = "Spellbook"
 INPUT_SPREADSHEETS_PATH = "spreadsheets"
 OUTPUT_CARDS_PATH = "processed_cards"
 OUTPUT_TILES_PATH = "processed_tiles"
+
+GOOGLE_CREDENTIALS_PATH = "credentials/google_service_account.json"
 
 INPUT_CARDS_PATH = "existing_cards"
 OUTPUT_ART_PATH = "extracted_art"
@@ -74,29 +107,40 @@ SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
 OVERLAYS_PATH = "images/art/overlay"
 DICE_SECTION_PATH = "images/other/dice_section"
 
-# Fonts
-MPLANTIN = "fonts/mplantin.ttf"
-MPLANTIN_ITALICS = "fonts/mplantin-italics.ttf"
-MPLANTIN_BOLD = "fonts/mplantin-bold.ttf"
+# Standard Fonts
+BELEREN_BOLD = "fonts/beleren/beleren_bold.ttf"
+BELEREN_BOLD_SMALL_CAPS = "fonts/beleren/beleren_bold_smallcaps.ttf"
 
-BELEREN_BOLD = "fonts/beleren-bold.ttf"
-BELEREN_BOLD_SMALL_CAPS = "fonts/beleren-bold-smallcaps.ttf"
+COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate_gothic/copperplate_gothic_bold.ttf"
 
-GOTHAM_BOLD = "fonts/gotham-bold.ttf"
+GOTHAM_BOLD = "fonts/gotham/gotham_bold.ttf"
 
-LATO = "fonts/lato.ttf"
-LATO_ITALICS = "fonts/lato-italics.ttf"
-LATO_BOLD = "fonts/lato-bold.ttf"
+MPLANTIN = "fonts/mplantin/mplantin.ttf"
+MPLANTIN_BOLD = "fonts/mplantin/mplantin_bold.ttf"
+MPLANTIN_ITALICS = "fonts/mplantin/mplantin_italics.ttf"
 
-COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate-gothic-bold.ttf"
+# Non-Standard/Showcase Fonts
+BARLOW = "fonts/barlow/barlow.ttf"
+BARLOW_BOLD = "fonts/barlow/barlow_bold.ttf"
+BARLOW_ITALICS = "fonts/barlow/barlow_italics.ttf"
 
-NEUE_KABEL = "fonts/neue-kabel.ttf"
-NEUE_KABEL_ITALICS = "fonts/neue-kabel-italics.ttf"
+ETHNOCENTRIC_ITALICS = "fonts/ethnocentric/ethnocentric_italics.ttf"
 
-MAXIMILIEN_REGULAR = "fonts/maximilien-regular.ttf"
+LATO = "fonts/lato/lato.ttf"
+LATO_BOLD = "fonts/lato/lato_bold.ttf"
+LATO_ITALICS = "fonts/lato/lato_italics.ttf"
 
-ETHNOCENTRIC_REGULAR = "fonts/ethnocentric-regular.ttf"
-ETHNOCENTRIC_ITALICS = "fonts/ethnocentric-italics.ttf"
+MAXIMILIEN_REGULAR = "fonts/maximilien_regular/maximilien_regular.ttf"
+
+NEUE_KABEL = "fonts/neue_kabel/neue_kabel.ttf"
+NEUE_KABEL_ITALICS = "fonts/neue_kabel/neue_kabel_italics.ttf"
+
+NOTO_EMOJI = "fonts/noto/noto_emoji.ttf"
+NOTO_KURRENT = "fonts/noto/noto_kurrent.ttf"
+
+VERAMONO = "fonts/veramono/veramono.ttf"
+VERAMONO_BOLD = "fonts/veramono/veramono_bold.ttf"
+VERAMONO_ITALICS = "fonts/veramono/veramono_italics.ttf"
 
 
 ###########################
@@ -232,6 +276,14 @@ FRAME_LAYOUT_EXTRAS_LIST = (
 # Splitter for Coloring Text
 COLOR_TAG_PATTERN = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
 COLOR_TAG_PATTERN_NO_BRACES = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re.DOTALL)
+
+# Recognized "{name : value}" directives that can follow frame paths or live inside text cells,
+# e.g. "chat/window{offset:(50, 70)}". Add new directive names to the alternation as they're
+# implemented. The colon is what distinguishes directives from ordinary tags like {flavor}.
+DIRECTIVE_PATTERN = re.compile(r"\{\s*(offset)\s*:\s*([^{}]*?)\s*\}", re.IGNORECASE)
+
+# Accepts "(x, y)", "x, y", "( x , y )", negatives, etc.
+OFFSET_VALUE_PATTERN = re.compile(r"^\(?\s*([+-]?\d+)\s*[,;]\s*([+-]?\d+)\s*\)?$")
 
 
 ##########
@@ -435,7 +487,7 @@ FUTURE_SHIFTED_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/futur
 
 FUTURE_SHIFTED_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/future/variable/x.png")
 
-# Showcase Future Shifted Mana Symbols
+# Showcase Playtest Mana Symbols
 PLAYTEST_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/white.png")
 PLAYTEST_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/blue.png")
 PLAYTEST_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/black.png")

@@ -1,2 +1,5 @@
 pillow
 numpy
+openpyxl
+gspread
+google-auth

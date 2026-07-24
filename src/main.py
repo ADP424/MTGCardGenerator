@@ -7,7 +7,16 @@ import re
 from datetime import datetime
 from typing import Callable
 
+import openpyxl
 from PIL import Image
+
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+
+    GOOGLE_SHEETS_AVAILABLE = True
+except ImportError:
+    GOOGLE_SHEETS_AVAILABLE = False
 
 from constants import (
     ACTIONS,
@@ -39,6 +48,7 @@ from constants import (
     CARD_TILE_WIDTH,
     CARD_TITLE,
     FRAME_LAYOUT_EXTRAS_LIST,
+    GOOGLE_CREDENTIALS_PATH,
     INPUT_ART_PATH,
     INPUT_CARDS_PATH,
     INPUT_SPREADSHEETS_PATH,
@@ -47,6 +57,7 @@ from constants import (
     OUTPUT_ART_PATH,
     OUTPUT_CARDS_PATH,
     OUTPUT_TILES_PATH,
+    REQUIRED_COLUMNS,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.adventure.RegularAdventure import RegularAdventure
@@ -70,6 +81,7 @@ from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
 from model.saga.TransformSaga import TransformSaga
+from model.showcase.Chat import Chat
 from model.showcase.Coup import Coup
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
 from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
@@ -116,6 +128,279 @@ from utils import (
 )
 
 
+def read_rows_from_csv(filepath: str) -> list[dict[str, str]]:
+    """
+    Read all data rows from a CSV file as a list of column-to-value dicts.
+
+    The file's header row is checked against REQUIRED_COLUMNS. If any are
+    missing the file is skipped and the missing columns are logged.
+
+    Parameters
+    ----------
+    filepath: str
+        The path to the CSV file to read.
+
+    Returns
+    -------
+    list[dict[str, str]]
+        One dict per data row, mapping column headers to stripped cell values.
+    """
+
+    rows = []
+    with open(filepath, "r", encoding="utf8") as f:
+        reader = csv.reader(f)
+        columns = next(reader)
+
+        missing = REQUIRED_COLUMNS - {col.strip() for col in columns}
+        if missing:
+            log(f"Skipping '{filepath}': missing required columns: {sorted(missing)}")
+            return rows
+
+        for row in reader:
+            rows.append(dict(zip(columns, [element.strip() for element in row])))
+    return rows
+
+
+def read_rows_from_xlsx(filepath: str, tabs_whitelist: list[str] = None) -> list[dict[str, str]]:
+    """
+    Read all data rows from every sheet of an XLSX workbook as column-to-value dicts.
+
+    Each sheet is expected to have a header row followed by data rows, matching the same
+    column names used by the CSV files. Sheets with no data rows are skipped. All cell values
+    are converted to stripped strings; None cells become empty strings.
+
+    Each sheet's header row is checked against REQUIRED_COLUMNS. If any are missing the
+    sheet is skipped and the missing columns are logged.
+
+    Parameters
+    ----------
+    filepath: str
+        The path to the XLSX file to read.
+
+    tabs_whitelist: list[str], optional
+        If provided, only process sheets whose names appear in this list (case-insensitive).
+        Process all sheets by default.
+
+    Returns
+    -------
+    list[dict[str, str]]
+        One dict per data row, mapping column headers to stripped cell values.
+    """
+
+    def _xlsx_cell_to_str(cell) -> str:
+        """
+        Stringify an XLSX cell value, formatting datetimes as a bare date (no time).
+        """
+
+        if cell is None:
+            return ""
+        if isinstance(cell, datetime):
+            return cell.strftime("%m/%d/%Y")
+        return str(cell).strip()
+
+    rows = []
+    tabs_whitelist_lower = [t.lower() for t in tabs_whitelist] if tabs_whitelist is not None else None
+    workbook = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
+    for sheet in workbook.worksheets:
+        if tabs_whitelist_lower is not None and sheet.title.lower() not in tabs_whitelist_lower:
+            continue
+        row_iter = sheet.iter_rows(values_only=True)
+        header = next(row_iter, None)
+        if header is None:
+            continue
+        columns = [str(c).strip() if c is not None else "" for c in header]
+
+        missing = REQUIRED_COLUMNS - set(columns)
+        if missing:
+            log(f"Skipping tab '{sheet.title}' in '{filepath}': missing required columns: {sorted(missing)}")
+            continue
+
+        for row in row_iter:
+            padded_row = list(row) + [None] * (len(columns) - len(row))
+            rows.append({col: _xlsx_cell_to_str(cell) for col, cell in zip(columns, padded_row)})
+    workbook.close()
+    return rows
+
+
+def extract_google_spreadsheet_id(id_or_url: str) -> str:
+    """
+    Extract a Google Sheets spreadsheet ID from a full URL, or return the string as-is if
+    it is already a bare ID.
+
+    Parameters
+    ----------
+    id_or_url: str
+        A Google Sheets URL (e.g. ``https://docs.google.com/spreadsheets/d/abc123/edit``)
+        or a raw spreadsheet ID (e.g. ``abc123``).
+
+    Returns
+    -------
+    str
+        The spreadsheet ID.
+    """
+
+    match = re.match(r"https?://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9_-]+)", id_or_url)
+    if match:
+        return match.group(1)
+    return id_or_url.strip()
+
+
+def read_rows_from_google_sheet(
+    client,
+    spreadsheet_id: str,
+    tabs_whitelist: list[str] = None,
+) -> list[dict[str, str]]:
+    """
+    Read all data rows from a Google Sheets spreadsheet as column-to-value dicts.
+
+    Each worksheet's header row is checked against REQUIRED_COLUMNS. Worksheets with
+    missing required columns are skipped with a log message.
+
+    Parameters
+    ----------
+    client: gspread.Client
+        An authorised gspread client.
+
+    spreadsheet_id: str
+        The Google Sheets spreadsheet ID.
+
+    tabs_whitelist: list[str], optional
+        If provided, only process worksheets whose names appear in this list
+        (case-insensitive). Process all worksheets by default.
+
+    Returns
+    -------
+    list[dict[str, str]]
+        One dict per data row, mapping column headers to stripped cell values.
+    """
+
+    rows: list[dict[str, str]] = []
+    tabs_whitelist_lower = [t.lower() for t in tabs_whitelist] if tabs_whitelist is not None else None
+
+    try:
+        spreadsheet = client.open_by_key(spreadsheet_id)
+    except Exception as e:
+        log(f"Could not open Google Sheet '{spreadsheet_id}': {type(e).__name__}: {e}")
+        return rows
+
+    for worksheet in spreadsheet.worksheets():
+        if tabs_whitelist_lower is not None and worksheet.title.lower() not in tabs_whitelist_lower:
+            continue
+
+        try:
+            all_values = worksheet.get_all_values()
+        except Exception as e:
+            log(f"Error reading tab '{worksheet.title}' in Google Sheet '{spreadsheet_id}': {type(e).__name__}: {e}")
+            continue
+
+        if len(all_values) < 2:
+            continue
+
+        columns = [str(c).strip() for c in all_values[0]]
+
+        missing = REQUIRED_COLUMNS - set(columns)
+        if missing:
+            log(
+                f"Skipping tab '{worksheet.title}' in Google Sheet '{spreadsheet_id}': "
+                f"missing required columns {sorted(missing)}"
+            )
+            continue
+
+        num_columns = len(columns)
+        for row in all_values[1:]:
+            padded_row = row + [""] * (num_columns - len(row))
+            rows.append({col: str(cell).strip() for col, cell in zip(columns, padded_row)})
+
+    return rows
+
+
+def read_all_spreadsheets(
+    input_path: str,
+    sheets_whitelist: list[str] = None,
+    tabs_whitelist: list[str] = None,
+    google_sheets_ids: list[str] = None,
+    google_credentials_path: str = None,
+) -> list[dict[str, str]]:
+    """
+    Read and combine all rows from every CSV, XLSX, and Google Sheets source.
+
+    Parameters
+    ----------
+    input_path: str
+        The local directory to read CSV / XLSX files from.
+
+    sheets_whitelist: list[str], optional
+        If provided, only process local files whose stem (filename without extension)
+        appears in this list (case-insensitive).
+
+    tabs_whitelist: list[str], optional
+        If provided, only process tabs / worksheets whose names appear in this list
+        (case-insensitive). Applies to both XLSX files and Google Sheets.
+
+    google_sheets_ids: list[str], optional
+        Google Sheets spreadsheet IDs or full URLs to fetch.
+
+    google_credentials_path: str, optional
+        Path to a Google service-account JSON key file. Falls back to
+        GOOGLE_CREDENTIALS_PATH if not provided.
+
+    Returns
+    -------
+    list[dict[str, str]]
+        One dict per data row across all accepted sources, mapping column headers to
+        stripped cell values.
+    """
+
+    rows = []
+    sheets_whitelist_lower = [s.lower() for s in sheets_whitelist] if sheets_whitelist is not None else None
+
+    def file_on_whitelist(filepath: str) -> bool:
+        if sheets_whitelist_lower is None:
+            return True
+        stem = os.path.splitext(os.path.basename(filepath))[0]
+        return stem.lower() in sheets_whitelist_lower
+
+    for filepath in glob.glob(f"{input_path}/*.csv"):
+        if not file_on_whitelist(filepath):
+            continue
+        rows.extend(read_rows_from_csv(filepath))
+
+    for filepath in glob.glob(f"{input_path}/*.xlsx"):
+        # Skip Excel lock files that appear while a workbook is open
+        if os.path.basename(filepath).startswith("~$"):
+            continue
+        if not file_on_whitelist(filepath):
+            continue
+        rows.extend(read_rows_from_xlsx(filepath, tabs_whitelist))
+
+    if google_sheets_ids:
+        if not GOOGLE_SHEETS_AVAILABLE:
+            log(
+                "Google Sheets support requires the 'gspread' and 'google-auth' packages. "
+                "Install them with:  pip install gspread google-auth"
+            )
+        else:
+            credentials_path = google_credentials_path or GOOGLE_CREDENTIALS_PATH
+            if not os.path.isfile(credentials_path):
+                log(
+                    f"Google credentials file not found at '{credentials_path}'. "
+                    "Provide a service-account JSON key via --google-credentials."
+                )
+            else:
+                scopes = [
+                    "https://www.googleapis.com/auth/spreadsheets.readonly",
+                    "https://www.googleapis.com/auth/drive.readonly",
+                ]
+                credentials = ServiceAccountCredentials.from_service_account_file(credentials_path, scopes=scopes)
+                client = gspread.authorize(credentials)
+                for id_or_url in google_sheets_ids:
+                    spreadsheet_id = extract_google_spreadsheet_id(id_or_url)
+                    log(f"Fetching Google Sheet '{spreadsheet_id}'...")
+                    rows.extend(read_rows_from_google_sheet(client, spreadsheet_id, tabs_whitelist))
+
+    return rows
+
+
 def process_spreadsheets(
     card_names_whitelist: list[str] = None,
     card_sets_whitelist: list[str] = None,
@@ -123,6 +408,10 @@ def process_spreadsheets(
     oldest_date: datetime = None,
     latest_date: datetime = None,
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None,
+    sheets_whitelist: list[str] = None,
+    tabs_whitelist: list[str] = None,
+    google_sheets_ids: list[str] = None,
+    google_credentials_path: str = None,
 ) -> dict[str, dict[str, RegularCard]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
@@ -146,6 +435,20 @@ def process_spreadsheets(
 
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]], optional
         Which card sheet columns to sort the cards by, plus their default values.
+
+    sheets_whitelist: list[str], optional
+        The filenames (without extension) of the spreadsheet files to process.
+        Process all of them by default.
+
+    tabs_whitelist: list[str], optional
+        The names of the XLSX tabs/sheets to process. Process all of them by default.
+        Has no effect on CSV files.
+
+    google_sheets_ids: list[str], optional
+        Google Sheets spreadsheet IDs or URLs to fetch and include.
+
+    google_credentials_path: str, optional
+        Path to a Google service-account JSON key file.
 
     Returns
     -------
@@ -217,6 +520,7 @@ def process_spreadsheets(
         "playtest": Playtest,
         "monopoly": Monopoly,
         "coup": Coup,
+        "chat": Chat,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
@@ -237,21 +541,22 @@ def process_spreadsheets(
     card_sets: dict[str, dict[str, RegularCard]] = {}
 
     raw_cards: dict[str, dict[str, str]] = {}
-    for spreadsheet_path in glob.glob(f"{INPUT_SPREADSHEETS_PATH}/*.csv"):
-        with open(spreadsheet_path, "r", encoding="utf8") as cards_sheet:
-            cards_sheet_reader = csv.reader(cards_sheet)
-            columns = next(cards_sheet_reader)
-            for row in cards_sheet_reader:
-                values = dict(zip(columns, [element.strip() for element in row]))
-                card_title = values.get(CARD_TITLE, "")
-                card_additional_titles = values.get(CARD_ADDITIONAL_TITLES, "")
-                card_descriptor = values.get(CARD_DESCRIPTOR, "")
-                card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
+    for values in read_all_spreadsheets(
+        INPUT_SPREADSHEETS_PATH,
+        sheets_whitelist,
+        tabs_whitelist,
+        google_sheets_ids,
+        google_credentials_path,
+    ):
+        card_title = values.get(CARD_TITLE, "")
+        card_additional_titles = values.get(CARD_ADDITIONAL_TITLES, "")
+        card_descriptor = values.get(CARD_DESCRIPTOR, "")
+        card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
 
-                if len(card_title) == 0:
-                    continue
+        if len(card_title) == 0:
+            continue
 
-                raw_cards[card_key] = values
+        raw_cards[card_key] = values
 
     def get_sorted_keys():
         if sort_by is not None:
@@ -986,6 +1291,10 @@ def main(
     sort_by_date: bool = True,
     sort_by_orderer: bool = True,
     tile_nums: list[str] = None,
+    sheets_whitelist: list[str] = None,
+    tabs_whitelist: list[str] = None,
+    google_sheets_ids: list[str] = None,
+    google_credentials_path: str = None,
 ):
     """
     Run the program.
@@ -1022,6 +1331,19 @@ def main(
     tile_nums: list[str], optional
         The category/number pairs for which tiles to process during the tiling action.
         Written as "{category}-{num}" like "regular-12". Processes all by default.
+
+    sheets_whitelist: list[str], optional
+        The filenames (without extension) of the spreadsheet files to process.
+        Process all of them by default.
+
+    tabs_whitelist: list[str], optional
+        The names of the XLSX tabs/sheets to process. Process all of them by default.
+
+    google_sheets_ids: list[str], optional
+        Google Sheets spreadsheet IDs or URLs to fetch and include.
+
+    google_credentials_path: str, optional
+        Path to a Google service-account JSON key file.
     """
 
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None
@@ -1049,6 +1371,10 @@ def main(
         oldest_date,
         latest_date,
         sort_by,
+        sheets_whitelist,
+        tabs_whitelist,
+        google_sheets_ids,
+        google_credentials_path,
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")
@@ -1090,7 +1416,7 @@ if __name__ == "__main__":
         "-s",
         "--sets",
         nargs="+",
-        help=("Only process the cards in these sets. "),
+        help=("Only process the cards in these sets."),
         dest="card_sets_whitelist",
     )
     parser.add_argument(
@@ -1152,6 +1478,45 @@ if __name__ == "__main__":
         ),
         dest="tile_nums",
     )
+    parser.add_argument(
+        "-sh",
+        "--sheets",
+        nargs="+",
+        help=(
+            "Only process spreadsheet files whose names (without extension) match these values. "
+            "Matches are case-insensitive and apply to both CSV and XLSX files."
+        ),
+        dest="sheets_whitelist",
+    )
+    parser.add_argument(
+        "-t",
+        "--tabs",
+        nargs="+",
+        help=(
+            "Only process tabs (sheets) with these names from XLSX files. "
+            "Matches are case-insensitive. Has no effect on CSV files."
+        ),
+        dest="tabs_whitelist",
+    )
+    parser.add_argument(
+        "-gs",
+        "--google-sheets",
+        nargs="+",
+        help=(
+            "Google Sheets spreadsheet IDs or full URLs to fetch and process. "
+            "Each spreadsheet must be shared with the service account. "
+            "Requires a service-account JSON key file (see --google-credentials)."
+        ),
+        dest="google_sheets_ids",
+    )
+    parser.add_argument(
+        "-gc",
+        "--google-credentials",
+        type=str,
+        default=None,
+        help=("Path to a Google service-account JSON key file. " f"Defaults to '{GOOGLE_CREDENTIALS_PATH}'."),
+        dest="google_credentials_path",
+    )
 
     args = parser.parse_args()
     main(
@@ -1164,4 +1529,8 @@ if __name__ == "__main__":
         args.sort_by_date or (not args.sort_by_orderer),
         args.sort_by_orderer,
         args.tile_nums,
+        args.sheets_whitelist,
+        args.tabs_whitelist,
+        args.google_sheets_ids,
+        args.google_credentials_path,
     )

@@ -3,10 +3,10 @@
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
 
 from constants import (
-    ADD_TOTAL_TO_FOOTER,
     ARTIST_BRUSH,
     BELEREN_BOLD,
     BELEREN_BOLD_SMALL_CAPS,
+    CARD_ADD_TOTAL_TO_FOOTER,
     CARD_ADDITIONAL_TITLES,
     CARD_ARTIST,
     CARD_CREATION_DATE,
@@ -33,11 +33,15 @@ from constants import (
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
     DICE_SECTION_PATH,
+    DIRECTIVE_PATTERN,
     FRAMES_PATH,
     GOTHAM_BOLD,
     INPUT_ART_PATH,
     MPLANTIN,
     MPLANTIN_ITALICS,
+    NOTO_EMOJI,
+    NOTO_KURRENT,
+    OFFSET_VALUE_PATTERN,
     OVERLAYS_PATH,
     PLACEHOLDER_REGEX,
     RARITY_TO_INITIAL,
@@ -188,6 +192,7 @@ class RegularCard:
         self.POWER_TOUGHNESS_FONT_COLOR = (
             (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
         )
+        self.POWER_TOUGHNESS_OUTLINE_SIZE = 0
         self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
 
         # Watermark
@@ -218,8 +223,8 @@ class RegularCard:
 
         # Other
         self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
-        self.SYMBOL_FONT = "fonts/noto-kurrent.ttf"  # for international languages
-        self.EMOJI_FONT = "fonts/noto-emoji.ttf"  # for emojis
+        self.SYMBOL_FONT = NOTO_KURRENT  # for international languages
+        self.EMOJI_FONT = NOTO_EMOJI  # for emojis
         self.HOLO_STAMP_X = 658
         self.HOLO_STAMP_Y = 1898
 
@@ -387,6 +392,57 @@ class RegularCard:
             else:
                 log(f"The value of '{key}' is not a list.")
 
+    def _extract_directives(self, text: str) -> tuple[str, dict[str, str]]:
+        """
+        Strip every recognized `{directive:value}` block out of the given text and collect them.
+
+        Directives may appear anywhere in the text (before or after a frame path, at the start or
+        end of a text section, etc.) and whitespace is permitted around every part of the block.
+
+        Parameters
+        ----------
+        text: str
+            The raw cell text or single line/section of it.
+
+        Returns
+        -------
+        tuple[str, dict[str, str]]
+            The text with all directive blocks removed, and a dict of {directive_name: raw_value}.
+        """
+
+        directives: dict[str, str] = {}
+
+        def _collect(match: re.Match) -> str:
+            directives[match.group(1).strip().lower()] = match.group(2).strip()
+            return ""
+
+        cleaned = DIRECTIVE_PATTERN.sub(_collect, text)
+        return cleaned, directives
+
+    def _get_directive_offset(self, directives: dict[str, str]) -> tuple[int, int]:
+        """
+        Parse the "offset" directive out of an extracted directive dict.
+
+        Parameters
+        ----------
+        directives: dict[str, str]
+            Directives previously collected by `_extract_directives`.
+
+        Returns
+        -------
+        tuple[int, int]
+            The (x, y) offset, or (0, 0) if absent or malformed.
+        """
+
+        raw_offset = directives.get("offset")
+        if raw_offset is None:
+            return (0, 0)
+        match = OFFSET_VALUE_PATTERN.match(raw_offset.strip())
+        if match is None:
+            log(f"Invalid offset directive value '{raw_offset}'. Using (0, 0).")
+            return (0, 0)
+        return (int(match.group(1)), int(match.group(2)))
+
     def _create_art_layer(self, log_errors: bool = True):
         """
         Create the art layer of the card from the art folder.
@@ -397,8 +453,8 @@ class RegularCard:
             Whether to log when art isn't found for the card or not.
         """
 
-        card_title = self.get_metadata(CARD_TITLE)
-        card_additional_titles = self.get_metadata(CARD_ADDITIONAL_TITLES)
+        card_title, _ = self._extract_directives(self.get_metadata(CARD_TITLE))
+        card_additional_titles, _ = self._extract_directives(self.get_metadata(CARD_ADDITIONAL_TITLES))
         card_descriptor = self.get_metadata(CARD_DESCRIPTOR)
         card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
         filename = cardname_to_filename(card_key)
@@ -414,6 +470,9 @@ class RegularCard:
     def _create_frame_layers(self):
         """
         Append every frame layer to the card based on `self.metadata`.
+
+        Each newline-separated frame path may carry directives, e.g. "chat/window{offset:(50, 70)}".
+        Directives may be placed before or after the path. Offsets on mask lines are ignored.
         """
 
         card_frames = self.get_metadata(CARD_FRAMES)
@@ -423,8 +482,10 @@ class RegularCard:
         pending_masks: list[Image.Image] = []
 
         before = True  # tracks if we've hit "{end}" yet, meaning frames to render AFTER text
-        for frame_path in card_frames.split("\n"):
-            frame_path = frame_path.lower().strip()
+        for frame_line in card_frames.split("\n"):
+            frame_line, directives = self._extract_directives(frame_line)
+            offset = self._get_directive_offset(directives)
+            frame_path = frame_line.lower().strip()
             if len(frame_path) == 0:
                 continue
 
@@ -451,10 +512,11 @@ class RegularCard:
                 frame = apply_alpha_mask(frame, combined_mask)
                 pending_masks.clear()
 
+            layer = Layer(frame) if offset == (0, 0) else Layer(frame, offset)
             if before:
-                self.frame_layers.append(Layer(frame))
+                self.frame_layers.append(layer)
             else:
-                self.overlay_layers.append(Layer(frame))
+                self.overlay_layers.append(layer)
 
         if pending_masks:
             log(
@@ -744,7 +806,7 @@ class RegularCard:
         draw = ImageDraw.Draw(image)
 
         try:
-            add_total_to_footer = int(self.get_metadata(ADD_TOTAL_TO_FOOTER)) > 0
+            add_total_to_footer = int(self.get_metadata(CARD_ADD_TOTAL_TO_FOOTER)) > 0
         except ValueError:
             add_total_to_footer = False
         collector_number_text = (
@@ -915,6 +977,9 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
+        text, directives = self._extract_directives(text)
+        offset_x, offset_y = self._get_directive_offset(directives)
+
         overlay = False
         if "{last}" in text:
             text = text.replace("{last}", "")
@@ -964,14 +1029,26 @@ class RegularCard:
                     elements.append((sym_img, False))
                     continue
 
-            # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE.
+            # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE, outlined to match the pips.
+            outline_size = int(self.MANA_COST_SYMBOL_OUTLINE_SIZE)
             bbox = _mana_text_font.getbbox(display)
             text_w = max(int(_mana_text_font.getlength(display)), 1)
-            text_img = Image.new("RGBA", (text_w, self.MANA_COST_SYMBOL_SIZE), (0, 0, 0, 0))
+            text_img = Image.new(
+                "RGBA",
+                (text_w + 2 * outline_size, self.MANA_COST_SYMBOL_SIZE + 2 * outline_size),
+                (0, 0, 0, 0),
+            )
             draw = ImageDraw.Draw(text_img)
             cap_height = bbox[3] - bbox[1]
             text_y = (self.MANA_COST_SYMBOL_SIZE - cap_height) // 2 - bbox[1]
-            draw.text((0, text_y), display, font=_mana_text_font, fill=self.MANA_COST_TEXT_COLOR)
+            draw.text(
+                (outline_size, text_y + outline_size),
+                display,
+                font=_mana_text_font,
+                fill=self.MANA_COST_TEXT_COLOR,
+                stroke_width=outline_size,
+                stroke_fill="black",
+            )
             elements.append((text_img, True))
 
         if not elements:
@@ -1001,7 +1078,7 @@ class RegularCard:
                 curr_x = (
                     self.TITLE_BOX_WIDTH
                     - total_width
-                    - self.MANA_COST_SYMBOL_SPACING
+                    - 2 * self.MANA_COST_SYMBOL_SPACING
                     - self.MANA_COST_SYMBOL_OUTLINE_SIZE
                 )
             else:
@@ -1019,17 +1096,22 @@ class RegularCard:
                 break
             curr_x += elem_image.width + (_spacing(i) if i < len(elements) - 1 else 0)
 
-        self.mana_cost_x = self.TITLE_BOX_X + start_x - self.MANA_COST_SYMBOL_SPACING
+        if offset_y == 0:
+            # the cost is still on the title line, so let the title shrink around its real position
+            self.mana_cost_x = self.TITLE_BOX_X + start_x + offset_x - self.MANA_COST_SYMBOL_SPACING
+        # if the cost was offset vertically, it's no longer on the title line; leave mana_cost_x at inf
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
+        layers.append(Layer(image, (self.TITLE_BOX_X + offset_x, self.TITLE_BOX_Y + offset_y)))
 
     def _create_title_layer(self):
         """
         Process title text into the title and append it to `self.text_layers`.
         """
 
-        text = replace_ticks(self.get_metadata(CARD_TITLE))
+        text, directives = self._extract_directives(self.get_metadata(CARD_TITLE))
+        offset_x, offset_y = self._get_directive_offset(directives)
+        text = replace_ticks(text)
         if len(text) == 0 or "{skip}" in text:
             return
 
@@ -1120,17 +1202,21 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset)
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TITLE_X, self.TITLE_BOX_Y)))
+        layers.append(Layer(image, (self.TITLE_X + offset_x, self.TITLE_BOX_Y + offset_y)))
 
     def _create_type_layer(self):
         """
         Process type text into the type box and append it to `self.text_layers`.
         """
 
-        first_part = (
-            f"{replace_ticks(self.get_metadata(CARD_SUPERTYPES))} {replace_ticks(self.get_metadata(CARD_TYPES))}"
-        )
-        second_part = replace_ticks(self.get_metadata(CARD_SUBTYPES))
+        supertypes, supertype_directives = self._extract_directives(self.get_metadata(CARD_SUPERTYPES))
+        types, type_directives = self._extract_directives(self.get_metadata(CARD_TYPES))
+        subtypes, subtype_directives = self._extract_directives(self.get_metadata(CARD_SUBTYPES))
+        directives = {**supertype_directives, **type_directives, **subtype_directives}
+        offset_x, offset_y = self._get_directive_offset(directives)
+
+        first_part = f"{replace_ticks(supertypes)} {replace_ticks(types)}"
+        second_part = replace_ticks(subtypes)
         if len(second_part) > 0:
             text = " — ".join((first_part, second_part)).strip()
         else:
@@ -1226,17 +1312,18 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset)
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TYPE_X, self.TYPE_BOX_Y)))
+        layers.append(Layer(image, (self.TYPE_X + offset_x, self.TYPE_BOX_Y + offset_y)))
 
     def _replace_text_placeholders(self, text: str) -> str:
         """
         Replace standard placeholders in the format `{PLACEHOLDER}` with what they represent.
         """
 
+        cardname, _ = self._extract_directives(self.get_metadata(CARD_TITLE))
         new_text = text
         new_text = re.sub(
             "{cardname}",
-            self.get_metadata(CARD_TITLE).replace("{skip}", ""),
+            cardname.replace("{skip}", "").strip(),
             new_text,
             flags=re.IGNORECASE,
         )
@@ -1330,6 +1417,7 @@ class RegularCard:
             the height of the content, and the maximum usable height of the rules box
         """
 
+        text, _ = self._extract_directives(text)
         text = self._replace_text_placeholders(text)
 
         sections = re.split(r"(\{flavor\}|\{divider\})", text, flags=re.IGNORECASE)
@@ -1622,6 +1710,11 @@ class RegularCard:
         if len(text) == 0 or "{skip}" in text:
             return
 
+        text, directives = self._extract_directives(text)
+        offset_x, offset_y = self._get_directive_offset(directives)
+        if len(text.strip()) == 0:
+            return
+
         centered = False
         if "{center}" in text:
             text = text.replace("{center}", "")
@@ -1819,17 +1912,19 @@ class RegularCard:
         )
         image = add_drop_shadow(image, drop_shadow_offset)
 
-        self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
+        self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X + offset_x, self.RULES_TEXT_Y + offset_y)))
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.RULES_TEXT_X, self.RULES_TEXT_Y)))
+        layers.append(Layer(image, (self.RULES_TEXT_X + offset_x, self.RULES_TEXT_Y + offset_y)))
 
     def _create_power_toughness_layer(self):
         """
         Process power & toughness text into the power & toughness area and append it to `self.text_layers`.
         """
 
-        text = self.get_metadata(CARD_POWER_TOUGHNESS).replace("*", "★")
+        text, directives = self._extract_directives(self.get_metadata(CARD_POWER_TOUGHNESS))
+        offset_x, offset_y = self._get_directive_offset(directives)
+        text = text.replace("*", "★").strip()
         if len(text) == 0 or "{skip}" in text:
             return
 
@@ -1892,6 +1987,8 @@ class RegularCard:
                 emoji_backup_font,
                 fill=color,
                 anchor="lt",
+                stroke_width=self.POWER_TOUGHNESS_OUTLINE_SIZE,
+                stroke_fill="black",
             )
             x_pos += self._get_ucs_chunks_length(seg_text, power_toughness_font, symbol_backup_font, emoji_backup_font)
 
@@ -1902,7 +1999,7 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset)
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.POWER_TOUGHNESS_X, self.POWER_TOUGHNESS_Y)))
+        layers.append(Layer(image, (self.POWER_TOUGHNESS_X + offset_x, self.POWER_TOUGHNESS_Y + offset_y)))
 
     def _create_overlay_layers(self):
         """
@@ -1913,12 +2010,14 @@ class RegularCard:
         if len(card_overlays) == 0:
             return
 
-        for image_path in card_overlays.split("\n"):
-            image_path = image_path.lower().strip()
+        for overlay_line in card_overlays.split("\n"):
+            overlay_line, directives = self._extract_directives(overlay_line)
+            offset = self._get_directive_offset(directives)
+            image_path = overlay_line.lower().strip()
             if len(image_path) == 0:
                 continue
             overlay = open_image(f"{OVERLAYS_PATH}/{image_path}.png")
             if overlay is None:
                 log(f"Could not find overlay '{image_path}'.")
                 continue
-            self.overlay_layers.append(Layer(overlay))
+            self.overlay_layers.append(Layer(overlay) if offset == (0, 0) else Layer(overlay, offset))

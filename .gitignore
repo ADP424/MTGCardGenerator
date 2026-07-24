@@ -24,3 +24,7 @@ images/art/overlay/*
 
 # log/debug
 log.txt
+
+# secrets
+credentials/*
+!credentials/.gitkeep
