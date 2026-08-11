@@ -1,5 +1,4 @@
-pillow
+gspread
 numpy
 openpyxl
-gspread
-google-auth
+pillow

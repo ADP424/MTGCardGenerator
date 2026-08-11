@@ -239,7 +239,7 @@ class Playtest(RegularCard):
                     continue
                 else:
                     log(f"STILL unknown placeholder: '{{{sym.lower()}}}'.")
-            # Render as plain text at cap-height == MANA_COST_SYMBOL_SIZE.
+
             bbox = _mana_text_font.getbbox(display)
             text_w = max(int(_mana_text_font.getlength(display)), 1)
             text_img = Image.new("RGBA", (text_w, self.MANA_COST_SYMBOL_SIZE), (0, 0, 0, 0))

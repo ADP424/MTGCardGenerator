@@ -138,6 +138,8 @@ NEUE_KABEL_ITALICS = "fonts/neue_kabel/neue_kabel_italics.ttf"
 NOTO_EMOJI = "fonts/noto/noto_emoji.ttf"
 NOTO_KURRENT = "fonts/noto/noto_kurrent.ttf"
 
+TIMES_NEW_ROMAN = "fonts/times_new_roman/times_new_roman.ttf"
+
 VERAMONO = "fonts/veramono/veramono.ttf"
 VERAMONO_BOLD = "fonts/veramono/veramono_bold.ttf"
 VERAMONO_ITALICS = "fonts/veramono/veramono_italics.ttf"

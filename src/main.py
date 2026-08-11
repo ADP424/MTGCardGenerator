@@ -90,6 +90,7 @@ from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
 from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
+from model.showcase.meme.DemotivationalPoster import DemotivationalPoster
 from model.showcase.Monopoly import Monopoly
 from model.showcase.Playtest import Playtest
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
@@ -521,6 +522,8 @@ def process_spreadsheets(
         "monopoly": Monopoly,
         "coup": Coup,
         "chat": Chat,
+        # Showcase Meme
+        "demotivational poster": DemotivationalPoster,
         # Showcase Promo
         "regular promo": RegularPromo,
         "extended promo": ExtendedPromo,
