@@ -13,15 +13,21 @@ class Symbol:
     size_ratio: float | tuple[float, float], default: 1.0
         The ratio of the size of this symbol to the regular size the symbol would appear as.
         If given as a tuple of (width, height), width and height ratios are computed separately.
+
+    recolorable: bool, default: False
+        Whether this symbol is a flat-colored glyph that should be tinted to match surrounding
+        text color, rather than a full-color icon (e.g. mana symbols) that should never be recolored.
     """
 
     def __init__(
         self,
         image: Image.Image,
         size_ratio: float = 1.0,
+        recolorable: bool = False,
     ):
         self.image = image
         self.size_ratio = size_ratio if isinstance(size_ratio, tuple) else (size_ratio, size_ratio)
+        self.recolorable = recolorable
 
     def get_formatted_image(
         self,
@@ -30,6 +36,7 @@ class Symbol:
         outline_size: int = 0,
         outline_color: tuple[int, int, int] = (0, 0, 0),
         ignore_size_ratio: bool = False,
+        tint_color: str | tuple[int, int, int] | None = None,
     ) -> Image.Image:
         """
         Returns a resized, formatted version of the image based on the options passed into the constructor.
@@ -51,6 +58,9 @@ class Symbol:
         ignore_size_ratio: bool, default: False
             Whether to ignore the size ratio passed into the constructor and just render the image at its normal size.
 
+        tint_color: str | tuple[int, int, int] | None, default: None
+            The color to tint this symbol to. Ignored unless `recolorable` was set on the constructor.
+
         Returns
         -------
         Image
@@ -70,6 +80,12 @@ class Symbol:
             (int(new_width * size_ratio[0]), int(new_height * size_ratio[1])),
             Image.LANCZOS,
         )
+
+        # tint
+        if self.recolorable and tint_color is not None:
+            tinted_image = Image.new("RGBA", resized_image.size, tint_color)
+            tinted_image.putalpha(resized_image.getchannel("A"))
+            resized_image = tinted_image
 
         # add outline
         alpha = resized_image.getchannel("A")

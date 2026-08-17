@@ -1333,7 +1333,11 @@ class RegularCard:
         return new_text
 
     def _get_symbol_metrics(
-        self, token: str, font: ImageFont.FreeTypeFont, font_size: int
+        self,
+        token: str,
+        font: ImageFont.FreeTypeFont,
+        font_size: int,
+        tint_color: str | tuple[int, int, int] | None = None,
     ) -> tuple[int, int, Image.Image | None]:
         """
         Return the width, height, and image scaled to current font size for the given token.
@@ -1348,6 +1352,9 @@ class RegularCard:
 
         font_size: int
             The font size to scale the symbols to.
+
+        tint_color: str | tuple[int, int, int] | None, default: None
+            The color to tint the symbol to, if it is marked as recolorable.
 
         Returns
         -------
@@ -1365,7 +1372,12 @@ class RegularCard:
         scale = self.RULES_TEXT_MANA_SYMBOL_SCALE * font_size / symbol.image.height
         width = int(symbol.image.width * scale)
         height = int(symbol.image.height * scale)
-        symbol_image = symbol.get_formatted_image(width, height, int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size))
+        symbol_image = symbol.get_formatted_image(
+            width,
+            height,
+            int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
+            tint_color=tint_color,
+        )
         return symbol_image.width, symbol_image.height, symbol_image
 
     def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont) -> int:
@@ -1553,8 +1565,9 @@ class RegularCard:
                     curr_fragment.append(("symbol", value, curr_font))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                 elif kind == "bullet":
+                    draw_kind = "text" if draw_text else "spacing"
                     bullet_width = self._get_rules_text_fragment_length(f"{value} ", curr_font)
-                    curr_fragment.append(("text", f"{value} ", curr_font))
+                    curr_fragment.append((draw_kind, f"{value} ", curr_font))
                     curr_width += bullet_width
                     indent = bullet_width
                 elif kind == "dice":
@@ -1799,7 +1812,7 @@ class RegularCard:
                             )
                             curr_x += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "symbol":
-                        width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size)
+                        width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size, curr_font_color)
                         if symbol_image is not None:
                             image.alpha_composite(
                                 symbol_image,

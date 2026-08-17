@@ -120,11 +120,17 @@ MPLANTIN_BOLD = "fonts/mplantin/mplantin_bold.ttf"
 MPLANTIN_ITALICS = "fonts/mplantin/mplantin_italics.ttf"
 
 # Non-Standard/Showcase Fonts
+ARIAL_BLACK = "fonts/arial_black/arial_black.ttf"
+
 BARLOW = "fonts/barlow/barlow.ttf"
 BARLOW_BOLD = "fonts/barlow/barlow_bold.ttf"
 BARLOW_ITALICS = "fonts/barlow/barlow_italics.ttf"
 
 ETHNOCENTRIC_ITALICS = "fonts/ethnocentric/ethnocentric_italics.ttf"
+
+HELVETICA_NEUE_MEDIUM = "fonts/helvetica_neue/helvetica_neue_medium.ttf"
+HELVETICA_NEUE_ITALICS = "fonts/helvetica_neue/helvetica_neue_italics.ttf"
+HELVETICA_NEUE_BOLD = "fonts/helvetica_neue/helvetica_neue_bold.ttf"
 
 LATO = "fonts/lato/lato.ttf"
 LATO_BOLD = "fonts/lato/lato_bold.ttf"
@@ -855,8 +861,8 @@ SYMBOL_PLACEHOLDER_KEY = {
     "y": Symbol(Y_MANA),
     "z": Symbol(Z_MANA),
     # Other
-    "e": Symbol(ENERGY),
-    "tk": Symbol(TICKET),
+    "e": Symbol(ENERGY, recolorable=True),
+    "tk": Symbol(TICKET, recolorable=True),
 }
 
 FUTURE_SHIFTED_SYMBOL_PLACEHOLDER_KEY = {

@@ -1,6 +1,6 @@
 # Credits
 
-Almost All Frames & Mana Symbols from CardConjurer
+Most Frames & Mana Symbols sourced from CardConjurer
 - https://github.com/Investigamer/cardconjurer
 
 Standard Magic: the Gathering fonts from M15-Magic-Pack

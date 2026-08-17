@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 
-from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
+from constants import CARD_TRANSFORM_HINT
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
 
@@ -154,7 +154,7 @@ class TransformFrontside(RegularCard):
         if len(text) == 0 or "{skip}" in text:
             return
 
-        power_toughness_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_font = ImageFont.truetype(self.POWER_TOUGHNESS_FONT, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
         symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
         emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
         image = Image.new(
