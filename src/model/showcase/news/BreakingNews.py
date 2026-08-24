@@ -16,7 +16,7 @@ from constants import (
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import add_drop_shadow, open_image, replace_ticks
+from utils import add_drop_shadow, load_font, open_image, replace_ticks
 
 
 class BreakingNews(RegularCard):
@@ -199,26 +199,23 @@ class BreakingNews(RegularCard):
         if len(title_text) == 0 and len(type_text) == 0:
             return
 
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.TITLE_MAX_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.TITLE_MAX_FONT_SIZE)
-
         max_width = self.TITLE_TYPE_BOX_WIDTH - 2 * self.TITLE_TYPE_BOX_MARGIN
 
         def measure(
             title_font_size: int, type_font_size: int
         ) -> tuple[int, ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
-            title_font = ImageFont.truetype(self.TITLE_FONT, title_font_size)
-            type_font = ImageFont.truetype(self.TYPE_FONT, type_font_size)
-            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, title_font_size)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT, title_font_size)
+            title_font = load_font(self.TITLE_FONT, title_font_size)
+            type_font = load_font(self.TYPE_FONT, type_font_size)
+            title_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, title_font_size)
+            type_fallback_fonts = self._load_fallback_fonts(self.TYPE_FONT, type_font_size)
 
             width = 0
             if len(title_text) > 0:
-                width += self._get_ucs_chunks_length(title_text, title_font, symbol_font, emoji_font)
+                width += self._get_ucs_chunks_length(title_text, title_font, title_fallback_fonts)
             if len(title_text) > 0 and len(type_text) > 0:
                 width += self.TITLE_TYPE_BULLET_GAP + title_font.getlength("•") + self.TITLE_TYPE_BULLET_GAP
             if len(type_text) > 0:
-                width += self._get_ucs_chunks_length(type_text, type_font, symbol_font, emoji_font)
+                width += self._get_ucs_chunks_length(type_text, type_font, type_fallback_fonts)
             return int(width), title_font, type_font
 
         title_font_size = self.TITLE_MAX_FONT_SIZE
@@ -233,6 +230,9 @@ class BreakingNews(RegularCard):
             title_font_size -= 1
             type_font_size = max(int(title_font_size * self.TYPE_TO_TITLE_FONT_SIZE_RATIO), self.TYPE_MIN_FONT_SIZE)
             total_width, title_font, type_font = measure(title_font_size, type_font_size)
+
+        title_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, title_font_size)
+        type_fallback_fonts = self._load_fallback_fonts(self.TYPE_FONT, type_font_size)
 
         image = Image.new("RGBA", (self.TITLE_TYPE_BOX_WIDTH, self.TITLE_TYPE_BOX_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -249,11 +249,12 @@ class BreakingNews(RegularCard):
                 (curr_x, title_y),
                 title_text,
                 title_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                title_fallback_fonts,
+                primary_font_path=self.TITLE_FONT,
+                font_size=title_font_size,
                 fill=self.TITLE_FONT_COLOR,
             )
-            curr_x += self._get_ucs_chunks_length(title_text, title_font, symbol_backup_font, emoji_backup_font)
+            curr_x += self._get_ucs_chunks_length(title_text, title_font, title_fallback_fonts)
 
         if len(title_text) > 0 and len(type_text) > 0:
             curr_x += self.TITLE_TYPE_BULLET_GAP
@@ -267,8 +268,9 @@ class BreakingNews(RegularCard):
                 (curr_x, type_y),
                 type_text,
                 type_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                type_fallback_fonts,
+                primary_font_path=self.TYPE_FONT,
+                font_size=type_font_size,
                 fill=self.TYPE_FONT_COLOR,
             )
 

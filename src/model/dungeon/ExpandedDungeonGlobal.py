@@ -418,7 +418,7 @@ class ExpandedDungeonGlobal(ExpandedDungeon):
         self._global_text_content = self._composite_layers(text_scratch, size)
         return self._global_frame_content, self._global_text_content
 
-    def _composite_layers(layers: list[Layer], size: tuple[int, int]) -> Image.Image:
+    def _composite_layers(self, layers: list[Layer], size: tuple[int, int]) -> Image.Image:
         """
         Flatten positioned layers onto one transparent canvas, in order, via `alpha_composite_clipped`
         (rather than `paste_image`) since the canvas may be a large super-canvas and each layer is

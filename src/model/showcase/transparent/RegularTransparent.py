@@ -1,3 +1,4 @@
+from constants import CARD_FRAME_LAYOUT_EXTRAS
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
 
@@ -53,17 +54,61 @@ class RegularTransparent(RegularCard):
         )
 
         # Title Text
-        self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
         self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
+        self.TITLE_TEXT_DROP_SHADOW_COLOR = (
+            (0, 0, 0)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (255, 255, 255)
+        )
 
         # Type Text
-        self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
         self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
+        self.TYPE_TEXT_DROP_SHADOW_COLOR = (
+            (0, 0, 0)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (255, 255, 255)
+        )
 
         # Rules Text
-        self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
+        self.RULES_TEXT_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
+        self.RULES_TEXT_DROP_SHADOW_COLOR = (
+            (0, 0, 0)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (255, 255, 255)
+        )
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        self.POWER_TOUGHNESS_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
         self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0.05, 0.05)
+        self.POWER_TOUGHNESS_DROP_SHADOW_COLOR = (
+            (0, 0, 0)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (255, 255, 255)
+        )

@@ -92,7 +92,7 @@ class ExpandedDungeon(Dungeon):
             create_room_name_layers,
         )
 
-    def _card_key_of(metadata: dict[str, str | list["RegularCard"]] | None) -> str:
+    def _card_key_of(self, metadata: dict[str, str | list["RegularCard"]] | None) -> str:
         """
         Return the key of a card from its metadata.
         """
@@ -104,14 +104,14 @@ class ExpandedDungeon(Dungeon):
             metadata.get(CARD_DESCRIPTOR, ""),
         )
 
-    def _siblings_by_lower_key(sibling_cards: dict[str, "RegularCard"]) -> dict[str, "RegularCard"]:
+    def _siblings_by_lower_key(self, sibling_cards: dict[str, "RegularCard"]) -> dict[str, "RegularCard"]:
         """
         Re-key a set's cards by lowercased card key.
         """
 
         return {key.lower(): card for key, card in sibling_cards.items()}
 
-    def _band_name(index: int, count: int, low: str, high: str) -> str:
+    def _band_name(self, index: int, count: int, low: str, high: str) -> str:
         """
         Name one axis of a card's position in the card grid, matching the outer-wall asset folders:
         `"closed"` when the dungeon is only one card along this axis, else `low` (e.g. "top"/"left"),

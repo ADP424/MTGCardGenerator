@@ -1,6 +1,6 @@
 import re
 
-from PIL import Image, ImageChops, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw
 
 from constants import (
     BELEREN_BOLD,
@@ -17,6 +17,7 @@ from utils import (
     allocate_by_weight,
     alpha_composite_clipped,
     apply_alpha_mask,
+    load_font,
     open_image,
     paste_image,
     replace_ticks,
@@ -1254,10 +1255,9 @@ class Dungeon(RegularCard):
                 max(int(round(self.ROOM_TEXT_MAX_FONT_SIZE * self.ROOM_NAME_FONT_SCALE)), self.ROOM_NAME_MIN_FONT_SIZE),
                 self.ROOM_NAME_MAX_FONT_SIZE,
             )
-            font = ImageFont.truetype(self.ROOM_NAME_FONT, size)
-            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, size)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT, size)
-            name_width = int(self._get_ucs_chunks_length(self._get_room_name_text(room), font, symbol_font, emoji_font))
+            font = load_font(self.ROOM_NAME_FONT, size)
+            fallback_fonts = self._load_fallback_fonts(self.ROOM_NAME_FONT, size)
+            name_width = int(self._get_ucs_chunks_length(self._get_room_name_text(room), font, fallback_fonts))
 
             # Match the margins _measure_room_content leaves around the name inside the room
             body_margin = int(max(self.ROOM_TEXT_MAX_FONT_SIZE, 1) * 0.25)
@@ -1774,10 +1774,9 @@ class Dungeon(RegularCard):
                 self.ROOM_NAME_MAX_FONT_SIZE,
             )
             while True:
-                font = ImageFont.truetype(self.ROOM_NAME_FONT, size)
-                symbol_font = ImageFont.truetype(self.SYMBOL_FONT, size)
-                emoji_font = ImageFont.truetype(self.EMOJI_FONT, size)
-                width = self._get_ucs_chunks_length(name, font, symbol_font, emoji_font)
+                font = load_font(self.ROOM_NAME_FONT, size)
+                fallback_fonts = self._load_fallback_fonts(self.ROOM_NAME_FONT, size)
+                width = self._get_ucs_chunks_length(name, font, fallback_fonts)
                 if width <= max_width or size <= self.ROOM_NAME_MIN_FONT_SIZE:
                     break
                 size -= 1
@@ -1794,7 +1793,7 @@ class Dungeon(RegularCard):
             for fragment in line:
                 if len(fragment) < 3:
                     continue
-                kind, value, fragment_font = fragment
+                kind, value, fragment_font = fragment[:3]
                 if kind in ("text", "dice"):
                     if value:
                         width += self._get_rules_text_fragment_length(value, fragment_font)
@@ -1905,7 +1904,7 @@ class Dungeon(RegularCard):
             metrics["height"] = name_height
             return metrics
 
-        body_font = ImageFont.truetype(self.RULES_TEXT_FONT, max(body_size, 1))
+        body_font = load_font(self.RULES_TEXT_FONT, max(body_size, 1))
         body_ascent, body_descent = body_font.getmetrics()
         metrics.update(body_ascent=body_ascent, body_descent=body_descent)
 
@@ -2270,14 +2269,13 @@ class Dungeon(RegularCard):
 
             name = self._get_room_name_text(room)
             size = max(room.name_font_size, 1)
-            font = ImageFont.truetype(self.ROOM_NAME_FONT, size)
-            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, size)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT, size)
+            font = load_font(self.ROOM_NAME_FONT, size)
+            fallback_fonts = self._load_fallback_fonts(self.ROOM_NAME_FONT, size)
 
             image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
             draw = ImageDraw.Draw(image)
 
-            length = self._get_ucs_chunks_length(name, font, symbol_font, emoji_font)
+            length = self._get_ucs_chunks_length(name, font, fallback_fonts)
             x_pos = (width - length) // 2 if self.ROOM_TEXT_CENTERED else 0
 
             self._draw_ucs_chunks(
@@ -2285,8 +2283,9 @@ class Dungeon(RegularCard):
                 (x_pos, 0),
                 name,
                 font,
-                symbol_font,
-                emoji_font,
+                fallback_fonts,
+                primary_font_path=self.ROOM_NAME_FONT,
+                font_size=size,
                 fill=self.ROOM_NAME_FONT_COLOR,
                 stroke_width=self.ROOM_NAME_OUTLINE_SIZE,
                 stroke_fill="black",

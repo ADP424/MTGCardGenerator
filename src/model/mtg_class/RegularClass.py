@@ -1,6 +1,6 @@
 import re
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     CARD_ADDITIONAL_TITLES,
@@ -14,6 +14,7 @@ from constants import (
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
+from utils import load_font
 
 
 class RegularClass(RegularCard):
@@ -294,13 +295,12 @@ class RegularClass(RegularCard):
         costs = self.get_metadata(CARD_MANA_COST).split("\n")
         level_costs = [level_cost.strip() for level_cost in costs[1:]]
 
-        level_font = ImageFont.truetype(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
-        colon_font = ImageFont.truetype(
+        level_font = load_font(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
+        colon_font = load_font(
             self.LEVEL_FONT,
             int(self.RULES_TEXT_MANA_SYMBOL_SCALE * self.MANA_COST_SYMBOL_SIZE),
         )
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.LEVEL_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.LEVEL_FONT_SIZE)
+        level_fallback_fonts = self._load_fallback_fonts(self.LEVEL_FONT, self.LEVEL_FONT_SIZE)
 
         level_titles = [
             title for title in self.get_metadata(CARD_ADDITIONAL_TITLES).split("\n") if len(title.strip()) > 0
@@ -354,7 +354,7 @@ class RegularClass(RegularCard):
             # Draw the level title
             level_title = level_titles[idx] if idx < len(level_titles) else f"Level {idx + 1}"
             centered = len(cost) == 0
-            title_length = self._get_ucs_chunks_length(level_title, level_font, symbol_backup_font, emoji_backup_font)
+            title_length = self._get_ucs_chunks_length(level_title, level_font, level_fallback_fonts)
 
             ascent = level_font.getmetrics()[0]
             y_pos = (CLASS_HEADER.image.height - ascent) // 2
@@ -369,8 +369,9 @@ class RegularClass(RegularCard):
                 (x_pos, y_pos),
                 level_title,
                 level_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                level_fallback_fonts,
+                primary_font_path=self.LEVEL_FONT,
+                font_size=self.LEVEL_FONT_SIZE,
                 fill="black",
                 anchor="lt",
                 align="right" if not centered else "center",

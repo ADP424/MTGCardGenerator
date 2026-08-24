@@ -1,6 +1,6 @@
 import re
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     CARD_FRAME_LAYOUT_EXTRAS,
@@ -15,7 +15,7 @@ from constants import (
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import add_drop_shadow, paste_image, str_to_float
+from utils import add_drop_shadow, load_font, paste_image, str_to_float
 
 
 class Playtest(RegularCard):
@@ -205,12 +205,12 @@ class Playtest(RegularCard):
         # Compute font size whose cap-height matches MANA_COST_SYMBOL_SIZE, for text tokens.
         _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
         while _text_font_size > 1:
-            _f = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+            _f = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
             _bbox = _f.getbbox("M")
             if (_bbox[3] - _bbox[1]) <= self.MANA_COST_SYMBOL_SIZE:
                 break
             _text_font_size -= 1
-        _mana_text_font = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+        _mana_text_font = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
 
         # Build element list right-to-left (playtest renders reversed).
         sentinel = self._MANA_COST_TEXT_SENTINEL

@@ -1,9 +1,10 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import CARD_TRANSFORM_HINT
 from model.battle.Battle import Battle
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
+from utils import load_font
 
 
 class TransformBattle(Battle):
@@ -167,9 +168,10 @@ class TransformBattle(Battle):
         if len(text) == 0 or "{skip}" in text:
             return
 
-        power_toughness_font = ImageFont.truetype(self.POWER_TOUGHNESS_FONT, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
+        power_toughness_font = load_font(self.POWER_TOUGHNESS_FONT, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_fallback_fonts = self._load_fallback_fonts(
+            self.POWER_TOUGHNESS_FONT, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE
+        )
         image = Image.new(
             "RGBA",
             (self.REVERSE_POWER_TOUGHNESS_WIDTH, self.REVERSE_POWER_TOUGHNESS_HEIGHT),
@@ -177,7 +179,7 @@ class TransformBattle(Battle):
         )
         draw = ImageDraw.Draw(image)
 
-        text_width = self._get_ucs_chunks_length(text, power_toughness_font, symbol_backup_font, emoji_backup_font)
+        text_width = self._get_ucs_chunks_length(text, power_toughness_font, power_toughness_fallback_fonts)
         bounding_box = power_toughness_font.getbbox(text)
         text_height = int(bounding_box[3] - bounding_box[1])
         self._draw_ucs_chunks(
@@ -188,8 +190,9 @@ class TransformBattle(Battle):
             ),
             text,
             power_toughness_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            power_toughness_fallback_fonts,
+            primary_font_path=self.POWER_TOUGHNESS_FONT,
+            font_size=self.REVERSE_POWER_TOUGHNESS_FONT_SIZE,
             fill=self.REVERSE_POWER_TOUGHNESS_FONT_COLOR,
             anchor="lt",
         )

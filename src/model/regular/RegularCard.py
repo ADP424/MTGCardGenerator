@@ -33,14 +33,13 @@ from constants import (
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
     DICE_SECTION_PATH,
+    DIRECTIVE_FONTS,
     DIRECTIVE_PATTERN,
     FRAMES_PATH,
     GOTHAM_BOLD,
     INPUT_ART_PATH,
     MPLANTIN,
     MPLANTIN_ITALICS,
-    NOTO_EMOJI,
-    NOTO_KURRENT,
     OFFSET_VALUE_PATTERN,
     OVERLAYS_PATH,
     PLACEHOLDER_REGEX,
@@ -58,6 +57,7 @@ from utils import (
     apply_alpha_mask,
     cardname_to_filename,
     get_card_key,
+    load_font,
     open_image,
     paste_image,
     replace_ticks,
@@ -111,6 +111,10 @@ class RegularCard:
         self.text_layers = text_layers if text_layers is not None else []
         self.overlay_layers = overlay_layers if overlay_layers is not None else []
 
+        # Caches to save memory on font spacing calculations
+        self._fallback_font_cache: dict[tuple[str, int, bool], dict[str, ImageFont.FreeTypeFont]] = {}
+        self._fallback_font_y_offset_cache: dict[tuple[str, int, bool, str], int] = {}
+
         # Overall Card
         self.CARD_WIDTH = 1500
         self.CARD_HEIGHT = 2100
@@ -126,7 +130,9 @@ class RegularCard:
         self.MANA_COST_SYMBOL_SPACING = 6
         self.MANA_COST_ALIGN = "right"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+        self.MANA_COST_SYMBOL_SHADOW_COLOR = (0, 0, 0)
         self.MANA_COST_SYMBOL_OUTLINE_SIZE = 0
+        self.MANA_COST_SYMBOL_OUTLINE_COLOR = (0, 0, 0)
         self.MANA_COST_TEXT_FONT = BELEREN_BOLD
         self.MANA_COST_TEXT_COLOR = (0, 0, 0)
 
@@ -140,7 +146,9 @@ class RegularCard:
         self.TITLE_FONT_COLOR = (0, 0, 0)
         self.TITLE_TEXT_ALIGN = "left"
         self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE = 0
+        self.TITLE_TEXT_OUTLINE_COLOR = (0, 0, 0)
         self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.TITLE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Type Box
         self.TYPE_BOX_Y = 1187
@@ -156,7 +164,9 @@ class RegularCard:
         self.TYPE_FONT_COLOR = (0, 0, 0)
         self.TYPE_TEXT_ALIGN = "left"
         self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0
+        self.TYPE_TEXT_OUTLINE_COLOR = (0, 0, 0)
         self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.TYPE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Rules Text Box
         self.RULES_BOX_X = 112
@@ -175,12 +185,14 @@ class RegularCard:
         self.RULES_TEXT_MIN_FONT_SIZE = 6
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
         self.RULES_TEXT_OUTLINE_RELATIVE_SIZE = 0
+        self.RULES_TEXT_OUTLINE_COLOR = (0, 0, 0)
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
         self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
         self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER = 5
         self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 8
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.RULES_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1166
@@ -193,7 +205,9 @@ class RegularCard:
             (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
         )
         self.POWER_TOUGHNESS_OUTLINE_SIZE = 0
+        self.POWER_TOUGHNESS_OUTLINE_COLOR = (0, 0, 0)
         self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.POWER_TOUGHNESS_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Watermark
         self.WATERMARK_HEIGHT_TO_RULES_TEXT_HEIGHT_SCALE = 0.77
@@ -223,8 +237,6 @@ class RegularCard:
 
         # Other
         self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
-        self.SYMBOL_FONT = NOTO_KURRENT  # for international languages
-        self.EMOJI_FONT = NOTO_EMOJI  # for emojis
         self.HOLO_STAMP_X = 658
         self.HOLO_STAMP_Y = 1898
 
@@ -232,7 +244,7 @@ class RegularCard:
         self.REVERSE_POWER_TOUGHNESS_X = float("inf")
         self.REVERSE_POWER_TOUGHNESS_Y = float("inf")
 
-        # set when mana cost layer is made to help with title spacing
+        # Set when mana cost layer is made to help with title spacing
         self.mana_cost_x = float("inf")
 
     def create_layers(
@@ -634,68 +646,205 @@ class RegularCard:
         layers = self.collector_layers if not overlay else self.overlay_layers
         layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
 
+    @staticmethod
+    def _probe_cap_height(font: ImageFont.FreeTypeFont) -> int | None:
+        """
+        Measure a font's capital-letter cap height using the 'H' glyph, or return None if 'H' isn't
+        a real glyph in this font.
+
+        Parameters
+        ----------
+        font: FreeTypeFont
+            The font to probe.
+
+        Returns
+        -------
+        int | None
+            The pixel cap height of 'H' in this font, or None if 'H' isn't a genuine glyph.
+        """
+
+        h_bbox = font.getbbox("H")
+        if h_bbox is None or h_bbox[3] <= h_bbox[1]:
+            return None
+        # U+F8FF is in the Private Use Area and is not assigned by any of the fonts this program
+        # bundles, so it reliably renders as `.notdef`. If 'H' renders identically, 'H' is also
+        # `.notdef` in this font (i.e. the font has no real Latin glyphs).
+        notdef_bbox = font.getbbox(chr(0xF8FF))
+        if h_bbox == notdef_bbox:
+            return None
+        return h_bbox[3] - h_bbox[1]
+
+    def _load_fallback_fonts(
+        self,
+        primary_font_path: str,
+        font_size: int,
+        italic: bool = False,
+    ) -> dict[str, ImageFont.FreeTypeFont]:
+        """
+        Load every directive fallback font (see `DIRECTIVE_FONTS`) at a size that visually matches
+        `primary_font_path` at `font_size`, for use with `_split_ucs_chunks`/`_draw_ucs_chunks`/
+        `_get_ucs_chunks_length` and the rules-text fragment wrapper.
+
+        Results are cached per (primary_font_path, font_size, italic) since this is called from
+        inside per-font-size retry loops that run on every card render.
+
+        Parameters
+        ----------
+        primary_font_path: str
+            Path to the main font currently being used, to visually match fallback fonts against.
+
+        font_size: int
+            The nominal font size the primary font is being drawn at.
+
+        italic: bool
+            Whether italics are currently active; directives with an italic variant (see
+            `DIRECTIVE_FONTS`) will use it when True.
+
+        Returns
+        -------
+        dict[str, FreeTypeFont]
+            Maps each directive name (e.g. "ucs", "emoji", "jp") to its loaded, size-adjusted font.
+        """
+
+        cache_key = (primary_font_path, font_size, italic)
+        cached = self._fallback_font_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        primary_font = load_font(primary_font_path, font_size)
+        primary_cap_height = self._probe_cap_height(primary_font)
+        if primary_cap_height is None or primary_cap_height <= 0:
+            primary_ascent, primary_descent = primary_font.getmetrics()
+            primary_cap_height = primary_ascent - primary_descent
+
+        fonts: dict[str, ImageFont.FreeTypeFont] = {}
+        for directive, (regular_path, italic_path) in DIRECTIVE_FONTS.items():
+            path = italic_path if (italic and italic_path is not None) else regular_path
+
+            probe_font = load_font(path, font_size)
+            probe_cap_height = self._probe_cap_height(probe_font)
+            if probe_cap_height is not None and probe_cap_height > 0:
+                scale = primary_cap_height / probe_cap_height
+            else:
+                probe_ascent, probe_descent = probe_font.getmetrics()
+                probe_font_metric = probe_ascent - probe_descent
+                scale = primary_cap_height / probe_font_metric if probe_font_metric > 0 else 1.0
+
+            adjusted_size = max(1, round(font_size * scale))
+            fallback_font = probe_font if adjusted_size == font_size else load_font(path, adjusted_size)
+            fonts[directive] = fallback_font
+
+            y_offset = primary_font.getmetrics()[0] - fallback_font.getmetrics()[0]
+            self._fallback_font_y_offset_cache[(primary_font_path, font_size, italic, directive)] = y_offset
+
+        self._fallback_font_cache[cache_key] = fonts
+        return fonts
+
+    def _fallback_font_y_offset(
+        self,
+        primary_font_path: str,
+        font_size: int,
+        italic: bool,
+        directive: str,
+    ) -> int:
+        """
+        Get the y-offset to add when drawing a fallback-font fragment, so its baseline lines up
+        with the primary font's baseline at the same nominal top-of-line `y` origin.
+
+        Parameters
+        ----------
+        primary_font_path: str
+            Path to the main font currently being used.
+
+        font_size: int
+            The nominal font size the primary font is being drawn at.
+
+        italic: bool
+            Whether italics are currently active.
+
+        directive: str
+            The directive name (a key of `DIRECTIVE_FONTS`) whose fallback font's offset to return.
+
+        Returns
+        -------
+        int
+            The y-offset to add to the fallback-font fragment's draw position.
+        """
+
+        cache_key = (primary_font_path, font_size, italic, directive)
+        offset = self._fallback_font_y_offset_cache.get(cache_key)
+        if offset is None:
+            # Ensure the fonts (and offsets) for this key are loaded, then retry.
+            self._load_fallback_fonts(primary_font_path, font_size, italic)
+            offset = self._fallback_font_y_offset_cache.get(cache_key, 0)
+        return offset
+
     def _split_ucs_chunks(
         self,
         text: str,
         primary_font: ImageFont.FreeTypeFont,
-        symbol_font: ImageFont.FreeTypeFont,
-        emoji_font: ImageFont.FreeTypeFont,
-    ) -> list[tuple[str, ImageFont.FreeTypeFont]]:
+        fallback_fonts: dict[str, ImageFont.FreeTypeFont],
+    ) -> list[tuple[str, ImageFont.FreeTypeFont, str | None]]:
         """
-        Split text into normal and UCS chunks (UCS being unicode characters unsupported by the
-        limited MTG fonts in the program). Also splits for handling emojis.
+        Split text into normal chunks and directive fallback-font chunks (see `DIRECTIVE_FONTS`),
+        i.e. text wrapped in `{DIRECTIVE}...{/DIRECTIVE}` or `{DIRECTIVE}...{\\DIRECTIVE}` blocks
+        where DIRECTIVE is any key of `DIRECTIVE_FONTS` (e.g. UCS for general Unicode fallback,
+        EMOJI for emoji, JP/KR/SC/TC/ARABIC/... for specific scripts).
 
         Parameters
         ----------
         text: str
-            The input string with optional {UCS} / {EMOJI} ... {/UCS} / {/EMOJI} sections.
+            The input string with optional {DIRECTIVE}...{/DIRECTIVE} sections.
 
         primary_font: FreeTypeFont
-            The font to use if there isn't a UCS or EMOJI chunk.
+            The font to use for any text outside a directive block.
 
-        symbol_font: FreeTypeFont
-            The font to use in the case a UCS chunk is encountered.
-
-        emoji_font: FreeTypeFont
-            The font to use in the case an EMOJI chunk is encountered.
+        fallback_fonts: dict[str, FreeTypeFont]
+            Maps directive name to the font to use for that directive's blocks, as returned by
+            `_load_fallback_fonts`.
 
         Returns
         -------
-        list[tuple[str, FreeTypeFont]]
-            A list of tuples in the form (chunk, font).
+        list[tuple[str, FreeTypeFont, str | None]]
+            A list of tuples in the form (chunk, font, directive_name_or_None). directive_name is
+            None for primary-font chunks, and the directive key (for fallback y-offset lookups)
+            otherwise.
         """
 
-        # A {UCS} or {EMOJI} tag without a corresponding ending tag means the rest of the text should use that font
+        directive_names = sorted(fallback_fonts.keys(), key=len, reverse=True)
+        if not directive_names:
+            return [(text, primary_font, None)]
+        alternation = "|".join(re.escape(name) for name in directive_names)
+
+        # A directive open tag without a corresponding close tag means do it for the rest of the text
         lower_text = text.lower()
-        if lower_text.count("{UCS}") > (lower_text.count("{/UCS}") + lower_text.count("{\\UCS}")):
-            text += "{/UCS}"
-        if lower_text.count("{EMOJI}") > (lower_text.count("{/EMOJI}") + lower_text.count("{\\EMOJI}")):
-            text += "{/EMOJI}"
+        for name in directive_names:
+            open_tag = f"{{{name}}}"
+            close_tag_slash = f"{{/{name}}}"
+            close_tag_backslash = f"{{\\{name}}}"
+            if lower_text.count(open_tag) > (lower_text.count(close_tag_slash) + lower_text.count(close_tag_backslash)):
+                text += close_tag_slash
 
         pattern = re.compile(
-            r"(\{UCS\}.*?(?:\{\/UCS\}|\{\\UCS\})|\{EMOJI\}.*?(?:\{\/EMOJI\}|\{\\EMOJI\}))",
+            r"\{(" + alternation + r")\}(.*?)(?:\{/\1\}|\{\\\1\})",
             re.DOTALL | re.IGNORECASE,
         )
 
-        chunks: list[tuple[str, str]] = []
+        chunks: list[tuple[str, ImageFont.FreeTypeFont, str | None]] = []
         last_index = 0
         for match in pattern.finditer(text):
             start, end = match.span()
 
             if start > last_index:
-                chunks.append((text[last_index:start], primary_font))
+                chunks.append((text[last_index:start], primary_font, None))
 
-            block = match.group(0)
-
-            if block.startswith("{UCS}"):
-                chunks.append((block[5:-6], symbol_font))
-            elif block.startswith("{EMOJI}"):
-                chunks.append((block[7:-8], emoji_font))
+            directive = match.group(1).lower()
+            chunks.append((match.group(2), fallback_fonts[directive], directive))
 
             last_index = end
 
         if last_index < len(text):
-            chunks.append((text[last_index:], primary_font))
+            chunks.append((text[last_index:], primary_font, None))
 
         return chunks
 
@@ -705,12 +854,16 @@ class RegularCard:
         position: tuple[int, int],
         text: str,
         primary_font: ImageFont.FreeTypeFont,
-        symbol_font: ImageFont.FreeTypeFont,
-        emoji_font: ImageFont.FreeTypeFont,
+        fallback_fonts: dict[str, ImageFont.FreeTypeFont],
+        primary_font_path: str | None = None,
+        font_size: int | None = None,
+        italic: bool = False,
         **kwargs,
     ):
         """
-        Draw text with mixed fonts on a single line, to handle international and emoji characters.
+        Draw text with mixed fonts on a single line, switching to a directive fallback font (see
+        `DIRECTIVE_FONTS`) for any {DIRECTIVE}...{/DIRECTIVE} sections, to handle international
+        text, emoji, and other characters unsupported by the main card fonts.
 
         Parameters
         ----------
@@ -726,32 +879,43 @@ class RegularCard:
         primary_font: FreeTypeFont
             The main font to use.
 
-        symbol_font: FreeTypeFont
-            The font to use as a fallback for international language symbols.
+        fallback_fonts: dict[str, FreeTypeFont]
+            Maps directive name to fallback font, as returned by `_load_fallback_fonts`.
 
-        emoji_font: FreeTypeFont
-            The font to use as a fallback for emojis.
+        primary_font_path: str | None
+            Path to `primary_font`, needed to look up each fallback font's baseline y-offset. If
+            None, no y-offset correction is applied (fallback chunks draw at the same y as primary).
+
+        font_size: int | None
+            The nominal font size `primary_font`/`fallback_fonts` were loaded at, needed alongside
+            `primary_font_path` for the y-offset cache lookup.
+
+        italic: bool
+            Whether italics are currently active, needed alongside `primary_font_path` for the
+            y-offset cache lookup.
 
         kwargs: dict
             Additional arguments passed to draw.text (fill, stroke_width, stroke_fill, etc.).
         """
 
-        chunks = self._split_ucs_chunks(text, primary_font, symbol_font, emoji_font)
+        chunks = self._split_ucs_chunks(text, primary_font, fallback_fonts)
         x, y = position
-        for text, font in chunks:
-            draw.text((x, y), text, font=font, **kwargs)
-            x += font.getlength(text)
+        for chunk_text, font, directive in chunks:
+            draw_y = y
+            if directive is not None and primary_font_path is not None and font_size is not None:
+                draw_y += self._fallback_font_y_offset(primary_font_path, font_size, italic, directive)
+            draw.text((x, draw_y), chunk_text, font=font, **kwargs)
+            x += font.getlength(chunk_text)
 
     def _get_ucs_chunks_length(
         self,
         text: str,
         primary_font: ImageFont.FreeTypeFont,
-        symbol_font: ImageFont.FreeTypeFont,
-        emoji_font: ImageFont.FreeTypeFont,
+        fallback_fonts: dict[str, ImageFont.FreeTypeFont],
     ):
         """
         Get the total pixel length (like FreeTypeFont.getlength) of the text written in the font
-        after having the {SYMBOL} and {EMOJI} chunks converted.
+        after having the directive fallback-font chunks (see `DIRECTIVE_FONTS`) converted.
 
         Parameters
         ----------
@@ -761,22 +925,20 @@ class RegularCard:
         primary_font: FreeTypeFont
             The main font to use.
 
-        symbol_font: FreeTypeFont
-            The font to use in the case of a {SYMBOL} chunk.
-
-        emoji_font: FreeTypeFont
-            The font to use in the case of an {EMOJI} chunk.
+        fallback_fonts: dict[str, FreeTypeFont]
+            Maps directive name to fallback font, as returned by `_load_fallback_fonts`.
 
         Returns
         -------
         int
-            The length of the text after being split into UCS chunks and written in the given fonts.
+            The length of the text after being split into directive chunks and written in the
+            given fonts.
         """
 
-        chunks = self._split_ucs_chunks(text, primary_font, symbol_font, emoji_font)
+        chunks = self._split_ucs_chunks(text, primary_font, fallback_fonts)
         total_length = 0
-        for text, font in chunks:
-            total_length += font.getlength(text)
+        for chunk_text, font, _directive in chunks:
+            total_length += font.getlength(chunk_text)
         return int(total_length)
 
     def _create_footer_layer(self):
@@ -795,12 +957,13 @@ class RegularCard:
         index = self.get_metadata(CARD_INDEX).zfill(len(str(self.get_metadata(CARD_FOOTER_LARGEST_INDEX))))
         rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
 
-        footer_font = ImageFont.truetype(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
-        artist_font = ImageFont.truetype(self.ARTIST_FONT, self.FOOTER_FONT_SIZE)
-        legal_font = ImageFont.truetype(self.LEGAL_FONT, self.FOOTER_FONT_SIZE)
+        footer_font = load_font(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
+        artist_font = load_font(self.ARTIST_FONT, self.FOOTER_FONT_SIZE)
+        legal_font = load_font(self.LEGAL_FONT, self.FOOTER_FONT_SIZE)
 
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.FOOTER_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.FOOTER_FONT_SIZE)
+        footer_fallback_fonts = self._load_fallback_fonts(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
+        artist_fallback_fonts = self._load_fallback_fonts(self.ARTIST_FONT, self.FOOTER_FONT_SIZE)
+        legal_fallback_fonts = self._load_fallback_fonts(self.LEGAL_FONT, self.FOOTER_FONT_SIZE)
 
         image = Image.new("RGBA", (self.FOOTER_WIDTH, self.FOOTER_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -817,8 +980,9 @@ class RegularCard:
             (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE),
             collector_number_text,
             footer_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            footer_fallback_fonts,
+            primary_font_path=self.FOOTER_FONT,
+            font_size=self.FOOTER_FONT_SIZE,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -832,8 +996,7 @@ class RegularCard:
                 self._get_ucs_chunks_length(
                     collector_number_text,
                     footer_font,
-                    symbol_backup_font,
-                    emoji_backup_font,
+                    footer_fallback_fonts,
                 )
                 + self.FOOTER_FONT_OUTLINE_SIZE
             )
@@ -845,8 +1008,9 @@ class RegularCard:
                 ),
                 spellbook_text,
                 footer_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                footer_fallback_fonts,
+                primary_font_path=self.FOOTER_FONT,
+                font_size=self.FOOTER_FONT_SIZE,
                 fill="white",
                 stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
                 stroke_fill="black",
@@ -864,8 +1028,9 @@ class RegularCard:
             (self.FOOTER_FONT_OUTLINE_SIZE, set_info_y),
             set_info_text,
             footer_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            footer_fallback_fonts,
+            primary_font_path=self.FOOTER_FONT,
+            font_size=self.FOOTER_FONT_SIZE,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -876,13 +1041,12 @@ class RegularCard:
                 self._get_ucs_chunks_length(
                     collector_number_text,
                     footer_font,
-                    symbol_backup_font,
-                    emoji_backup_font,
+                    footer_fallback_fonts,
                 )
                 + self.FOOTER_FONT_OUTLINE_SIZE
                 + (self.FOOTER_TAB_LENGTH + self.FOOTER_FONT_OUTLINE_SIZE if len(spellbook) > 0 else 0)
-                + self._get_ucs_chunks_length(spellbook_text, footer_font, symbol_backup_font, emoji_backup_font),
-                self._get_ucs_chunks_length(set_info_text, footer_font, symbol_backup_font, emoji_backup_font)
+                + self._get_ucs_chunks_length(spellbook_text, footer_font, footer_fallback_fonts),
+                self._get_ucs_chunks_length(set_info_text, footer_font, footer_fallback_fonts)
                 + self.FOOTER_FONT_OUTLINE_SIZE,
             )
             + self.FOOTER_TAB_LENGTH
@@ -893,8 +1057,9 @@ class RegularCard:
             (rarity_artist_x, self.FOOTER_FONT_OUTLINE_SIZE),
             rarity_initial,
             footer_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            footer_fallback_fonts,
+            primary_font_path=self.FOOTER_FONT,
+            font_size=self.FOOTER_FONT_SIZE,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -920,8 +1085,9 @@ class RegularCard:
             ),
             artist,
             artist_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            artist_fallback_fonts,
+            primary_font_path=self.ARTIST_FONT,
+            font_size=self.FOOTER_FONT_SIZE,
             anchor="lt",
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
@@ -929,16 +1095,16 @@ class RegularCard:
         )
 
         creation_date_width = (
-            self._get_ucs_chunks_length(creation_date, legal_font, symbol_backup_font, emoji_backup_font)
-            + self.FOOTER_FONT_OUTLINE_SIZE
+            self._get_ucs_chunks_length(creation_date, legal_font, legal_fallback_fonts) + self.FOOTER_FONT_OUTLINE_SIZE
         )
         self._draw_ucs_chunks(
             draw,
             (self.FOOTER_WIDTH - creation_date_width, set_info_y),
             creation_date,
             legal_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            legal_fallback_fonts,
+            primary_font_path=self.LEGAL_FONT,
+            font_size=self.FOOTER_FONT_SIZE,
             fill="white",
             stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
             stroke_fill="black",
@@ -954,7 +1120,7 @@ class RegularCard:
 
     _MANA_COST_TEXT_SENTINEL = "\x00TEXT\x00"
 
-    def _preprocess_mana_cost_text(text: str) -> str:
+    def _preprocess_mana_cost_text(self, text: str) -> str:
         """
         Replace {text}...{/text} spans with prefixed tokens so their contents are
         never looked up as symbols. Must be called before brace-stripping.
@@ -962,7 +1128,7 @@ class RegularCard:
 
         return re.sub(
             r"\{text\}(.*?)\{/text\}",
-            lambda m: RegularCard._MANA_COST_TEXT_SENTINEL + m.group(1).replace(" ", "\x00SP\x00"),
+            lambda m: self._MANA_COST_TEXT_SENTINEL + m.group(1).replace(" ", "\x00SP\x00"),
             text,
             flags=re.IGNORECASE,
         )
@@ -990,7 +1156,7 @@ class RegularCard:
             text = text.replace("{center}", "")
             centered = True
 
-        text = RegularCard._preprocess_mana_cost_text(text)
+        text = self._preprocess_mana_cost_text(text)
         text = re.sub(r"{+|}+", " ", text)
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
@@ -1000,12 +1166,12 @@ class RegularCard:
         # Compute the font size in line with MANA_COST_SYMBOL_SIZE
         _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
         while _text_font_size > 1:
-            _f = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+            _f = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
             _bbox = _f.getbbox("M")
             if (_bbox[3] - _bbox[1]) <= self.MANA_COST_SYMBOL_SIZE:
                 break
             _text_font_size -= 1
-        _mana_text_font = ImageFont.truetype(self.MANA_COST_TEXT_FONT, _text_font_size)
+        _mana_text_font = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
 
         # Each element is (image, is_text_token) so spacing logic can differentiate
         elements: list[tuple[Image.Image, bool]] = []
@@ -1025,6 +1191,7 @@ class RegularCard:
                     sym_img = add_drop_shadow(
                         symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
                         self.MANA_COST_SYMBOL_SHADOW_OFFSET,
+                        self.MANA_COST_SYMBOL_SHADOW_COLOR,
                     )
                     elements.append((sym_img, False))
                     continue
@@ -1047,7 +1214,7 @@ class RegularCard:
                 font=_mana_text_font,
                 fill=self.MANA_COST_TEXT_COLOR,
                 stroke_width=outline_size,
-                stroke_fill="black",
+                stroke_fill=self.MANA_COST_SYMBOL_OUTLINE_COLOR,
             )
             elements.append((text_img, True))
 
@@ -1099,7 +1266,6 @@ class RegularCard:
         if offset_y == 0:
             # the cost is still on the title line, so let the title shrink around its real position
             self.mana_cost_x = self.TITLE_BOX_X + start_x + offset_x - self.MANA_COST_SYMBOL_SPACING
-        # if the cost was offset vertically, it's no longer on the title line; leave mana_cost_x at inf
 
         layers = self.text_layers if not overlay else self.overlay_layers
         layers.append(Layer(image, (self.TITLE_BOX_X + offset_x, self.TITLE_BOX_Y + offset_y)))
@@ -1142,14 +1308,13 @@ class RegularCard:
             segments.append((text[last_end:], self.TITLE_FONT_COLOR))
 
         font_size = self.TITLE_MAX_FONT_SIZE
-        title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+        title_font = load_font(self.TITLE_FONT, font_size)
+        title_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, font_size)
 
         def get_title_length():
             return int(
                 sum(
-                    self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+                    self._get_ucs_chunks_length(seg_text, title_font, title_fallback_fonts)
                     * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
                     for seg_text, _ in segments
                 )
@@ -1161,9 +1326,8 @@ class RegularCard:
             and font_size >= self.TITLE_MIN_FONT_SIZE
         ):
             font_size -= 1
-            title_font = ImageFont.truetype(self.TITLE_FONT, font_size)
-            symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-            emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            title_font = load_font(self.TITLE_FONT, font_size)
+            title_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, font_size)
             title_length = get_title_length()
 
         image = Image.new("RGBA", (self.TITLE_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
@@ -1183,15 +1347,16 @@ class RegularCard:
                 (x_pos, y_pos),
                 seg_text,
                 title_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                title_fallback_fonts,
+                primary_font_path=self.TITLE_FONT,
+                font_size=font_size,
                 fill=color,
                 align=text_align,
                 stroke_width=(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                stroke_fill="black",
+                stroke_fill=self.TITLE_TEXT_OUTLINE_COLOR,
             )
             x_pos += int(
-                self._get_ucs_chunks_length(seg_text, title_font, symbol_backup_font, emoji_backup_font)
+                self._get_ucs_chunks_length(seg_text, title_font, title_fallback_fonts)
                 * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
             )
 
@@ -1199,7 +1364,7 @@ class RegularCard:
             int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
             int(self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
-        image = add_drop_shadow(image, drop_shadow_offset)
+        image = add_drop_shadow(image, drop_shadow_offset, self.TITLE_TEXT_DROP_SHADOW_COLOR)
 
         layers = self.text_layers if not overlay else self.overlay_layers
         layers.append(Layer(image, (self.TITLE_X + offset_x, self.TITLE_BOX_Y + offset_y)))
@@ -1253,14 +1418,13 @@ class RegularCard:
             segments.append((text[last_end:], self.TYPE_FONT_COLOR))
 
         font_size = self.TYPE_MAX_FONT_SIZE
-        type_font = ImageFont.truetype(self.TYPE_FONT, font_size)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+        type_font = load_font(self.TYPE_FONT, font_size)
+        type_fallback_fonts = self._load_fallback_fonts(self.TYPE_FONT, font_size)
 
         def get_type_length():
             return int(
                 sum(
-                    self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+                    self._get_ucs_chunks_length(seg_text, type_font, type_fallback_fonts)
                     * (1 + self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE)
                     for seg_text, _ in segments
                 )
@@ -1269,9 +1433,8 @@ class RegularCard:
         type_length = get_type_length()
         while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
-            type_font = ImageFont.truetype(self.TYPE_FONT, font_size)
-            symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-            emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            type_font = load_font(self.TYPE_FONT, font_size)
+            type_fallback_fonts = self._load_fallback_fonts(self.TYPE_FONT, font_size)
             type_length = get_type_length()
 
         image = Image.new("RGBA", (self.TYPE_WIDTH, self.TYPE_BOX_HEIGHT), (0, 0, 0, 0))
@@ -1294,14 +1457,15 @@ class RegularCard:
                 (x_pos, y_pos),
                 seg_text,
                 type_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                type_fallback_fonts,
+                primary_font_path=self.TYPE_FONT,
+                font_size=font_size,
                 fill=color,
                 stroke_width=(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                stroke_fill="black",
+                stroke_fill=self.TYPE_TEXT_OUTLINE_COLOR,
             )
             x_pos += int(
-                self._get_ucs_chunks_length(seg_text, type_font, symbol_backup_font, emoji_backup_font)
+                self._get_ucs_chunks_length(seg_text, type_font, type_fallback_fonts)
                 * (1 + self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE)
             )
 
@@ -1309,7 +1473,7 @@ class RegularCard:
             int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
             int(self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
-        image = add_drop_shadow(image, drop_shadow_offset)
+        image = add_drop_shadow(image, drop_shadow_offset, self.TYPE_TEXT_DROP_SHADOW_COLOR)
 
         layers = self.text_layers if not overlay else self.overlay_layers
         layers.append(Layer(image, (self.TYPE_X + offset_x, self.TYPE_BOX_Y + offset_y)))
@@ -1401,7 +1565,7 @@ class RegularCard:
         return int(font.getlength(text) * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
 
     def _get_rules_text_layout(self, text: str) -> tuple[
-        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]]],
+        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont, str | None]]]],
         int,
         int,
         int,
@@ -1419,14 +1583,15 @@ class RegularCard:
         Returns
         -------
         tuple[
-            list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]],
+            list[list[list[tuple[str, str, ImageFont.FreeTypeFont, str | None]]]],
             int,
             int,
             int,
             int,
         ]
-            The lines of rules/flavor text, the font size, the margin size,
-            the height of the content, and the maximum usable height of the rules box
+            The lines of rules/flavor text (each fragment tuple's 4th element is the active
+            directive fallback-font name, or None for primary-font text), the font size, the
+            margin size, the height of the content, and the maximum usable height of the rules box
         """
 
         text, _ = self._extract_directives(text)
@@ -1449,10 +1614,16 @@ class RegularCard:
                 current_type = "rules"  # reset to rules unless flavor continues
 
         dice_on = False
+        directive_names = set(DIRECTIVE_FONTS.keys())
 
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
             Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
+
+            Any token matching a key of `DIRECTIVE_FONTS` (e.g. "ucs", "emoji", "jp", "arabic", ...)
+            produces a ("format", "fallback_on:<directive>") / ("format", "fallback_off") pair,
+            marking a switch to/from that directive's fallback font (see `DIRECTIVE_FONTS`) for
+            characters unsupported by the main card fonts.
             """
 
             fragments = []
@@ -1468,14 +1639,10 @@ class RegularCard:
                         fragments.append(("format", "italic_on"))
                     elif token in ("\\i", "/i"):
                         fragments.append(("format", "italic_off"))
-                    elif token == "ucs":
-                        fragments.append(("format", "ucs_on"))
-                    elif token in ("\\ucs", "/ucs"):
-                        fragments.append(("format", "ucs_off"))
-                    elif token == "emoji":
-                        fragments.append(("format", "emoji_on"))
-                    elif token in ("\\emoji", "/emoji"):
-                        fragments.append(("format", "emoji_off"))
+                    elif token in directive_names:
+                        fragments.append(("format", f"fallback_on:{token}"))
+                    elif token.lstrip("\\/") in directive_names and (token.startswith("\\") or token.startswith("/")):
+                        fragments.append(("format", "fallback_off"))
                     elif token[:4] == "dice":
                         color = re.search(r"-[a-zA-Z]+", part)
                         color = color[0][1:] if color is not None else ""
@@ -1508,9 +1675,11 @@ class RegularCard:
             frags: list[tuple[str, str]],
             regular_font: ImageFont.FreeTypeFont,
             italic_font: ImageFont.FreeTypeFont,
-            symbol_font: ImageFont.FreeTypeFont,
-            emoji_font: ImageFont.FreeTypeFont,
-        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont]]]:
+            fallback_fonts: dict[str, ImageFont.FreeTypeFont],
+            italic_fallback_fonts: dict[str, ImageFont.FreeTypeFont],
+            fallback_y_offsets: dict[str, int],
+            italic_fallback_y_offsets: dict[str, int],
+        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont, int]]]:
             """
             Split the lines into individual words and symbols, then wrap them so that they fit within
             `max_line_width` (based on rules box size and margins).
@@ -1520,7 +1689,9 @@ class RegularCard:
             curr_fragment = []
             curr_width = 0
             curr_main_font = regular_font  # regular vs italics
-            curr_font = regular_font  # regular vs italics vs symbol vs emoji
+            curr_font = regular_font  # regular vs italics vs a directive fallback font
+            curr_directive = None  # the active DIRECTIVE_FONTS key, or None while on curr_main_font
+            curr_y_offset = 0  # baseline-alignment offset for curr_font, 0 while on curr_main_font
 
             indent = 0
             draw_text = True
@@ -1531,28 +1702,36 @@ class RegularCard:
                     lines.append(curr_fragment)
                 curr_fragment, curr_width = [], indent
                 if indent > 0:
-                    curr_fragment.append(("indent", indent, curr_font))
+                    curr_fragment.append(("indent", indent, curr_font, curr_y_offset))
 
             for kind, value in frags:
                 if kind == "format":
-                    if value == "italic_on":
-                        curr_main_font = italic_font
-                        curr_font = italic_font
-                    elif value == "italic_off":
-                        curr_main_font = regular_font
-                        curr_font = regular_font
-                    elif value == "ucs_on":
-                        curr_font = symbol_font
-                    elif value == "ucs_off":
+                    if value in ("italic_on", "italic_off"):
+                        curr_main_font = italic_font if value == "italic_on" else regular_font
+                        if curr_directive is None:
+                            curr_font = curr_main_font
+                            curr_y_offset = 0
+                        else:
+                            is_italic = curr_main_font is italic_font
+                            active_fallback_fonts = italic_fallback_fonts if is_italic else fallback_fonts
+                            active_y_offsets = italic_fallback_y_offsets if is_italic else fallback_y_offsets
+                            curr_font = active_fallback_fonts[curr_directive]
+                            curr_y_offset = active_y_offsets[curr_directive]
+                    elif value.startswith("fallback_on:"):
+                        curr_directive = value.split(":", 1)[1]
+                        is_italic = curr_main_font is italic_font
+                        active_fallback_fonts = italic_fallback_fonts if is_italic else fallback_fonts
+                        active_y_offsets = italic_fallback_y_offsets if is_italic else fallback_y_offsets
+                        curr_font = active_fallback_fonts[curr_directive]
+                        curr_y_offset = active_y_offsets[curr_directive]
+                    elif value == "fallback_off":
+                        curr_directive = None
                         curr_font = curr_main_font
-                    elif value == "emoji_on":
-                        curr_font = emoji_font
-                    elif value == "emoji_off":
-                        curr_font = curr_main_font
+                        curr_y_offset = 0
                     elif value[:10] == "dice_start":
-                        curr_fragment.append((value, None, curr_font))
+                        curr_fragment.append((value, None, curr_font, curr_y_offset))
                     elif value == "dice_off":
-                        curr_fragment.append(("dice_end", None, curr_font))
+                        curr_fragment.append(("dice_end", None, curr_font, curr_y_offset))
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
@@ -1562,17 +1741,17 @@ class RegularCard:
                     width, _, _ = self._get_symbol_metrics(value, curr_font, font_size)
                     if curr_fragment and curr_width + width > max_line_width:
                         go_to_newline()
-                    curr_fragment.append(("symbol", value, curr_font))
+                    curr_fragment.append(("symbol", value, curr_font, curr_y_offset))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                 elif kind == "bullet":
                     draw_kind = "text" if draw_text else "spacing"
                     bullet_width = self._get_rules_text_fragment_length(f"{value} ", curr_font)
-                    curr_fragment.append((draw_kind, f"{value} ", curr_font))
+                    curr_fragment.append((draw_kind, f"{value} ", curr_font, curr_y_offset))
                     curr_width += bullet_width
                     indent = bullet_width
                 elif kind == "dice":
                     dice_section_width = self._get_rules_text_fragment_length(f"{value} | ", curr_font)
-                    curr_fragment.append(("dice", value, curr_font))
+                    curr_fragment.append(("dice", value, curr_font, curr_y_offset))
                     curr_width += dice_section_width
                 elif kind == "spacing":
                     draw_text = False if value == "start" else True
@@ -1588,7 +1767,7 @@ class RegularCard:
                             if curr_width + width > max_line_width:
                                 go_to_newline()
                                 continue
-                            curr_fragment.append((draw_kind, word, curr_font))
+                            curr_fragment.append((draw_kind, word, curr_font, curr_y_offset))
                             curr_width += width
                         else:
                             if curr_fragment and curr_width + width > max_line_width:
@@ -1598,32 +1777,40 @@ class RegularCard:
                                     char_width = width = self._get_rules_text_fragment_length(char, curr_font)
                                     if curr_fragment and curr_width + char_width > max_line_width:
                                         go_to_newline()
-                                    curr_fragment.append((draw_kind, char, curr_font))
+                                    curr_fragment.append((draw_kind, char, curr_font, curr_y_offset))
                                     curr_width += char_width
                             else:
-                                curr_fragment.append((draw_kind, word, curr_font))
+                                curr_fragment.append((draw_kind, word, curr_font, curr_y_offset))
                                 curr_width += width
                 else:
-                    curr_fragment.append((kind, value, curr_font))
+                    curr_fragment.append((kind, value, curr_font, curr_y_offset))
 
             if curr_fragment:
                 lines.append(curr_fragment)
             else:
-                lines.append([("text", "", curr_font)])
+                lines.append([("text", "", curr_font, curr_y_offset)])
             return lines
 
         for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
-            rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
-            italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
-            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            rules_font = load_font(self.RULES_TEXT_FONT, font_size)
+            italics_font = load_font(self.RULES_TEXT_FONT_ITALICS, font_size)
+            fallback_fonts = self._load_fallback_fonts(self.RULES_TEXT_FONT, font_size, italic=False)
+            italic_fallback_fonts = self._load_fallback_fonts(self.RULES_TEXT_FONT_ITALICS, font_size, italic=True)
+            fallback_y_offsets = {
+                directive: self._fallback_font_y_offset(self.RULES_TEXT_FONT, font_size, False, directive)
+                for directive in DIRECTIVE_FONTS
+            }
+            italic_fallback_y_offsets = {
+                directive: self._fallback_font_y_offset(self.RULES_TEXT_FONT_ITALICS, font_size, True, directive)
+                for directive in DIRECTIVE_FONTS
+            }
 
             line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
             margin = int(font_size * 0.25)
             max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
 
             # Split the text into lines that fit the rules box horizontally
-            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont]]]] = []
+            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int]]]] = []
             for text_type, raw_text in rules_text_blocks:
                 rules_lines.append([])
                 if text_type == "flavor":
@@ -1637,8 +1824,10 @@ class RegularCard:
                             fragments,
                             target_font,
                             italics_font,
-                            symbol_font,
-                            emoji_font,
+                            fallback_fonts,
+                            italic_fallback_fonts,
+                            fallback_y_offsets,
+                            italic_fallback_y_offsets,
                         )
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
@@ -1664,7 +1853,7 @@ class RegularCard:
             def get_final_line_width():
                 final_line = rules_lines[-1][-1]
                 final_line_width = 0
-                for kind, value, frag_font in final_line:
+                for kind, value, frag_font, _y_offset in final_line:
                     if kind == "text" or kind == "dice":
                         if value:
                             final_line_width += self._get_rules_text_fragment_length(value, frag_font)
@@ -1746,17 +1935,17 @@ class RegularCard:
 
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = margin + (usable_height - content_height) // 2
-        _rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
-        # Vertical center of a capital letter, measured from the top of the glyph cell (curr_y).
-        # Used to center inline symbols on the line rather than resting them on the baseline.
+        _rules_font = load_font(self.RULES_TEXT_FONT, font_size)
         _cap_bbox = _rules_font.getbbox("H")
         font_cap_center = (_cap_bbox[1] + _cap_bbox[3]) / 2
 
         def draw_lines(
-            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont]]],
+            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int]]],
         ):
             """
-            Render lines of text as images.
+            Render lines of text as images. Each fragment's 4th element is a y-offset (see
+            `_fallback_font_y_offset`) applied only to fallback-font text fragments, so their
+            baseline lines up with the surrounding primary-font text.
             """
 
             curr_font_color = self.RULES_TEXT_FONT_COLOR
@@ -1784,7 +1973,7 @@ class RegularCard:
 
                 if centered:
                     total_line_length = 0
-                    for kind, value, frag_font in line_fragments:
+                    for kind, value, frag_font, _y_offset in line_fragments:
                         if kind in ("text", "dice"):
                             if value:
                                 total_line_length += self._get_rules_text_fragment_length(value, frag_font)
@@ -1799,16 +1988,16 @@ class RegularCard:
                 else:
                     curr_x = margin + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
-                for kind, value, frag_font in line_fragments:
+                for kind, value, frag_font, y_offset in line_fragments:
                     if kind == "text":
                         if value:
                             draw.text(
-                                (curr_x, curr_y),
+                                (curr_x, curr_y + y_offset),
                                 value,
                                 font=frag_font,
                                 fill=curr_font_color,
                                 stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                                stroke_fill="black",
+                                stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                             )
                             curr_x += self._get_rules_text_fragment_length(value, frag_font)
                     elif kind == "symbol":
@@ -1829,7 +2018,7 @@ class RegularCard:
                                 font=frag_font,
                                 fill="red",
                                 stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                                stroke_fill="black",
+                                stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                             )
                         curr_x += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
@@ -1869,7 +2058,7 @@ class RegularCard:
                             font=frag_font,
                             fill=curr_font_color,
                             stroke_width=(1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                            stroke_fill="black",
+                            stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                         )
                         curr_x += self._get_rules_text_fragment_length(value, frag_font)
                         draw.text(
@@ -1878,7 +2067,7 @@ class RegularCard:
                             font=frag_font,
                             fill=curr_font_color,
                             stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
-                            stroke_fill="black",
+                            stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                         )
                         curr_x += self._get_rules_text_fragment_length(" | ", frag_font)
 
@@ -1923,7 +2112,7 @@ class RegularCard:
             int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),
             int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[1] * font_size),
         )
-        image = add_drop_shadow(image, drop_shadow_offset)
+        image = add_drop_shadow(image, drop_shadow_offset, self.RULES_TEXT_DROP_SHADOW_COLOR)
 
         self.frame_layers.append(Layer(background_image, (self.RULES_TEXT_X + offset_x, self.RULES_TEXT_Y + offset_y)))
 
@@ -1962,9 +2151,10 @@ class RegularCard:
         if last_end < len(text):
             segments.append((text[last_end:], self.POWER_TOUGHNESS_FONT_COLOR))
 
-        power_toughness_font = ImageFont.truetype(self.POWER_TOUGHNESS_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_font = load_font(self.POWER_TOUGHNESS_FONT, self.POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_fallback_fonts = self._load_fallback_fonts(
+            self.POWER_TOUGHNESS_FONT, self.POWER_TOUGHNESS_FONT_SIZE
+        )
 
         image = Image.new(
             "RGBA",
@@ -1978,8 +2168,7 @@ class RegularCard:
                 self._get_ucs_chunks_length(
                     seg_text,
                     power_toughness_font,
-                    symbol_backup_font,
-                    emoji_backup_font,
+                    power_toughness_fallback_fonts,
                 )
                 for seg_text, _ in segments
             )
@@ -1996,20 +2185,21 @@ class RegularCard:
                 (x_pos, y_pos),
                 seg_text,
                 power_toughness_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                power_toughness_fallback_fonts,
+                primary_font_path=self.POWER_TOUGHNESS_FONT,
+                font_size=self.POWER_TOUGHNESS_FONT_SIZE,
                 fill=color,
                 anchor="lt",
                 stroke_width=self.POWER_TOUGHNESS_OUTLINE_SIZE,
-                stroke_fill="black",
+                stroke_fill=self.POWER_TOUGHNESS_OUTLINE_COLOR,
             )
-            x_pos += self._get_ucs_chunks_length(seg_text, power_toughness_font, symbol_backup_font, emoji_backup_font)
+            x_pos += self._get_ucs_chunks_length(seg_text, power_toughness_font, power_toughness_fallback_fonts)
 
         drop_shadow_offset = (
             int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[0] * self.POWER_TOUGHNESS_FONT_SIZE),
             int(self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET[1] * self.POWER_TOUGHNESS_FONT_SIZE),
         )
-        image = add_drop_shadow(image, drop_shadow_offset)
+        image = add_drop_shadow(image, drop_shadow_offset, self.POWER_TOUGHNESS_DROP_SHADOW_COLOR)
 
         layers = self.text_layers if not overlay else self.overlay_layers
         layers.append(Layer(image, (self.POWER_TOUGHNESS_X + offset_x, self.POWER_TOUGHNESS_Y + offset_y)))

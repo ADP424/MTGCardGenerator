@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     CARD_ADDITIONAL_TITLES,
@@ -6,12 +6,13 @@ from constants import (
     CARD_TRANSFORM_HINT,
     COLOR_TAG_PATTERN,
     COLOR_TAG_PATTERN_NO_BRACES,
+    DIRECTIVE_FONTS,
     PLACEHOLDER_REGEX,
 )
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import replace_ticks
+from utils import load_font, replace_ticks
 
 
 class ModalFrontside(RegularCard):
@@ -215,9 +216,8 @@ class ModalFrontside(RegularCard):
         if last_end < len(type_hint):
             segments.append((type_hint[last_end:], self.REMINDER_TYPE_HINT_FONT_COLOR))
 
-        reminder_type_font = ImageFont.truetype(self.TITLE_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
+        reminder_type_font = load_font(self.TITLE_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
+        reminder_type_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, self.REMINDER_TYPE_MAX_FONT_SIZE)
 
         image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -231,12 +231,13 @@ class ModalFrontside(RegularCard):
                 (x_pos, y_pos),
                 seg_text,
                 reminder_type_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                reminder_type_fallback_fonts,
+                primary_font_path=self.TITLE_FONT,
+                font_size=self.REMINDER_TYPE_MAX_FONT_SIZE,
                 fill=color,
                 align="left" if not centered else "center",
             )
-            x_pos += self._get_ucs_chunks_length(seg_text, reminder_type_font, symbol_backup_font, emoji_backup_font)
+            x_pos += self._get_ucs_chunks_length(seg_text, reminder_type_font, reminder_type_fallback_fonts)
 
         self.reminder_type_x = x_pos + self.REMINDER_TYPE_MANA_GAP
         self.text_layers.append(Layer(image, (self.REMINDER_X, self.REMINDER_Y)))
@@ -253,6 +254,8 @@ class ModalFrontside(RegularCard):
         if "{skip}" in mana_hint:
             mana_hint = ""
 
+        directive_names = set(DIRECTIVE_FONTS.keys())
+
         fragments: list[tuple[str, str]] = []
         parts: list[str] = PLACEHOLDER_REGEX.split(mana_hint)
         for i, part in enumerate(parts):
@@ -264,14 +267,10 @@ class ModalFrontside(RegularCard):
                     fragments.append(("format", "italic_on"))
                 elif token in ("\\i", "/i"):
                     fragments.append(("format", "italic_off"))
-                elif token == "ucs":
-                    fragments.append(("format", "ucs_on"))
-                elif token in ("\\ucs", "/ucs"):
-                    fragments.append(("format", "ucs_off"))
-                elif token == "emoji":
-                    fragments.append(("format", "emoji_on"))
-                elif token in ("\\emoji", "/emoji"):
-                    fragments.append(("format", "emoji_off"))
+                elif token in directive_names:
+                    fragments.append(("format", f"fallback_on:{token}"))
+                elif token.lstrip("\\/") in directive_names and (token.startswith("\\") or token.startswith("/")):
+                    fragments.append(("format", "fallback_off"))
                 elif token[:5] == "color":
                     color_match = COLOR_TAG_PATTERN_NO_BRACES.findall(token)
                     if len(color_match) == 0:
@@ -292,28 +291,36 @@ class ModalFrontside(RegularCard):
             image = Image.new("RGBA", (self.REMINDER_WIDTH, self.REMINDER_HEIGHT), (0, 0, 0, 0))
             draw = ImageDraw.Draw(image)
 
-            rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, font_size)
-            italics_font = ImageFont.truetype(self.RULES_TEXT_FONT_ITALICS, font_size)
-            symbol_font = ImageFont.truetype(self.SYMBOL_FONT, font_size)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT, font_size)
+            rules_font = load_font(self.RULES_TEXT_FONT, font_size)
+            italics_font = load_font(self.RULES_TEXT_FONT_ITALICS, font_size)
+            fallback_fonts = self._load_fallback_fonts(self.RULES_TEXT_FONT, font_size)
+            italic_fallback_fonts = self._load_fallback_fonts(self.RULES_TEXT_FONT_ITALICS, font_size, italic=True)
 
             curr_font_color = self.REMINDER_MANA_HINT_FONT_COLOR
 
             curr_x = 0
             for kind, value in fragments:
                 curr_main_font = rules_font  # regular vs italics
-                curr_font = rules_font  # regular vs italics vs symbol vs emoji
+                curr_font = rules_font  # regular vs italics vs a directive fallback font
+                curr_directive = None  # the active DIRECTIVE_FONTS key, or None while on curr_main_font
 
                 if kind == "text":
                     bounding_box = curr_font.getbbox(value)
                     text_height = int(bounding_box[3] - bounding_box[1])
                     ascent = curr_font.getmetrics()[0]
                     if value:
+                        y_offset = 0
+                        if curr_directive is not None:
+                            is_italic = curr_main_font is italics_font
+                            y_offset = self._fallback_font_y_offset(
+                                self.RULES_TEXT_FONT_ITALICS if is_italic else self.RULES_TEXT_FONT,
+                                font_size,
+                                is_italic,
+                                curr_directive,
+                            )
+                        base_y = self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - min(text_height, ascent)
                         draw.text(
-                            (
-                                curr_x,
-                                self.REMINDER_TEXT_MANA_BOTTOM_Y - self.REMINDER_Y - min(text_height, ascent),
-                            ),
+                            (curr_x, base_y + y_offset),
                             value,
                             font=curr_font,
                             anchor="lt",
@@ -321,19 +328,16 @@ class ModalFrontside(RegularCard):
                         )
                         curr_x += self._get_rules_text_fragment_length(value, curr_font)
                 elif kind == "format":
-                    if value == "italic_on":
-                        curr_main_font = italics_font
-                        curr_font = italics_font
-                    elif value == "italic_off":
-                        curr_main_font = rules_font
-                        curr_font = rules_font
-                    elif value == "ucs_on":
-                        curr_font = symbol_font
-                    elif value == "ucs_off":
+                    if value in ("italic_on", "italic_off"):
+                        curr_main_font = italics_font if value == "italic_on" else rules_font
                         curr_font = curr_main_font
-                    elif value == "emoji_on":
-                        curr_font = emoji_font
-                    elif value == "emoji_off":
+                    elif value.startswith("fallback_on:"):
+                        curr_directive = value.split(":", 1)[1]
+                        is_italic = curr_main_font is italics_font
+                        active_fallback_fonts = italic_fallback_fonts if is_italic else fallback_fonts
+                        curr_font = active_fallback_fonts[curr_directive]
+                    elif value == "fallback_off":
+                        curr_directive = None
                         curr_font = curr_main_font
                     continue
                 elif kind == "symbol":

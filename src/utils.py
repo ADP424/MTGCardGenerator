@@ -1,9 +1,35 @@
 import re
 from datetime import MINYEAR, datetime
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFont
 
 from log import log
+
+
+def load_font(filepath: str, size: int) -> ImageFont.FreeTypeFont:
+    """
+    Load a TrueType font using the Raqm layout engine, which is required for correct shaping
+    (conjuncts, ligatures, glyph reordering) of complex scripts like Bengali, Devanagari, Tamil,
+    and Arabic. Falls back to Pillow's basic layout if Raqm isn't available in this environment.
+
+    Parameters
+    ----------
+    filepath: str
+        The path to the font file to load.
+
+    size: int
+        The font size, in pixels, to load the font at.
+
+    Returns
+    -------
+    ImageFont.FreeTypeFont
+        The loaded font.
+    """
+
+    try:
+        return ImageFont.truetype(filepath, size, layout_engine=ImageFont.Layout.RAQM)
+    except ImportError:
+        return ImageFont.truetype(filepath, size)
 
 
 def open_image(filepath: str) -> Image.Image | None:
@@ -412,7 +438,9 @@ def int_to_roman_numeral(num: int) -> str:
     return result
 
 
-def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
+def add_drop_shadow(
+    image: Image.Image, offset: tuple[int, int], color: tuple[int, int, int] = (0, 0, 0)
+) -> Image.Image:
     """
     Apply drop shadow to an image.
 
@@ -423,6 +451,9 @@ def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
 
     offset: tuple[float, float]
         Offset of the shadow relative to the image in the form (x, y).
+
+    color: tuple[int, int, int], default: (0, 0, 0)
+        The color of the drop shadow.
 
     Returns
     -------
@@ -435,8 +466,8 @@ def add_drop_shadow(image: Image.Image, offset: tuple[int, int]) -> Image.Image:
 
     alpha = image.getchannel("A")
     shadow = Image.new("RGBA", image.size, (0, 0, 0, 0))
-    black = Image.new("L", image.size)
-    shadow.paste(black, mask=alpha)
+    solid_color = Image.new("RGB", image.size, color)
+    shadow.paste(solid_color, mask=alpha)
 
     # Make a new image big enough for shadow to fit with the symbol
     total_width = int(image.width + abs(offset[0]))

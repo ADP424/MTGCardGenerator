@@ -1,6 +1,6 @@
 import re
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     BARLOW,
@@ -20,7 +20,7 @@ from constants import (
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import open_image, replace_ticks
+from utils import load_font, open_image, replace_ticks
 
 
 class Chat(RegularCard):
@@ -451,9 +451,8 @@ class Chat(RegularCard):
 
         title_text_raw = self._get_window_title_text(index)
         title_font_size = max(int(rules_font_size * self.CHAT_TITLE_FONT_SCALE), 1)
-        title_font = ImageFont.truetype(self.TITLE_FONT, title_font_size)
-        symbol_backup_font = ImageFont.truetype(self.SYMBOL_FONT, title_font_size)
-        emoji_backup_font = ImageFont.truetype(self.EMOJI_FONT, title_font_size)
+        title_font = load_font(self.TITLE_FONT, title_font_size)
+        title_fallback_fonts = self._load_fallback_fonts(self.TITLE_FONT, title_font_size)
 
         segments: list[tuple[str, tuple[int, int, int] | None]] = []
         last_end = 0
@@ -474,13 +473,13 @@ class Chat(RegularCard):
             return empty
 
         watermark_colors = self._get_chat_title_colors()
-        title_width = max(self._get_ucs_chunks_length(title_text, title_font, symbol_backup_font, emoji_backup_font), 1)
+        title_width = max(self._get_ucs_chunks_length(title_text, title_font, title_fallback_fonts), 1)
         separator_width = max(
-            self._get_ucs_chunks_length(self.CHAT_TITLE_SEPARATOR, title_font, symbol_backup_font, emoji_backup_font),
+            self._get_ucs_chunks_length(self.CHAT_TITLE_SEPARATOR, title_font, title_fallback_fonts),
             1,
         )
 
-        rules_font = ImageFont.truetype(self.RULES_TEXT_FONT, rules_font_size)
+        rules_font = load_font(self.RULES_TEXT_FONT, rules_font_size)
         cap_bbox = rules_font.getbbox("H")
         rules_cap_center = (cap_bbox[1] + cap_bbox[3]) / 2
         rules_ascent = rules_font.getmetrics()[0]
@@ -506,19 +505,21 @@ class Chat(RegularCard):
                     (x_pos, 0),
                     segment_text,
                     title_font,
-                    symbol_backup_font,
-                    emoji_backup_font,
+                    title_fallback_fonts,
+                    primary_font_path=self.TITLE_FONT,
+                    font_size=title_font_size,
                     fill=color if color is not None else default_color,
                 )
-                x_pos += self._get_ucs_chunks_length(segment_text, title_font, symbol_backup_font, emoji_backup_font)
+                x_pos += self._get_ucs_chunks_length(segment_text, title_font, title_fallback_fonts)
         else:
             self._draw_ucs_chunks(
                 title_draw,
                 (0, 0),
                 title_text,
                 title_font,
-                symbol_backup_font,
-                emoji_backup_font,
+                title_fallback_fonts,
+                primary_font_path=self.TITLE_FONT,
+                font_size=title_font_size,
                 fill=(255, 255, 255),
             )
             title_image = self._recolor_chat_title(title_image, watermark_colors)
@@ -530,8 +531,9 @@ class Chat(RegularCard):
             (title_width + self.CHAT_TITLE_SEPARATOR_GAP, 0),
             self.CHAT_TITLE_SEPARATOR,
             title_font,
-            symbol_backup_font,
-            emoji_backup_font,
+            title_fallback_fonts,
+            primary_font_path=self.TITLE_FONT,
+            font_size=title_font_size,
             fill=self.CHAT_TITLE_SEPARATOR_COLOR,
         )
 

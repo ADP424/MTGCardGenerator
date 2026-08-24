@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     BELEREN_BOLD_SMALL_CAPS,
@@ -16,7 +16,7 @@ from constants import (
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import paste_image
+from utils import load_font, paste_image
 
 
 class RegularPlaneswalker(RegularCard):
@@ -383,7 +383,7 @@ class RegularPlaneswalker(RegularCard):
         Depends on the ability frames being rendered first (to know the frame positions).
         """
 
-        ability_cost_font = ImageFont.truetype(BELEREN_BOLD_SMALL_CAPS, self.ABILITY_COST_FONT_SIZE)
+        ability_cost_font = load_font(BELEREN_BOLD_SMALL_CAPS, self.ABILITY_COST_FONT_SIZE)
 
         for idx, cost in enumerate(self.ability_costs):
             image = Image.new(

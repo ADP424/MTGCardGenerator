@@ -141,8 +141,22 @@ MAXIMILIEN_REGULAR = "fonts/maximilien_regular/maximilien_regular.ttf"
 NEUE_KABEL = "fonts/neue_kabel/neue_kabel.ttf"
 NEUE_KABEL_ITALICS = "fonts/neue_kabel/neue_kabel_italics.ttf"
 
+NOTO_SANS = "fonts/noto/noto_sans.ttf"
+NOTO_SANS_ITALIC = "fonts/noto/noto_sans_italic.ttf"
+NOTO_SANS_MATH = "fonts/noto/noto_sans_math.ttf"
+NOTO_SANS_SYMBOLS = "fonts/noto/noto_sans_symbols.ttf"
+NOTO_SANS_SYMBOLS_2 = "fonts/noto/noto_sans_symbols_2.ttf"
+NOTO_SANS_JP = "fonts/noto/noto_sans_jp.ttf"
+NOTO_SANS_KR = "fonts/noto/noto_sans_kr.ttf"
+NOTO_SANS_SC = "fonts/noto/noto_sans_sc.ttf"
+NOTO_SANS_TC = "fonts/noto/noto_sans_tc.ttf"
+NOTO_SANS_ARABIC = "fonts/noto/noto_sans_arabic.ttf"
+NOTO_SANS_HEBREW = "fonts/noto/noto_sans_hebrew.ttf"
+NOTO_SANS_DEVANAGARI = "fonts/noto/noto_sans_devanagari.ttf"
+NOTO_SANS_THAI = "fonts/noto/noto_sans_thai.ttf"
+NOTO_SANS_TAMIL = "fonts/noto/noto_sans_tamil.ttf"
+NOTO_SANS_BENGALI = "fonts/noto/noto_sans_bengali.ttf"
 NOTO_EMOJI = "fonts/noto/noto_emoji.ttf"
-NOTO_KURRENT = "fonts/noto/noto_kurrent.ttf"
 
 TIMES_NEW_ROMAN = "fonts/times_new_roman/times_new_roman.ttf"
 
@@ -535,6 +549,31 @@ PLAYTEST_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/z.
 ###########
 
 PLACEHOLDER_REGEX = re.compile(r"\{([^}]+)\}")
+
+# Maps a lowercase fallback-font directive name (e.g. the "ucs" in "{UCS}...{/UCS}") to the
+# (regular_path, italic_path_or_None) pair of font files to render that directive's text with.
+#
+# A single font file can never cover all of Unicode (TrueType caps out at 65,535 glyphs), which is
+# why this is a curated set of Noto family "shards" rather than one universal fallback font: each
+# directive should be reached for only when the main card fonts (MPlantin, etc.) are missing a
+# glyph for the given script/domain.
+DIRECTIVE_FONTS: dict[str, tuple[str, str | None]] = {
+    "ucs": (NOTO_SANS, NOTO_SANS_ITALIC),
+    "math": (NOTO_SANS_MATH, None),
+    "sym": (NOTO_SANS_SYMBOLS, None),
+    "sym2": (NOTO_SANS_SYMBOLS_2, None),
+    "jp": (NOTO_SANS_JP, None),
+    "kr": (NOTO_SANS_KR, None),
+    "sc": (NOTO_SANS_SC, None),
+    "tc": (NOTO_SANS_TC, None),
+    "arabic": (NOTO_SANS_ARABIC, None),
+    "hebrew": (NOTO_SANS_HEBREW, None),
+    "hindi": (NOTO_SANS_DEVANAGARI, None),
+    "thai": (NOTO_SANS_THAI, None),
+    "tamil": (NOTO_SANS_TAMIL, None),  # Noto Sans Tamil has no italic variant upstream
+    "bengali": (NOTO_SANS_BENGALI, None),
+    "emoji": (NOTO_EMOJI, None),
+}
 
 SYMBOL_PLACEHOLDER_KEY = {
     # Mono-Colored Mana

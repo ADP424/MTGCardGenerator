@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from constants import (
     CARD_RULES_TEXT,
@@ -9,7 +9,7 @@ from constants import (
 )
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import int_to_roman_numeral, paste_image
+from utils import int_to_roman_numeral, load_font, paste_image
 
 
 class RegularSaga(RegularCard):
@@ -391,7 +391,7 @@ class RegularSaga(RegularCard):
         Depends on the chapter frames being rendered first (to know the frame positions).
         """
 
-        chapter_number_font = ImageFont.truetype(self.CHAPTER_NUMBER_FONT, self.CHAPTER_NUMBER_FONT_SIZE)
+        chapter_number_font = load_font(self.CHAPTER_NUMBER_FONT, self.CHAPTER_NUMBER_FONT_SIZE)
 
         for num in range(len(self.chapter_texts)):
             image = Image.new(
