@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from constants import (
     ARIAL_BLACK,
+    CARD_ALL_SETS,
     CARD_RARITY,
     CARD_RULES_TEXT,
     CARD_SET,
@@ -299,10 +300,25 @@ class BreakingNews(RegularCard):
             rarity = rarity.replace("{last}", "")
             overlay = True
 
-        symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
-        rarity_symbol = open_image(symbol_path)
+        all_sets = [set_name.lower().replace(" ", "_") for set_name in self.get_metadata(CARD_ALL_SETS, [card_set])]
+        candidate_sets = [card_set] + [set_name for set_name in all_sets if set_name != card_set]
+
+        rarity_symbol = None
+        tried_symbol_paths = []
+        for candidate_set in candidate_sets:
+            symbol_path = f"{SET_SYMBOLS_PATH}/{candidate_set}/{rarity}.png"
+            tried_symbol_paths.append(symbol_path)
+            rarity_symbol = open_image(symbol_path)
+            if rarity_symbol is not None:
+                if candidate_set != card_set:
+                    log(
+                        f"No rarity symbol for '{self.get_metadata(CARD_TITLE)}' in '{card_set}'. "
+                        f"Falling back to the symbol from '{candidate_set}'."
+                    )
+                break
+
         if rarity_symbol is None:
-            log(f"Could not find rarity symbol at '{symbol_path}'.")
+            log(f"Could not find rarity symbol under any of: {', '.join(f"'{path}'" for path in tried_symbol_paths)}.")
             return
 
         scale = (

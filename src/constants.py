@@ -51,6 +51,7 @@ CARD_BACKSIDES = "Transform Backsides"
 CARD_FRAME_LAYOUT_EXTRAS = "Frame Layout Extras"
 CARD_FOOTER_LARGEST_INDEX = "Footer Largest Index"
 CARD_SPELLBOOK = "Spellbook"
+CARD_ALL_SETS = "All Sets"
 
 # Columns a spreadsheet file/tab must have to be treated as card data (see
 # read_rows_from_csv/read_rows_from_xlsx in main.py)

@@ -8,6 +8,7 @@ from constants import (
     BELEREN_BOLD_SMALL_CAPS,
     CARD_ADD_TOTAL_TO_FOOTER,
     CARD_ADDITIONAL_TITLES,
+    CARD_ALL_SETS,
     CARD_ARTIST,
     CARD_CREATION_DATE,
     CARD_DESCRIPTOR,
@@ -472,10 +473,22 @@ class RegularCard:
         filename = cardname_to_filename(card_key)
         card_set = self.get_metadata(CARD_SET)
 
-        art_path = f"{INPUT_ART_PATH}/{card_set}/{filename}.png"
-        art_image = open_image(art_path)
+        all_sets = self.get_metadata(CARD_ALL_SETS, [card_set])
+        candidate_sets = [card_set] + [set_name for set_name in all_sets if set_name != card_set]
+
+        art_image = None
+        tried_art_paths = []
+        for candidate_set in candidate_sets:
+            art_path = f"{INPUT_ART_PATH}/{candidate_set}/{filename}.png"
+            tried_art_paths.append(art_path)
+            art_image = open_image(art_path)
+            if art_image is not None:
+                if candidate_set != card_set and log_errors:
+                    log(f"No art for '{card_key}' in '{card_set}'. Falling back to art from '{candidate_set}'.")
+                break
+
         if art_image is None and log_errors:
-            log(f"Couldn't find art under '{art_path}'.")
+            log(f"Couldn't find art under any of: {', '.join(f"'{path}'" for path in tried_art_paths)}.")
 
         self.art_layer = Layer(art_image)
 
@@ -631,10 +644,25 @@ class RegularCard:
             rarity = rarity.replace("{last}", "")
             overlay = True
 
-        symbol_path = f"{SET_SYMBOLS_PATH}/{card_set}/{rarity}.png"
-        rarity_symbol = open_image(symbol_path)
+        all_sets = [set_name.lower().replace(" ", "_") for set_name in self.get_metadata(CARD_ALL_SETS, [card_set])]
+        candidate_sets = [card_set] + [set_name for set_name in all_sets if set_name != card_set]
+
+        rarity_symbol = None
+        tried_symbol_paths = []
+        for candidate_set in candidate_sets:
+            symbol_path = f"{SET_SYMBOLS_PATH}/{candidate_set}/{rarity}.png"
+            tried_symbol_paths.append(symbol_path)
+            rarity_symbol = open_image(symbol_path)
+            if rarity_symbol is not None:
+                if candidate_set != card_set:
+                    log(
+                        f"No rarity symbol for '{self.get_metadata(CARD_TITLE)}' in '{card_set}'. "
+                        f"Falling back to the symbol from '{candidate_set}'."
+                    )
+                break
+
         if rarity_symbol is None:
-            log(f"Could not find rarity symbol at '{symbol_path}'.")
+            log(f"Could not find rarity symbol under any of: {', '.join(f"'{path}'" for path in tried_symbol_paths)}.")
             return
 
         rarity_symbol = rarity_symbol.resize(
@@ -646,8 +674,7 @@ class RegularCard:
         layers = self.collector_layers if not overlay else self.overlay_layers
         layers.append(Layer(rarity_symbol, (self.SET_SYMBOL_X, self.SET_SYMBOL_Y)))
 
-    @staticmethod
-    def _probe_cap_height(font: ImageFont.FreeTypeFont) -> int | None:
+    def _probe_cap_height(self, font: ImageFont.FreeTypeFont) -> int | None:
         """
         Measure a font's capital-letter cap height using the 'H' glyph, or return None if 'H' isn't
         a real glyph in this font.
@@ -666,9 +693,6 @@ class RegularCard:
         h_bbox = font.getbbox("H")
         if h_bbox is None or h_bbox[3] <= h_bbox[1]:
             return None
-        # U+F8FF is in the Private Use Area and is not assigned by any of the fonts this program
-        # bundles, so it reliably renders as `.notdef`. If 'H' renders identically, 'H' is also
-        # `.notdef` in this font (i.e. the font has no real Latin glyphs).
         notdef_bbox = font.getbbox(chr(0xF8FF))
         if h_bbox == notdef_bbox:
             return None

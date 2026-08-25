@@ -25,6 +25,7 @@ from constants import (
     ART_X,
     ART_Y,
     CARD_ADDITIONAL_TITLES,
+    CARD_ALL_SETS,
     CARD_ARTIST,
     CARD_BACKSIDES,
     CARD_CATEGORY,
@@ -415,6 +416,8 @@ def process_spreadsheets(
     tabs_whitelist: list[str] = None,
     google_sheets_ids: list[str] = None,
     google_credentials_path: str = None,
+    no_spellbooks: bool = False,
+    spellbooks_whitelist: list[str] = None,
 ) -> dict[str, dict[str, RegularCard]]:
     """
     Convert the card info on the input spreadsheets into dictionaries.
@@ -452,6 +455,14 @@ def process_spreadsheets(
 
     google_credentials_path: str, optional
         Path to a Google service-account JSON key file.
+
+    no_spellbooks: bool, default: False
+        If True, don't generate any spellbook copies of cards; only their base versions are kept.
+
+    spellbooks_whitelist: list[str], optional
+        If given, only generate spellbook copies for these spellbooks, and only keep those copies
+        (base versions and copies of other spellbooks are dropped). Has no effect if no_spellbooks
+        is True.
 
     Returns
     -------
@@ -616,6 +627,29 @@ def process_spreadsheets(
         else:
             log(f"Could not find '{card_title}' as an original card of an alternate.")
 
+    expanded_cards: dict[str, dict[str, str]] = {}
+    for key in sorted_keys:
+        card = raw_cards[key]
+        card_sets_raw = card.get(CARD_SET, "")
+
+        set_names = [line.strip() for line in card_sets_raw.splitlines()]
+        set_names = [set_name for set_name in set_names if len(set_name) > 0]
+        if len(set_names) <= 1:
+            card[CARD_ALL_SETS] = set_names
+            expanded_cards[key] = card
+            continue
+
+        card_title = card.get(CARD_TITLE, "")
+        card_additional_titles = card.get(CARD_ADDITIONAL_TITLES, "")
+        card_descriptor = card.get(CARD_DESCRIPTOR, "")
+        for set_name in set_names:
+            clone = copy.deepcopy(card)
+            clone[CARD_SET] = set_name
+            clone[CARD_ALL_SETS] = set_names
+            clone_key = get_card_key(card_title, card_additional_titles, card_descriptor, set_name)
+            expanded_cards[clone_key] = clone
+    raw_cards = expanded_cards
+
     # Resort now that alternates have all the correct columns
     sorted_keys = get_sorted_keys()
 
@@ -701,7 +735,7 @@ def process_spreadsheets(
         filtered_cards[key] = metadata
 
     # Give each card a class depending on its frame layout (and sort out its frame layout)
-    for key, metadata in filtered_cards.items():
+    for metadata in filtered_cards.values():
         frame_layout = metadata.get(CARD_FRAME_LAYOUT, "").lower()
 
         metadata[CARD_FRAME_LAYOUT_EXTRAS] = []
@@ -721,6 +755,11 @@ def process_spreadsheets(
             os.makedirs(f"{OUTPUT_CARDS_PATH}/{card_set}", exist_ok=True)
             card_sets[card_set] = {}
 
+        key = get_card_key(
+            metadata.get(CARD_TITLE, ""),
+            metadata.get(CARD_ADDITIONAL_TITLES, ""),
+            metadata.get(CARD_DESCRIPTOR, ""),
+        )
         card_sets[card_set][key] = subclass(metadata=metadata)
 
     def get_sorted_cards(card_set: str):
@@ -819,55 +858,61 @@ def process_spreadsheets(
                 if len(card_creation_date) == 0:
                     del card_sets[card_set][card_name]
 
-    # Add spellbook versions of cards with spellbooks
-    for card_set in card_sets:
-        sorted_cards = get_sorted_cards(card_set)
-        new_cards: dict[str, RegularCard] = {}
-        spellbook_indices: dict[str, int] = {}
+    if not no_spellbooks:
+        for card_set in card_sets:
+            sorted_cards = get_sorted_cards(card_set)
+            new_cards: dict[str, RegularCard] = {}
+            spellbook_indices: dict[str, int] = {}
 
-        for card in sorted_cards:
-            spellbooks_raw = card.get_metadata(CARD_SPELLBOOKS, "")
-            if len(spellbooks_raw) == 0:
-                continue
-
-            for line in spellbooks_raw.splitlines():
-                spellbook_name = line.strip()
-                if len(spellbook_name) == 0:
+            for card in sorted_cards:
+                spellbooks_raw = card.get_metadata(CARD_SPELLBOOKS, "")
+                if len(spellbooks_raw) == 0:
                     continue
 
-                if spellbook_indices.get(spellbook_name, False):
-                    spellbook_indices[spellbook_name] += 1
-                else:
-                    spellbook_indices[spellbook_name] = 1
+                for line in spellbooks_raw.splitlines():
+                    spellbook_name = line.strip()
+                    if len(spellbook_name) == 0:
+                        continue
+                    if spellbooks_whitelist is not None and spellbook_name.lower() not in [
+                        spellbook.lower() for spellbook in spellbooks_whitelist
+                    ]:
+                        continue
 
-                clone_metadata = copy.deepcopy(card.metadata)
-                clone_backsides = []
-                for backside in clone_metadata.get(CARD_BACKSIDES, []):
-                    clone_backside_metadata = copy.deepcopy(backside.metadata)
-                    clone_backside_metadata[CARD_CATEGORY] = spellbook_name
-                    clone_backside_metadata[CARD_SPELLBOOK] = spellbook_name
-                    clone_backside_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
-                    clone_backsides.append(backside.__class__(metadata=clone_backside_metadata))
-                clone_metadata[CARD_BACKSIDES] = clone_backsides
+                    if spellbook_indices.get(spellbook_name, False):
+                        spellbook_indices[spellbook_name] += 1
+                    else:
+                        spellbook_indices[spellbook_name] = 1
 
-                # Set the category to its spellbook and tag it as a spellbook copy
-                clone_metadata[CARD_CATEGORY] = spellbook_name
-                clone_metadata[CARD_SPELLBOOK] = spellbook_name
-                clone_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
+                    clone_metadata = copy.deepcopy(card.metadata)
+                    clone_backsides = []
+                    for backside in clone_metadata.get(CARD_BACKSIDES, []):
+                        clone_backside_metadata = copy.deepcopy(backside.metadata)
+                        clone_backside_metadata[CARD_CATEGORY] = spellbook_name
+                        clone_backside_metadata[CARD_SPELLBOOK] = spellbook_name
+                        clone_backside_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
+                        clone_backsides.append(backside.__class__(metadata=clone_backside_metadata))
+                    clone_metadata[CARD_BACKSIDES] = clone_backsides
 
-                card_title = card.get_metadata(CARD_TITLE)
-                card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
-                card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-                spellbook_key = get_card_key(card_title, card_additional_titles, card_descriptor, spellbook_name)
-                new_cards[spellbook_key] = card.__class__(metadata=clone_metadata)
+                    clone_metadata[CARD_CATEGORY] = spellbook_name
+                    clone_metadata[CARD_SPELLBOOK] = spellbook_name
+                    clone_metadata[CARD_INDEX] = str(spellbook_indices[spellbook_name])
 
-        for card in new_cards.values():
-            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
-            card.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
-            for backside in card.get_metadata(CARD_BACKSIDES):
-                backside.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
+                    card_title = card.get_metadata(CARD_TITLE)
+                    card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
+                    card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
+                    spellbook_key = get_card_key(card_title, card_additional_titles, card_descriptor, spellbook_name)
+                    new_cards[spellbook_key] = card.__class__(metadata=clone_metadata)
 
-        card_sets[card_set].update(new_cards)
+            for card in new_cards.values():
+                card_spellbook = card.get_metadata(CARD_SPELLBOOK)
+                card.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
+                for backside in card.get_metadata(CARD_BACKSIDES):
+                    backside.set_metadata(CARD_FOOTER_LARGEST_INDEX, str(spellbook_indices[card_spellbook]))
+
+            if spellbooks_whitelist is not None:
+                card_sets[card_set] = new_cards
+            else:
+                card_sets[card_set].update(new_cards)
 
     # If sorting is on, sort by the given columns
     if sort_by is not None:
@@ -1302,6 +1347,8 @@ def main(
     tabs_whitelist: list[str] = None,
     google_sheets_ids: list[str] = None,
     google_credentials_path: str = None,
+    no_spellbooks: bool = False,
+    spellbooks_whitelist: list[str] = None,
 ):
     """
     Run the program.
@@ -1351,6 +1398,14 @@ def main(
 
     google_credentials_path: str, optional
         Path to a Google service-account JSON key file.
+
+    no_spellbooks: bool, default: False
+        If True, don't generate any spellbook copies of cards; only their base versions are kept.
+
+    spellbooks_whitelist: list[str], optional
+        If given, only generate spellbook copies for these spellbooks, and only keep those copies
+        (base versions and copies of other spellbooks are dropped). Has no effect if no_spellbooks
+        is True.
     """
 
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None
@@ -1382,6 +1437,8 @@ def main(
         tabs_whitelist,
         google_sheets_ids,
         google_credentials_path,
+        no_spellbooks,
+        spellbooks_whitelist,
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")
@@ -1401,7 +1458,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate MTG cards based on the provided CSV file.")
 
     parser.add_argument(
-        "-a" "--action",
+        "-a",
+        "--action",
         type=str,
         choices=ACTIONS,
         default=ACTIONS[0],
@@ -1435,6 +1493,23 @@ if __name__ == "__main__":
             "NOTE: If you're rendering alternates, you MUST render the original versions as well, or they will break."
         ),
         dest="card_categories_whitelist",
+    )
+    parser.add_argument(
+        "-nsb",
+        "--no-spellbooks",
+        action="store_true",
+        help="Don't generate any spellbook copies of cards; only their base versions are rendered.",
+        dest="no_spellbooks",
+    )
+    parser.add_argument(
+        "-sb",
+        "--spellbooks",
+        nargs="+",
+        help=(
+            "Only process cards from these spellbooks. Only the spellbook copies are processed, not the "
+            "base versions. Has no effect if --no-spellbooks is set."
+        ),
+        dest="spellbooks_whitelist",
     )
     parser.add_argument(
         "-od",
@@ -1540,4 +1615,6 @@ if __name__ == "__main__":
         args.tabs_whitelist,
         args.google_sheets_ids,
         args.google_credentials_path,
+        args.no_spellbooks,
+        args.spellbooks_whitelist,
     )
