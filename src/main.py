@@ -2,6 +2,7 @@ import argparse
 import copy
 import csv
 import glob
+import json
 import os
 import re
 from datetime import datetime
@@ -59,6 +60,7 @@ from constants import (
     OUTPUT_CARDS_PATH,
     OUTPUT_TILES_PATH,
     REQUIRED_COLUMNS,
+    SETTINGS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.adventure.RegularAdventure import RegularAdventure
@@ -94,6 +96,7 @@ from model.showcase.lotr.Scroll import ScrollLOTR
 from model.showcase.meme.DemotivationalPoster import DemotivationalPoster
 from model.showcase.Monopoly import Monopoly
 from model.showcase.news.BreakingNews import BreakingNews
+from model.showcase.Pixel import Pixel
 from model.showcase.Playtest import Playtest
 from model.showcase.Poker import Poker
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
@@ -532,6 +535,7 @@ def process_spreadsheets(
         "zendikar": Zendikar,
         "sketch": Sketch,
         "playtest": Playtest,
+        "pixel": Pixel,
         "monopoly": Monopoly,
         "coup": Coup,
         "chat": Chat,
@@ -1454,7 +1458,21 @@ def main(
         audit_art(card_sets)
 
 
+def load_settings() -> dict:
+    # Keys should match the argparse 'dest' names (e.g. "card_sets_whitelist", "action").
+    if not os.path.isfile(SETTINGS_PATH):
+        return {}
+    with open(SETTINGS_PATH, "r", encoding="utf-8") as settings_file:
+        settings = json.load(settings_file)
+    for date_key in ("oldest_date", "latest_date"):
+        if settings.get(date_key):
+            settings[date_key] = [datetime.strptime(settings[date_key], "%m/%d/%Y")]
+    return settings
+
+
 if __name__ == "__main__":
+    settings = load_settings()
+
     parser = argparse.ArgumentParser(description="Generate MTG cards based on the provided CSV file.")
 
     parser.add_argument(
@@ -1462,7 +1480,7 @@ if __name__ == "__main__":
         "--action",
         type=str,
         choices=ACTIONS,
-        default=ACTIONS[0],
+        default=settings.get("action", ACTIONS[0]),
         dest="action",
         help=f"The action for the program to perform, one of {ACTIONS}.",
     )
@@ -1470,6 +1488,7 @@ if __name__ == "__main__":
         "-c",
         "--cards",
         nargs="+",
+        default=settings.get("card_names_whitelist"),
         help=(
             "Only process the cards with these names (including tokens, alt arts, etc.). "
             "Accepts partial matches (i.e. 'Lotus' matches 'Black Lotus'). "
@@ -1481,6 +1500,7 @@ if __name__ == "__main__":
         "-s",
         "--sets",
         nargs="+",
+        default=settings.get("card_sets_whitelist"),
         help=("Only process the cards in these sets."),
         dest="card_sets_whitelist",
     )
@@ -1488,16 +1508,15 @@ if __name__ == "__main__":
         "-cat",
         "--categories",
         nargs="+",
-        help=(
-            "Only process the cards in these categories. "
-            "NOTE: If you're rendering alternates, you MUST render the original versions as well, or they will break."
-        ),
+        default=settings.get("card_categories_whitelist"),
+        help=("Only process the cards in these categories."),
         dest="card_categories_whitelist",
     )
     parser.add_argument(
         "-nsb",
         "--no-spellbooks",
         action="store_true",
+        default=settings.get("no_spellbooks", False),
         help="Don't generate any spellbook copies of cards; only their base versions are rendered.",
         dest="no_spellbooks",
     )
@@ -1505,6 +1524,7 @@ if __name__ == "__main__":
         "-sb",
         "--spellbooks",
         nargs="+",
+        default=settings.get("spellbooks_whitelist"),
         help=(
             "Only process cards from these spellbooks. Only the spellbook copies are processed, not the "
             "base versions. Has no effect if --no-spellbooks is set."
@@ -1516,6 +1536,7 @@ if __name__ == "__main__":
         "--oldest-date",
         nargs=1,
         type=lambda string: datetime.strptime(string, "%m/%d/%Y"),
+        default=settings.get("oldest_date"),
         help="The oldest card creation date to process cards from, in 'MM/DD/YYYY' format.",
         dest="oldest_date",
     )
@@ -1524,6 +1545,7 @@ if __name__ == "__main__":
         "--latest-date",
         nargs=1,
         type=lambda string: datetime.strptime(string, "%m/%d/%Y"),
+        default=settings.get("latest_date"),
         help="The latest card creation date to process cards from, in 'MM/DD/YYYY' format.",
         dest="latest_date",
     )
@@ -1531,6 +1553,7 @@ if __name__ == "__main__":
         "-sbd",
         "--sort-by-date",
         action="store_true",
+        default=settings.get("sort_by_date", False),
         help=(
             "Whether to sort the provided cards by date (ascending) then card name (ascending)."
             "Sorting matters for what order cards are indexed on in their footer (and for the order when tiling)."
@@ -1541,6 +1564,7 @@ if __name__ == "__main__":
         "-sbo",
         "--sort-by-orderer",
         action="store_true",
+        default=settings.get("sort_by_orderer", False),
         help=(
             "Whether to sort the provided cards by the 'orderer' column or not."
             "This column is usually for ordering transform backsides, but it can be used to sort whole "
@@ -1553,6 +1577,7 @@ if __name__ == "__main__":
         "-tn",
         "--tile-nums",
         nargs="+",
+        default=settings.get("tile_nums"),
         help=(
             "Only process the tiles with these categories and numbers, written as '{category}-{num}' like "
             "'regular-12'. You can also enter '{category}-*' to process all tiles from that category. "
@@ -1564,6 +1589,7 @@ if __name__ == "__main__":
         "-sh",
         "--sheets",
         nargs="+",
+        default=settings.get("sheets_whitelist"),
         help=(
             "Only process spreadsheet files whose names (without extension) match these values. "
             "Matches are case-insensitive and apply to both CSV and XLSX files."
@@ -1574,6 +1600,7 @@ if __name__ == "__main__":
         "-t",
         "--tabs",
         nargs="+",
+        default=settings.get("tabs_whitelist"),
         help=(
             "Only process tabs (sheets) with these names from XLSX files. "
             "Matches are case-insensitive. Has no effect on CSV files."
@@ -1584,6 +1611,7 @@ if __name__ == "__main__":
         "-gs",
         "--google-sheets",
         nargs="+",
+        default=settings.get("google_sheets_ids"),
         help=(
             "Google Sheets spreadsheet IDs or full URLs to fetch and process. "
             "Each spreadsheet must be shared with the service account. "
@@ -1595,7 +1623,7 @@ if __name__ == "__main__":
         "-gc",
         "--google-credentials",
         type=str,
-        default=None,
+        default=settings.get("google_credentials_path"),
         help=("Path to a Google service-account JSON key file. " f"Defaults to '{GOOGLE_CREDENTIALS_PATH}'."),
         dest="google_credentials_path",
     )

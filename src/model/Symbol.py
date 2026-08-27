@@ -17,6 +17,10 @@ class Symbol:
     recolorable: bool, default: False
         Whether this symbol is a flat-colored glyph that should be tinted to match surrounding
         text color, rather than a full-color icon (e.g. mana symbols) that should never be recolored.
+
+    resample: int, default: Image.LANCZOS
+        The Pillow resampling filter used to resize the image. Use Image.NEAREST for low-resolution
+        pixel-art symbols, so scaling them up keeps their hard pixel edges instead of blurring them.
     """
 
     def __init__(
@@ -24,10 +28,12 @@ class Symbol:
         image: Image.Image,
         size_ratio: float = 1.0,
         recolorable: bool = False,
+        resample: int = Image.LANCZOS,
     ):
         self.image = image
         self.size_ratio = size_ratio if isinstance(size_ratio, tuple) else (size_ratio, size_ratio)
         self.recolorable = recolorable
+        self.resample = resample
 
     def get_formatted_image(
         self,
@@ -78,7 +84,7 @@ class Symbol:
         # resize
         resized_image = self.image.resize(
             (int(new_width * size_ratio[0]), int(new_height * size_ratio[1])),
-            Image.LANCZOS,
+            self.resample,
         )
 
         # tint

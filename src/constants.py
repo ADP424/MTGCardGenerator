@@ -1,5 +1,7 @@
 import re
 
+from PIL import Image
+
 from model.Symbol import Symbol
 from utils import open_image
 
@@ -95,6 +97,8 @@ OUTPUT_TILES_PATH = "processed_tiles"
 
 GOOGLE_CREDENTIALS_PATH = "credentials/google_service_account.json"
 
+SETTINGS_PATH = "settings.json"
+
 INPUT_CARDS_PATH = "existing_cards"
 OUTPUT_ART_PATH = "extracted_art"
 
@@ -158,6 +162,8 @@ NOTO_SANS_THAI = "fonts/noto/noto_sans_thai.ttf"
 NOTO_SANS_TAMIL = "fonts/noto/noto_sans_tamil.ttf"
 NOTO_SANS_BENGALI = "fonts/noto/noto_sans_bengali.ttf"
 NOTO_EMOJI = "fonts/noto/noto_emoji.ttf"
+
+PIXEL = "fonts/pixel/pixel_regular.ttf"
 
 TIMES_NEW_ROMAN = "fonts/times_new_roman/times_new_roman.ttf"
 
@@ -544,6 +550,71 @@ PLAYTEST_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/x.
 PLAYTEST_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/y.png")
 PLAYTEST_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/z.png")
 
+# Showcase Pixel Mana Symbols
+PIXEL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/white.png")
+PIXEL_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/blue.png")
+PIXEL_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/black.png")
+PIXEL_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/red.png")
+PIXEL_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/green.png")
+PIXEL_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/colorless.png")
+
+PIXEL_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/0.png")
+PIXEL_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/1.png")
+PIXEL_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/2.png")
+PIXEL_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/3.png")
+PIXEL_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/4.png")
+PIXEL_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/5.png")
+PIXEL_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/6.png")
+PIXEL_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/7.png")
+PIXEL_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/8.png")
+PIXEL_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/9.png")
+PIXEL_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/10.png")
+PIXEL_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/11.png")
+PIXEL_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/12.png")
+PIXEL_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/13.png")
+PIXEL_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/14.png")
+PIXEL_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/15.png")
+PIXEL_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/16.png")
+PIXEL_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/20.png")
+
+PIXEL_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/snow.png")
+
+PIXEL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/tap/tap.png")
+
+PIXEL_WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/white_blue.png")
+PIXEL_WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/white_black.png")
+PIXEL_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/blue_black.png")
+PIXEL_BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/blue_red.png")
+PIXEL_BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/black_red.png")
+PIXEL_BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/black_green.png")
+PIXEL_RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/red_green.png")
+PIXEL_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/red_white.png")
+PIXEL_GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/green_white.png")
+PIXEL_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/green_blue.png")
+PIXEL_COLORLESS_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/colorless_white.png")
+PIXEL_COLORLESS_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/colorless_blue.png")
+PIXEL_COLORLESS_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/colorless_black.png")
+PIXEL_COLORLESS_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/colorless_red.png")
+PIXEL_COLORLESS_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/colorless_green.png")
+
+PIXEL_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/white.png")
+PIXEL_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/blue.png")
+PIXEL_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/black.png")
+PIXEL_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/red.png")
+PIXEL_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/green.png")
+PIXEL_COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/phyrexian/colorless.png")
+
+PIXEL_TWO_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/generic/white.png")
+PIXEL_TWO_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/generic/blue.png")
+PIXEL_TWO_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/generic/black.png")
+PIXEL_TWO_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/generic/red.png")
+PIXEL_TWO_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/hybrid/generic/green.png")
+
+PIXEL_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/variable/x.png")
+PIXEL_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/variable/y.png")
+
+PIXEL_ENERGY = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/energy.png")
+
 
 ###########
 # SYMBOLS #
@@ -551,13 +622,7 @@ PLAYTEST_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/z.
 
 PLACEHOLDER_REGEX = re.compile(r"\{([^}]+)\}")
 
-# Maps a lowercase fallback-font directive name (e.g. the "ucs" in "{UCS}...{/UCS}") to the
-# (regular_path, italic_path_or_None) pair of font files to render that directive's text with.
-#
-# A single font file can never cover all of Unicode (TrueType caps out at 65,535 glyphs), which is
-# why this is a curated set of Noto family "shards" rather than one universal fallback font: each
-# directive should be reached for only when the main card fonts (MPlantin, etc.) are missing a
-# glyph for the given script/domain.
+# Maps a lowercase fallback-font directive name
 DIRECTIVE_FONTS: dict[str, tuple[str, str | None]] = {
     "ucs": (NOTO_SANS, NOTO_SANS_ITALIC),
     "math": (NOTO_SANS_MATH, None),
@@ -993,6 +1058,101 @@ PLAYTEST_SYMBOL_PLACEHOLDER_KEY = {
     "x": Symbol(PLAYTEST_X_MANA),
     "y": Symbol(PLAYTEST_Y_MANA),
     "z": Symbol(PLAYTEST_Z_MANA),
+}
+
+PIXEL_SYMBOL_RESAMPLE = Image.NEAREST
+
+PIXEL_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(PIXEL_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u": Symbol(PIXEL_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b": Symbol(PIXEL_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r": Symbol(PIXEL_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g": Symbol(PIXEL_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c": Symbol(PIXEL_COLORLESS_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Numbered Mana
+    "0": Symbol(PIXEL_ZERO_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "1": Symbol(PIXEL_ONE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "2": Symbol(PIXEL_TWO_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "3": Symbol(PIXEL_THREE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "4": Symbol(PIXEL_FOUR_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "5": Symbol(PIXEL_FIVE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "6": Symbol(PIXEL_SIX_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "7": Symbol(PIXEL_SEVEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "8": Symbol(PIXEL_EIGHT_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "9": Symbol(PIXEL_NINE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "10": Symbol(PIXEL_TEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "11": Symbol(PIXEL_ELEVEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "12": Symbol(PIXEL_TWELVE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "13": Symbol(PIXEL_THIRTEEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "14": Symbol(PIXEL_FOURTEEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "15": Symbol(PIXEL_FIFTEEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "16": Symbol(PIXEL_SIXTEEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "20": Symbol(PIXEL_TWENTY_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Other Mono Mana
+    "s": Symbol(PIXEL_SNOW_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Tapping
+    "t": Symbol(PIXEL_TAP, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Standard Hybrid Mana
+    "w/u": Symbol(PIXEL_WHITE_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/w": Symbol(PIXEL_WHITE_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "w/b": Symbol(PIXEL_WHITE_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/w": Symbol(PIXEL_WHITE_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/b": Symbol(PIXEL_BLUE_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/u": Symbol(PIXEL_BLUE_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/r": Symbol(PIXEL_BLUE_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/u": Symbol(PIXEL_BLUE_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/r": Symbol(PIXEL_BLACK_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/b": Symbol(PIXEL_BLACK_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/g": Symbol(PIXEL_BLACK_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/b": Symbol(PIXEL_BLACK_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/g": Symbol(PIXEL_RED_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/r": Symbol(PIXEL_RED_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/w": Symbol(PIXEL_RED_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "w/r": Symbol(PIXEL_RED_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/w": Symbol(PIXEL_GREEN_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "w/g": Symbol(PIXEL_GREEN_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/u": Symbol(PIXEL_GREEN_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/g": Symbol(PIXEL_GREEN_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c/w": Symbol(PIXEL_COLORLESS_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "w/c": Symbol(PIXEL_COLORLESS_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c/u": Symbol(PIXEL_COLORLESS_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/c": Symbol(PIXEL_COLORLESS_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c/b": Symbol(PIXEL_COLORLESS_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/c": Symbol(PIXEL_COLORLESS_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c/r": Symbol(PIXEL_COLORLESS_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/c": Symbol(PIXEL_COLORLESS_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "c/g": Symbol(PIXEL_COLORLESS_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/c": Symbol(PIXEL_COLORLESS_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Phyrexian Mana
+    "wp": Symbol(PIXEL_WHITE_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pw": Symbol(PIXEL_WHITE_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "up": Symbol(PIXEL_BLUE_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pu": Symbol(PIXEL_BLUE_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "bp": Symbol(PIXEL_BLACK_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pb": Symbol(PIXEL_BLACK_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "rp": Symbol(PIXEL_RED_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pr": Symbol(PIXEL_RED_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "gp": Symbol(PIXEL_GREEN_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pg": Symbol(PIXEL_GREEN_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "cp": Symbol(PIXEL_COLORLESS_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "pc": Symbol(PIXEL_COLORLESS_PHYREXIAN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Hybrid Generic Mana
+    "2/w": Symbol(PIXEL_TWO_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "w/2": Symbol(PIXEL_TWO_WHITE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "2/u": Symbol(PIXEL_TWO_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "u/2": Symbol(PIXEL_TWO_BLUE_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "2/b": Symbol(PIXEL_TWO_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "b/2": Symbol(PIXEL_TWO_BLACK_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "2/r": Symbol(PIXEL_TWO_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "r/2": Symbol(PIXEL_TWO_RED_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "2/g": Symbol(PIXEL_TWO_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "g/2": Symbol(PIXEL_TWO_GREEN_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Variable Mana
+    "x": Symbol(PIXEL_X_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    "y": Symbol(PIXEL_Y_MANA, resample=PIXEL_SYMBOL_RESAMPLE),
+    # Other
+    "e": Symbol(PIXEL_ENERGY, recolorable=True, resample=PIXEL_SYMBOL_RESAMPLE),
 }
 
 # Planeswalker Abilities

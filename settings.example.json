@@ -1,0 +1,17 @@
+{
+  "action": "render",
+  "card_names_whitelist": ["Black Lotus"],
+  "card_sets_whitelist": ["MySet"],
+  "card_categories_whitelist": ["regular"],
+  "no_spellbooks": false,
+  "spellbooks_whitelist": ["MySpellbook"],
+  "oldest_date": "01/01/2024",
+  "latest_date": "12/31/2024",
+  "sort_by_date": true,
+  "sort_by_orderer": false,
+  "tile_nums": ["regular-1"],
+  "sheets_whitelist": ["MySheet"],
+  "tabs_whitelist": ["MyTab"],
+  "google_sheets_ids": ["1AbCDeFGhijKLmNoPQRstuVWXyz"],
+  "google_credentials_path": "credentials/google_service_account.json"
+}

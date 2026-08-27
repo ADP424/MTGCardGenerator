@@ -126,6 +126,9 @@ class RegularCard:
         self.TITLE_BOX_WIDTH = 1313
         self.TITLE_BOX_HEIGHT = 114
 
+        # Symbols
+        self.MANA_SYMBOL_KEY = SYMBOL_PLACEHOLDER_KEY
+
         # Mana Cost
         self.MANA_COST_SYMBOL_SIZE = 70
         self.MANA_COST_SYMBOL_SPACING = 6
@@ -1144,6 +1147,18 @@ class RegularCard:
 
     _MANA_COST_TEXT_SENTINEL = "\x00TEXT\x00"
 
+    def _lookup_symbol(self, token: str):
+        """
+        Look up a mana/rules-text placeholder token in `self.MANA_SYMBOL_KEY`, falling back to
+        `SYMBOL_PLACEHOLDER_KEY` if the subclass's key doesn't have it (e.g. Playtest cards using
+        a symbol that has no dedicated playtest artwork).
+        """
+
+        symbol = self.MANA_SYMBOL_KEY.get(token.lower(), None)
+        if symbol is None and self.MANA_SYMBOL_KEY is not SYMBOL_PLACEHOLDER_KEY:
+            symbol = SYMBOL_PLACEHOLDER_KEY.get(token.lower(), None)
+        return symbol
+
     def _preprocess_mana_cost_text(self, text: str) -> str:
         """
         Replace {text}...{/text} spans with prefixed tokens so their contents are
@@ -1207,7 +1222,7 @@ class RegularCard:
                 display = sym[len(sentinel) :].replace("\x00SP\x00", " ")
             else:
                 display = sym
-                symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
+                symbol = self._lookup_symbol(sym)
                 if symbol is not None:
                     scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
                     width = int(symbol.image.width * scale)
@@ -1551,7 +1566,7 @@ class RegularCard:
             found for the given token and a text placeholder was used instead.
         """
 
-        symbol = SYMBOL_PLACEHOLDER_KEY.get(token.lower(), None)
+        symbol = self._lookup_symbol(token)
 
         if symbol is None:
             placeholder = f"[{token}]"

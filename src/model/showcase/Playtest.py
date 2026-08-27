@@ -1,21 +1,17 @@
-import re
-
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from constants import (
     CARD_FRAME_LAYOUT_EXTRAS,
-    CARD_MANA_COST,
     CARD_RULES_TEXT,
     LATO,
     LATO_BOLD,
     LATO_ITALICS,
     PLAYTEST_SYMBOL_PLACEHOLDER_KEY,
-    SYMBOL_PLACEHOLDER_KEY,
 )
 from log import log
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import add_drop_shadow, load_font, paste_image, str_to_float
+from utils import paste_image, str_to_float
 
 
 class Playtest(RegularCard):
@@ -67,6 +63,9 @@ class Playtest(RegularCard):
             text_layers,
             overlay_layers,
         )
+
+        # Symbols
+        self.MANA_SYMBOL_KEY = PLAYTEST_SYMBOL_PLACEHOLDER_KEY
 
         # Title Box
         self.TITLE_BOX_X = 208
@@ -179,95 +178,6 @@ class Playtest(RegularCard):
             composite_image.close()
 
         return full_image
-
-    def _create_mana_cost_layer(self):
-        """
-        Process MTG mana cost in the playtest style, exchanging mana placeholders
-        for symbols, and append it to `self.text_layers`.
-        """
-
-        text = self.get_metadata(CARD_MANA_COST)
-        if len(text) == 0 or "{skip}" in text:
-            return
-
-        overlay = False
-        if "{last}" in text:
-            text = text.replace("{last}", "")
-            overlay = True
-
-        text = self._preprocess_mana_cost_text(text)
-        text = re.sub(r"{+|}+", " ", text)
-        text = re.sub(r"\s+", " ", text)
-        text = text.strip()
-
-        image = Image.new("RGBA", (self.TITLE_BOX_WIDTH, self.TITLE_BOX_HEIGHT), (0, 0, 0, 0))
-
-        # Compute font size whose cap-height matches MANA_COST_SYMBOL_SIZE, for text tokens.
-        _text_font_size = self.MANA_COST_SYMBOL_SIZE * 2
-        while _text_font_size > 1:
-            _f = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
-            _bbox = _f.getbbox("M")
-            if (_bbox[3] - _bbox[1]) <= self.MANA_COST_SYMBOL_SIZE:
-                break
-            _text_font_size -= 1
-        _mana_text_font = load_font(self.MANA_COST_TEXT_FONT, _text_font_size)
-
-        # Build element list right-to-left (playtest renders reversed).
-        sentinel = self._MANA_COST_TEXT_SENTINEL
-        elements: list[Image.Image] = []
-        for sym in reversed(text.split(" ")):
-            sym = sym.strip()
-            forced_text = sym.startswith(sentinel)
-            if forced_text:
-                display = sym[len(sentinel) :].replace("\x00SP\x00", " ")
-            else:
-                display = sym
-                symbol = PLAYTEST_SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
-                if symbol is None:
-                    log(f"Unknown placeholder for playtest card: '{{{sym.lower()}}}'. Using regular symbol...")
-                    symbol = SYMBOL_PLACEHOLDER_KEY.get(sym.lower(), None)
-                if symbol is not None:
-                    scale = self.MANA_COST_SYMBOL_SIZE / symbol.image.height
-                    width = int(symbol.image.width * scale)
-                    height = int(symbol.image.height * scale)
-                    elements.append(
-                        add_drop_shadow(
-                            symbol.get_formatted_image(width, height, self.MANA_COST_SYMBOL_OUTLINE_SIZE),
-                            self.MANA_COST_SYMBOL_SHADOW_OFFSET,
-                        )
-                    )
-                    continue
-                else:
-                    log(f"STILL unknown placeholder: '{{{sym.lower()}}}'.")
-
-            bbox = _mana_text_font.getbbox(display)
-            text_w = max(int(_mana_text_font.getlength(display)), 1)
-            text_img = Image.new("RGBA", (text_w, self.MANA_COST_SYMBOL_SIZE), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(text_img)
-            cap_height = bbox[3] - bbox[1]
-            text_y = (self.MANA_COST_SYMBOL_SIZE - cap_height) // 2 - bbox[1]
-            draw.text((0, text_y), display, font=_mana_text_font, fill=self.MANA_COST_TEXT_COLOR)
-            elements.append(text_img)
-
-        if self.MANA_COST_SYMBOL_SPACING > 0:
-            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_SPACING - self.MANA_COST_SYMBOL_OUTLINE_SIZE
-        else:
-            curr_x = self.TITLE_BOX_WIDTH - self.MANA_COST_SYMBOL_OUTLINE_SIZE
-        for elem_image in elements:
-            curr_x -= elem_image.width + self.MANA_COST_SYMBOL_SPACING
-            if curr_x >= 0:
-                image.alpha_composite(
-                    elem_image,
-                    (int(curr_x), (self.TITLE_BOX_HEIGHT - elem_image.height) // 2),
-                )
-            else:
-                log("The mana cost is too long and has been cut off.")
-                break
-
-        self.mana_cost_x = self.TITLE_BOX_X + curr_x - self.MANA_COST_SYMBOL_SPACING
-
-        layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TITLE_BOX_X, self.TITLE_BOX_Y)))
 
     def _create_rules_text_layer(self):
         """
