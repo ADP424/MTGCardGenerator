@@ -1,12 +1,12 @@
 from constants import CARD_RULES_TEXT
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class RegularSplitRulesText(RegularCard):
+class RegularSplitRulesTextSmall(RegularCardSmall):
     """
     A layered image representing a regular card but with its rules box split in half vertically,
-    and all the collection info on it, with all relevant card metadata.
+    and all the collection info on it, with all relevant card metadata, at the legacy 1500x2100 resolution.
 
     Attributes
     ----------
@@ -37,7 +37,7 @@ class RegularSplitRulesText(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,20 +54,20 @@ class RegularSplitRulesText(RegularCard):
         )
 
         # First Rules Text Box
-        self.FIRST_RULES_BOX_X = 150
-        self.FIRST_RULES_BOX_WIDTH = 856
+        self.FIRST_RULES_BOX_X = 112
+        self.FIRST_RULES_BOX_WIDTH = 639
 
         # Second Rules Text Box
-        self.SECOND_RULES_BOX_X = 1006
-        self.SECOND_RULES_BOX_WIDTH = 856
+        self.SECOND_RULES_BOX_X = 751
+        self.SECOND_RULES_BOX_WIDTH = 639
 
         # First Rules Text
-        self.FIRST_RULES_TEXT_X = 150
-        self.FIRST_RULES_TEXT_WIDTH = 852
+        self.FIRST_RULES_TEXT_X = 112
+        self.FIRST_RULES_TEXT_WIDTH = 636
 
         # Second Rules Text
-        self.SECOND_RULES_TEXT_X = 1006
-        self.SECOND_RULES_TEXT_WIDTH = 852
+        self.SECOND_RULES_TEXT_X = 751
+        self.SECOND_RULES_TEXT_WIDTH = 636
 
     def _create_rules_text_layer(self):
         """

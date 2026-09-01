@@ -13,5 +13,6 @@
   "sheets_whitelist": ["MySheet"],
   "tabs_whitelist": ["MyTab"],
   "google_sheets_ids": ["1AbCDeFGhijKLmNoPQRstuVWXyz"],
-  "google_credentials_path": "credentials/google_service_account.json"
+  "google_credentials_path": "credentials/google_service_account.json",
+  "workers": 1
 }

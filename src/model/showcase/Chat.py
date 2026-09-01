@@ -19,11 +19,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from utils import load_font, open_image, replace_ticks
 
 
-class Chat(RegularCard):
+class Chat(RegularCardSmall):
     """
     A layered image representing a showcase card in the style of a Chat messenger app,
     and all the collection info on it, with all relevant card metadata.
@@ -59,7 +59,7 @@ class Chat(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -367,7 +367,7 @@ class Chat(RegularCard):
             result += f"{{{key}:{value}}}"
         return result
 
-    def _get_symbol_metrics(self, token, font, font_size):
+    def _get_symbol_metrics(self, token, font, font_size, tint_color=None):
         """
         Return the width, height, and image scaled to the current font size for the given token.
         """
@@ -376,7 +376,7 @@ class Chat(RegularCard):
         if match is not None:
             title_image = self._get_chat_title_image(int(match.group(1)), font_size)
             return title_image.width, title_image.height, title_image
-        return super()._get_symbol_metrics(token, font, font_size)
+        return super()._get_symbol_metrics(token, font, font_size, tint_color)
 
     def _get_window_title_text(self, index: int) -> str:
         """

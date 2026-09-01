@@ -9,9 +9,10 @@ from constants import (
 )
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class RegularAdventure(RegularCard):
+class RegularAdventure(RegularCardSmall):
     """
     A layered image representing an adventure card and all the collection info on it,
     with all relevant card metadata.

@@ -15,11 +15,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from utils import load_font, paste_image
 
 
-class RegularPlaneswalker(RegularCard):
+class RegularPlaneswalker(RegularCardSmall):
     """
     A layered image representing a regular planeswalker and all the collection info on it,
     with all relevant card metadata.
@@ -53,7 +53,7 @@ class RegularPlaneswalker(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

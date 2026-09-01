@@ -1,9 +1,9 @@
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_FRAME_LAYOUT_EXTRAS
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class RegularToken(RegularCard):
+class RegularToken(RegularCardSmall):
     """
     A layered image representing a regular token and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +37,7 @@ class RegularToken(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

@@ -2,9 +2,10 @@ from model.Layer import Layer
 from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class FullArtBasicTHB(RegularCardSmall):
+class ClearTextbox(RegularCardSmall):
     """
-    A layered image representing a full art basic land card from THB and all the collection info on it,
+    A layered image representing a card with a clear (transparent-style) textbox,
+    with white type line and rules text, and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -36,7 +37,7 @@ class FullArtBasicTHB(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["ClearTextbox"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -52,11 +53,8 @@ class FullArtBasicTHB(RegularCardSmall):
             overlay_layers,
         )
 
-        # Type Box
-        self.TYPE_BOX_Y = 1779
-
         # Type Text
-        self.TYPE_BOTTOM_Y = 1865
+        self.TYPE_FONT_COLOR = (255, 255, 255)
 
-        # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1791
+        # Rules Text
+        self.RULES_TEXT_FONT_COLOR = (255, 255, 255)

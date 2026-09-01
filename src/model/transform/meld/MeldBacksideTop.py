@@ -2,10 +2,11 @@ from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
 
 
-class TransformBackside(RegularCard):
+class MeldBacksideTop(RegularCard):
     """
-    A layered image representing a transform backside and all the collection info on it,
-    with all relevant card metadata.
+    A layered image representing the top half of a meld backside (see `MeldBacksideBottom` for the
+    bottom half, and `MeldBacksideMiddle` for the plain art strip between them). Together, the three
+    halves' physical cards line up to form one large landscape image.
 
     Attributes
     ----------
@@ -52,35 +53,39 @@ class TransformBackside(RegularCard):
             overlay_layers,
         )
 
+        # Overall Card
+        self.CARD_WIDTH = 2814
+        self.CARD_HEIGHT = 2010
+
         # Title Box
-        self.TITLE_BOX_WIDTH = 1585
+        self.TITLE_BOX_X = 178
+        self.TITLE_BOX_Y = 185
+        self.TITLE_BOX_WIDTH = 2460
+        self.TITLE_BOX_HEIGHT = 217
 
         # Title Text
-        self.TITLE_WIDTH = 1528
+        self.TITLE_X = 241
+        self.TITLE_BOTTOM_Y = 400
+        self.TITLE_WIDTH = 2420
+        self.TITLE_MAX_FONT_SIZE = 151
         self.TITLE_FONT_COLOR = (255, 255, 255)
 
-        # Type Text
-        self.TYPE_FONT_COLOR = (255, 255, 255)
-
-        # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        # Other elements don't appear on this half
+        self.SET_SYMBOL_X = float("inf")
+        self.SET_SYMBOL_Y = float("inf")
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")
 
     def create_layers(
         self,
         create_art_layer: bool = True,
         create_frame_layers: bool = True,
-        create_watermark_layer: bool = True,
-        create_rarity_symbol_layer: bool = True,
-        create_footer_layer: bool = True,
-        create_mana_cost_layer: bool = True,
         create_title_layer: bool = True,
-        create_type_layer: bool = True,
-        create_rules_text_layer: bool = True,
-        create_power_toughness_layer: bool = True,
         create_overlay_layers: bool = True,
     ):
         """
-        Append every frame, text, and collector layer to the card based on `self.metadata`.
+        Append every frame and text layer to the card based on `self.metadata`. Only the art, frame,
+        mana cost, and title are ever drawn on this half.
 
         Parameters
         ----------
@@ -90,50 +95,24 @@ class TransformBackside(RegularCard):
         create_frame_layers: bool, default: True
             Whether to put the card's frames on or not.
 
-        create_level_header_frame_layer: bool, default: True
-            Whether to put the header frames for the level titles above the rules text or not.
-
-        create_watermark_layer: bool, default: True
-            Whether to put the watermark on the card or not.
-
-        create_rarity_symbol_layer: bool, default: True
-            Whether to put the rarity/set symbol on the card or not.
-
-        create_footer_layer: bool, default: True
-            Whether to put the footer collector info on the bottom of the card or not.
-
         create_mana_cost_layer: bool, default: True
             Whether to put the mana cost of the card on it or not.
 
         create_title_layer: bool, default: True
             Whether to put the title of the card on it or not.
 
-        create_type_layer: bool, default: True
-            Whether to put the type line of the card on it or not.
-
-        create_rules_text_layer: bool, default: True
-            Whether to put the rules text of the card on it or not.
-
-        create_power_toughness_layer: bool, default: True
-            Whether to put the power & toughness of the card on it or not.
-
-        create_level_headers_layers: bool, default: True
-            Whether to put the name and mana cost of each level on the class or not.
-
         create_overlay_layers: bool, default: True
             Whether to put the overlays on top of the card after everything else or not.
         """
 
-        super().create_layers(
-            create_art_layer,
-            create_frame_layers,
-            create_watermark_layer,
-            False,  # don't render rarity symbol for backside cards
-            create_footer_layer,
-            create_mana_cost_layer,
-            create_title_layer,
-            create_type_layer,
-            create_rules_text_layer,
-            create_power_toughness_layer,
-            create_overlay_layers,
-        )
+        if create_art_layer:
+            self._create_art_layer()
+
+        if create_frame_layers:
+            self._create_frame_layers()
+
+        if create_title_layer:
+            self._create_title_layer()
+
+        if create_overlay_layers:
+            self._create_overlay_layers()

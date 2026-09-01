@@ -5,8 +5,10 @@ import glob
 import json
 import os
 import re
+import traceback
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
-from typing import Callable
+from typing import Callable, NamedTuple
 
 import openpyxl
 from PIL import Image
@@ -66,6 +68,7 @@ from log import decrease_log_indent, increase_log_indent, log, reset_log
 from model.adventure.RegularAdventure import RegularAdventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
+from model.class_.RegularClass import RegularClass
 from model.conspiracy.Conspiracy import Conspiracy
 from model.dungeon.Dungeon import Dungeon
 from model.dungeon.ExpandedDungeonGlobal import ExpandedDungeonGlobal
@@ -75,26 +78,34 @@ from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
-from model.mtg_class.RegularClass import RegularClass
 from model.omen.RegularOmen import RegularOmen
 from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
 from model.prepare.RegularPrepare import RegularPrepare
 from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
+from model.regular.RegularSplitRulesTextSmall import RegularSplitRulesTextSmall
 from model.room.RegularRoom import RegularRoom
 from model.saga.RegularSaga import RegularSaga
-from model.saga.TransformSaga import TransformSaga
+from model.saga.TransformSagaOld import TransformSagaOld
 from model.showcase.Chat import Chat
+from model.showcase.ClearTextbox import ClearTextbox
 from model.showcase.Coup import Coup
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
 from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
-from model.showcase.lotr.Ring import RingLOTR
+from model.showcase.lotr.ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
 from model.showcase.meme.DemotivationalPoster import DemotivationalPoster
 from model.showcase.Monopoly import Monopoly
+from model.showcase.mystical_archive.japan.JapaneseMysticalArchive import (
+    JapaneseMysticalArchive,
+)
+from model.showcase.mystical_archive.japan.JapaneseMysticalArchiveHorizontal import (
+    JapaneseMysticalArchiveHorizontal,
+)
 from model.showcase.news.BreakingNews import BreakingNews
 from model.showcase.Pixel import Pixel
 from model.showcase.Playtest import Playtest
@@ -123,6 +134,9 @@ from model.token.transform.frontside.RegularTokenTransformFrontside import (
 from model.token.transform.frontside.TextlessTokenTransformFrontside import (
     TextlessTokenTransformFrontside,
 )
+from model.transform.meld.MeldBacksideBottom import MeldBacksideBottom
+from model.transform.meld.MeldBacksideMiddle import MeldBacksideMiddle
+from model.transform.meld.MeldBacksideTop import MeldBacksideTop
 from model.transform.TransformBackside import TransformBackside
 from model.transform.TransformFrontside import TransformFrontside
 from utils import (
@@ -373,6 +387,7 @@ def read_all_spreadsheets(
         rows.extend(read_rows_from_csv(filepath))
 
     for filepath in glob.glob(f"{input_path}/*.xlsx"):
+
         # Skip Excel lock files that appear while a workbook is open
         if os.path.basename(filepath).startswith("~$"):
             continue
@@ -478,10 +493,17 @@ def process_spreadsheets(
     layout_to_subclass = {
         # Regular
         "regular": RegularCard,
+        "regular small": RegularCardSmall,
+        "draconic": RegularCardSmall,
         "regular split rules text": RegularSplitRulesText,
+        "regular split rules text old": RegularSplitRulesTextSmall,
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
+        # Meld
+        "meld backside top": MeldBacksideTop,
+        "meld backside middle": MeldBacksideMiddle,
+        "meld backside bottom": MeldBacksideBottom,
         # Modal
         "modal frontside": ModalFrontside,
         "modal backside": ModalBackside,
@@ -504,7 +526,7 @@ def process_spreadsheets(
         "regular planeswalker": RegularPlaneswalker,
         # Saga
         "regular saga": RegularSaga,
-        "transform saga": TransformSaga,
+        "transform saga": TransformSagaOld,
         # Class
         "regular class": RegularClass,
         # Adventure
@@ -531,6 +553,8 @@ def process_spreadsheets(
         "regular transparent": RegularTransparent,
         "full text": FullText,
         "japan": Japan,
+        "japanese mystical archive": JapaneseMysticalArchive,
+        "japanese mystical archive horizontal": JapaneseMysticalArchiveHorizontal,
         "future shifted": FutureShifted,
         "zendikar": Zendikar,
         "sketch": Sketch,
@@ -541,6 +565,7 @@ def process_spreadsheets(
         "chat": Chat,
         "poker": Poker,
         "breaking news": BreakingNews,
+        "clear textbox": ClearTextbox,
         # Showcase Meme
         "demotivational poster": DemotivationalPoster,
         # Showcase Promo
@@ -598,7 +623,7 @@ def process_spreadsheets(
         card_descriptor = card.get(CARD_DESCRIPTOR, None)
         card_original_title = card.get(CARD_ORIGINAL, None)
 
-        # skip if this isn't an alternate
+        # Skip if this isn't an alternate
         if len(card_descriptor) == 0 and len(card_original_title) == 0:
             continue
 
@@ -654,7 +679,6 @@ def process_spreadsheets(
             expanded_cards[clone_key] = clone
     raw_cards = expanded_cards
 
-    # Resort now that alternates have all the correct columns
     sorted_keys = get_sorted_keys()
 
     # Add indices to all the cards, for collector info
@@ -846,9 +870,7 @@ def process_spreadsheets(
             card_key = get_card_key(card_title, card_additional_titles, card_descriptor)
             del card_sets[card_set][card_key]
 
-    # Resolve expanded/global dungeons' cross-card {to=...}/{continues=...} targets (and, for
-    # global dungeons, primary/part linkage) to the actual sibling card/room objects they name, now
-    # that every card in each set has been constructed
+    # Resolve expanded/global dungeons' cross-card {to=...}/{continues=...} targets
     for card_set in card_sets:
         for card in card_sets[card_set].values():
             if isinstance(card, (ExpandedDungeonLocal, ExpandedDungeonGlobal)):
@@ -933,206 +955,267 @@ def process_spreadsheets(
     return card_sets
 
 
-def render_cards(card_sets: dict[str, dict[str, RegularCard]]):
+class CardRenderResult(NamedTuple):
+    card_key: str
+    image: Image.Image | None
+    error: str | None
+
+
+def render_card_to_image(card: RegularCard, card_key: str, *, rotate_for_tile: bool = False) -> CardRenderResult:
+    """
+    Render a single card's layers into a finished, composited Image. Shared by both the 'render'
+    and 'tile' actions' worker functions. Exceptions are caught and returned as data (rather than
+    propagated) since this may run inside a worker process, where an uncaught exception would abort
+    the whole batch instead of allowing "log and continue" behavior for the failed card.
+    """
+    try:
+        card.create_layers()
+        final_card = card.render_card()
+        if rotate_for_tile:
+            if card.FOOTER_ROTATION == 90:
+                final_card = final_card.transpose(Image.Transpose.ROTATE_270)
+            elif card.FOOTER_ROTATION == 270:
+                final_card = final_card.transpose(Image.Transpose.ROTATE_90)
+        return CardRenderResult(card_key, final_card, None)
+    except Exception:
+        return CardRenderResult(card_key, None, traceback.format_exc())
+
+
+class RenderResult(NamedTuple):
+    card_key: str
+    error: str | None
+    backside_results: list[tuple[str, str | None]]
+
+
+def _render_top_level_card(output_path: str, card: RegularCard) -> RenderResult:
+    def render_one(c: RegularCard) -> tuple[str, str | None]:
+        key = get_card_key(
+            c.get_metadata(CARD_TITLE),
+            c.get_metadata(CARD_ADDITIONAL_TITLES),
+            c.get_metadata(CARD_DESCRIPTOR),
+            c.get_metadata(CARD_SPELLBOOK),
+        )
+        if c.get_metadata(CARD_CATEGORY).lower() == "{skip}":
+            return key, None
+
+        result = render_card_to_image(c, key, rotate_for_tile=False)
+        if result.error is not None:
+            return key, result.error
+
+        result.image.save(f"{output_path}/{cardname_to_filename(key)}.png")
+        result.image.close()
+        return key, None
+
+    card_key, error = render_one(card)
+    backside_results = [render_one(backside) for backside in card.get_metadata(CARD_BACKSIDES, [])]
+    return RenderResult(card_key, error, backside_results)
+
+
+def _log_render_result(result: RenderResult):
+    log(f"Processing '{result.card_key}'...")
+    increase_log_indent()
+    if result.error:
+        log(f"ERROR rendering '{result.card_key}':\n{result.error}")
+    for backside_key, backside_error in result.backside_results:
+        log(f"Processing '{backside_key}'...")
+        increase_log_indent()
+        if backside_error:
+            log(f"ERROR rendering '{backside_key}':\n{backside_error}")
+        decrease_log_indent()
+    decrease_log_indent()
+
+
+def _render_cards_parallel(work_items: list[tuple[str, RegularCard]], workers: int):
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(_render_top_level_card, output_path, card) for output_path, card in work_items]
+        for future in as_completed(futures):
+            _log_render_result(future.result())
+
+
+def render_cards(card_sets: dict[str, dict[str, RegularCard]], workers: int = 1):
     for card_set, spreadsheet in card_sets.items():
         output_path = f"{OUTPUT_CARDS_PATH}/{card_set}"
         log(f"Processing set at '{output_path}'...")
         increase_log_indent()
 
-        def render_card(card: RegularCard):
-            card_category = card.get_metadata(CARD_CATEGORY)
-            if card_category.lower() == "{skip}":
-                return
+        work_items = [(output_path, card) for card in spreadsheet.values()]
 
-            card_title = card.get_metadata(CARD_TITLE)
-            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
-            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
-
-            card.create_layers()
-            final_card = card.render_card()
-            final_card.save(f"{output_path}/{cardname_to_filename(card_key)}.png")
-            final_card.close()
-
-        for card in spreadsheet.values():
-            card_title = card.get_metadata(CARD_TITLE)
-            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
-            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
-
-            log(f"Processing '{card_key}'...")
-            increase_log_indent()
-
-            render_card(card)
-
-            for backside in card.get_metadata(CARD_BACKSIDES, []):
-                backside_title = backside.get_metadata(CARD_TITLE)
-                backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
-                backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
-                backside_key = get_card_key(
-                    backside_title,
-                    backside_additional_titles,
-                    backside_descriptor,
-                    backside_spellbook,
-                )
-
-                log(f"Processing '{backside_key}'...")
-                increase_log_indent()
-
-                render_card(backside)
-
-                decrease_log_indent()
-
-            decrease_log_indent()
+        if workers <= 1:
+            for item_output_path, card in work_items:
+                _log_render_result(_render_top_level_card(item_output_path, card))
+        else:
+            _render_cards_parallel(work_items, workers)
 
         decrease_log_indent()
 
         log()
 
 
-def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: list[str] = None):
-    tile_image_width = (MAX_TILING_WIDTH // CARD_TILE_WIDTH) * CARD_TILE_WIDTH
-    tile_image_height = (MAX_TILING_HEIGHT // CARD_TILE_HEIGHT) * CARD_TILE_HEIGHT
+def parse_tile_num_filter(
+    tile_nums: list[str] = None,
+) -> tuple[list[tuple[str, str]] | None, dict[str, float] | None]:
+    if tile_nums is None:
+        return None, None
 
-    if tile_nums is not None:
-        tile_num_pairs = []
-        max_tile_num = {}
+    tile_num_pairs = []
+    max_tile_num = {}
 
-        for num in tile_nums:
-            category, tile_num = num.split("-")
-            converted_tile_num = str_to_int(tile_num)
-            if converted_tile_num > 0 or tile_num == "*":
-                tile_num_pairs.append((category, tile_num))
-                if category not in max_tile_num or converted_tile_num > max_tile_num[category]:
-                    max_tile_num[category] = str_to_int(tile_num, float("inf"))
-    else:
-        tile_num_pairs = None
-        max_tile_num = None
+    for num in tile_nums:
+        category, tile_num = num.split("-")
+        converted_tile_num = str_to_int(tile_num)
+        if converted_tile_num > 0 or tile_num == "*":
+            tile_num_pairs.append((category, tile_num))
+            if category not in max_tile_num or converted_tile_num > max_tile_num[category]:
+                max_tile_num[category] = str_to_int(tile_num, float("inf"))
+
+    return tile_num_pairs, max_tile_num
+
+
+def compute_cards_per_tile(tile_image_width: int, tile_image_height: int) -> int:
+    return (tile_image_width // CARD_TILE_WIDTH) * (tile_image_height // CARD_TILE_HEIGHT)
+
+
+class TileSlot(NamedTuple):
+    card: RegularCard
+    card_key: str
+
+
+class TileWorkItem(NamedTuple):
+    output_file_path: str
+    card_set: str
+    card_category: str
+    tile_num: int
+    slots: list[TileSlot]
+
+
+def compute_tile_work_items(
+    card_sets: dict[str, dict[str, RegularCard]],
+    tile_num_pairs: list[tuple[str, str]] | None,
+    max_tile_num: dict[str, float] | None,
+    cards_per_tile: int,
+) -> dict[str, list[TileWorkItem]]:
+    result: dict[str, list[TileWorkItem]] = {}
 
     for card_set, spreadsheet in card_sets.items():
+        output_path = f"{OUTPUT_TILES_PATH}/{card_set}"
+        category_slots: dict[str, list[TileSlot]] = {}
+
+        def add_slot(card: RegularCard):
+            card_category = card.get_metadata(CARD_CATEGORY).lower()
+            if card_category == "{skip}":
+                return
+            card_key = get_card_key(
+                card.get_metadata(CARD_TITLE),
+                card.get_metadata(CARD_ADDITIONAL_TITLES),
+                card.get_metadata(CARD_DESCRIPTOR),
+                card.get_metadata(CARD_SPELLBOOK),
+            )
+            category_slots.setdefault(card_category, []).append(TileSlot(card, card_key))
+
+        for card in spreadsheet.values():
+            add_slot(card)
+            for backside in card.get_metadata(CARD_BACKSIDES, []):
+                add_slot(backside)
+
+        for card_category, slots in category_slots.items():
+            for chunk_index in range(0, len(slots), cards_per_tile):
+                tile_num = (chunk_index // cards_per_tile) + 1
+                if (
+                    max_tile_num is not None
+                    and card_category in max_tile_num
+                    and tile_num > max_tile_num[card_category]
+                ):
+                    break
+                if tile_num_pairs is not None and (
+                    (card_category, str(tile_num)) not in tile_num_pairs and (card_category, "*") not in tile_num_pairs
+                ):
+                    continue
+                chunk = slots[chunk_index : chunk_index + cards_per_tile]
+                output_file_path = f"{output_path}/{card_category}/{tile_num}.png"
+                result.setdefault(card_set, []).append(
+                    TileWorkItem(output_file_path, card_set, card_category, tile_num, chunk)
+                )
+
+    return result
+
+
+class CardTileOutcome(NamedTuple):
+    card_key: str
+    success: bool
+    error: str | None
+
+
+class TileResult(NamedTuple):
+    output_file_path: str
+    card_set: str
+    card_category: str
+    tile_num: int
+    card_outcomes: list[CardTileOutcome]
+
+
+def render_tile_work_item(
+    item: TileWorkItem, tile_image_width: int, tile_image_height: int, columns: int
+) -> TileResult:
+    tile_image = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
+    card_outcomes: list[CardTileOutcome] = []
+
+    for slot_index, slot in enumerate(item.slots):
+        col, row = slot_index % columns, slot_index // columns
+        result = render_card_to_image(slot.card, slot.card_key, rotate_for_tile=True)
+        if result.error is not None:
+            card_outcomes.append(CardTileOutcome(slot.card_key, False, result.error))
+            continue
+
+        resized = result.image.resize((CARD_TILE_WIDTH, CARD_TILE_HEIGHT))
+        tile_image = paste_image(resized, tile_image, (col * CARD_TILE_WIDTH, row * CARD_TILE_HEIGHT))
+        resized.close()
+        result.image.close()
+        card_outcomes.append(CardTileOutcome(slot.card_key, True, None))
+
+    os.makedirs(os.path.dirname(item.output_file_path), exist_ok=True)
+    tile_image.save(item.output_file_path)
+    tile_image.close()
+
+    return TileResult(item.output_file_path, item.card_set, item.card_category, item.tile_num, card_outcomes)
+
+
+def _log_tile_result(result: TileResult):
+    log(f"Saving {result.card_category} tile set to '{result.output_file_path}'...")
+    increase_log_indent()
+    for outcome in result.card_outcomes:
+        if outcome.success:
+            log(f"Tiled '{outcome.card_key}'.")
+        else:
+            log(f"ERROR tiling '{outcome.card_key}': {outcome.error}")
+    decrease_log_indent()
+
+
+def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: list[str] = None, workers: int = 1):
+    tile_image_width = (MAX_TILING_WIDTH // CARD_TILE_WIDTH) * CARD_TILE_WIDTH
+    tile_image_height = (MAX_TILING_HEIGHT // CARD_TILE_HEIGHT) * CARD_TILE_HEIGHT
+    columns = tile_image_width // CARD_TILE_WIDTH
+    cards_per_tile = compute_cards_per_tile(tile_image_width, tile_image_height)
+
+    tile_num_pairs, max_tile_num = parse_tile_num_filter(tile_nums)
+    work_items_by_set = compute_tile_work_items(card_sets, tile_num_pairs, max_tile_num, cards_per_tile)
+
+    for card_set in card_sets:
         output_path = f"{OUTPUT_TILES_PATH}/{card_set}"
         log(f"Processing set at '{output_path}'...")
         increase_log_indent()
 
-        tile_image: dict[str, Image.Image] = {}
-        tile_num: dict[str, int] = {}
-        curr_width: dict[str, int] = {}
-        curr_height: dict[str, int] = {}
-
-        def tile_card(card: RegularCard):
-            card_category = card.get_metadata(CARD_CATEGORY).lower()
-            if card_category.lower() == "{skip}":
-                return
-
-            if not tile_image.get(card_category, False):
-                tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
-                tile_num[card_category] = 1
-                curr_width[card_category] = 0
-                curr_height[card_category] = 0
-
-            if (
-                tile_num_pairs is not None
-                and (card_category, str(tile_num[card_category])) not in tile_num_pairs
-                and (card_category, "*") not in tile_num_pairs
-            ):
-                log("Not in provided tile nums. Skipping...")
-
-                curr_width[card_category] += CARD_TILE_WIDTH
-                if curr_width[card_category] > tile_image_width - CARD_TILE_WIDTH:
-                    curr_width[card_category] = 0
-                    curr_height[card_category] += CARD_TILE_HEIGHT
-                if curr_height[card_category] > tile_image_height - CARD_TILE_HEIGHT:
-                    curr_height[card_category] = 0
-                    tile_num[card_category] += 1
-                    if (
-                        max_tile_num is not None
-                        and card_category in max_tile_num
-                        and tile_num[card_category] > max_tile_num[card_category]
-                    ):
-                        log(f"Reached end of requested tiles for {card_category}. Skipping remaining cards...")
-                        return
-                return
-
-            card.create_layers()
-            final_card = card.render_card()
-            if card.FOOTER_ROTATION == 90:
-                final_card = final_card.transpose(Image.Transpose.ROTATE_270)
-            elif card.FOOTER_ROTATION == 270:
-                final_card = final_card.transpose(Image.Transpose.ROTATE_90)
-            final_card = final_card.resize((CARD_TILE_WIDTH, CARD_TILE_HEIGHT))
-
-            if curr_width[card_category] > tile_image_width - CARD_TILE_WIDTH:
-                curr_width[card_category] = 0
-                curr_height[card_category] += CARD_TILE_HEIGHT
-            if curr_height[card_category] > tile_image_height - CARD_TILE_HEIGHT:
-                output_file_path = f"{output_path}/{card_category}/{tile_num[card_category]}.png"
-                log(f"Saving {card_category} tile set to '{output_file_path}'...")
-                os.makedirs(f"{output_path}/{card_category}", exist_ok=True)
-                tile_image[card_category].save(output_file_path)
-                tile_image[card_category].close()
-                tile_image[card_category] = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
-                curr_height[card_category] = 0
-                tile_num[card_category] += 1
-                if (
-                    max_tile_num is not None
-                    and card_category in max_tile_num
-                    and tile_num[card_category] > max_tile_num[card_category]
-                ):
-                    log(f"Reached end of requested tiles for {card_category}. Skipping remaining cards...")
-                    return
-
-            tile_image[card_category] = paste_image(
-                final_card,
-                tile_image[card_category],
-                (curr_width[card_category], curr_height[card_category]),
-            )
-            final_card.close()
-            curr_width[card_category] += CARD_TILE_WIDTH
-
-        for card in spreadsheet.values():
-            card_title = card.get_metadata(CARD_TITLE)
-            card_additional_titles = card.get_metadata(CARD_ADDITIONAL_TITLES)
-            card_descriptor = card.get_metadata(CARD_DESCRIPTOR)
-            card_spellbook = card.get_metadata(CARD_SPELLBOOK)
-            card_key = get_card_key(card_title, card_additional_titles, card_descriptor, card_spellbook)
-
-            log(f"Tiling '{card_key}'...")
-            increase_log_indent()
-
-            tile_card(card)
-
-            for backside in card.get_metadata(CARD_BACKSIDES, []):
-                backside_title = backside.get_metadata(CARD_TITLE)
-                backside_additional_titles = backside.get_metadata(CARD_ADDITIONAL_TITLES)
-                backside_descriptor = backside.get_metadata(CARD_DESCRIPTOR)
-                backside_spellbook = card.get_metadata(CARD_SPELLBOOK)
-                backside_key = get_card_key(
-                    backside_title,
-                    backside_additional_titles,
-                    backside_descriptor,
-                    backside_spellbook,
-                )
-
-                log(f"Tiling '{backside_key}'...")
-                increase_log_indent()
-
-                tile_card(backside)
-
-                decrease_log_indent()
-
-            decrease_log_indent()
-
-        for category in tile_image.keys():
-            if (
-                (tile_num_pairs is None)
-                or ((category, str(tile_num[category])) in tile_num_pairs)
-                and (curr_width[category] > 0 or curr_height[category] > 0)
-            ):
-                os.makedirs(f"{output_path}/{category}", exist_ok=True)
-                tile_image[category].save(f"{output_path}/{category}/{tile_num[category]}.png")
+        items = work_items_by_set.get(card_set, [])
+        if workers <= 1:
+            for item in items:
+                _log_tile_result(render_tile_work_item(item, tile_image_width, tile_image_height, columns))
+        else:
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                futures = [
+                    executor.submit(render_tile_work_item, item, tile_image_width, tile_image_height, columns)
+                    for item in items
+                ]
+                for future in as_completed(futures):
+                    _log_tile_result(future.result())
 
         decrease_log_indent()
 
@@ -1353,6 +1436,7 @@ def main(
     google_credentials_path: str = None,
     no_spellbooks: bool = False,
     spellbooks_whitelist: list[str] = None,
+    workers: int = 1,
 ):
     """
     Run the program.
@@ -1410,6 +1494,10 @@ def main(
         If given, only generate spellbook copies for these spellbooks, and only keep those copies
         (base versions and copies of other spellbooks are dropped). Has no effect if no_spellbooks
         is True.
+
+    workers: int, default: 1
+        Number of worker processes to use in parallel for the 'render' and 'tile' actions.
+        Defaults to 1 (sequential).
     """
 
     sort_by: tuple[tuple[str, Callable], tuple[str, Callable], tuple[str, Callable]] = None
@@ -1446,10 +1534,10 @@ def main(
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")
-        render_cards(card_sets)
+        render_cards(card_sets, workers=workers)
     elif action == ACTIONS[1]:
         log("Tiling cards...")
-        render_tiled_cards(card_sets, tile_nums)
+        render_tiled_cards(card_sets, tile_nums, workers=workers)
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
         capture_art(card_sets)
@@ -1627,6 +1715,18 @@ if __name__ == "__main__":
         help=("Path to a Google service-account JSON key file. " f"Defaults to '{GOOGLE_CREDENTIALS_PATH}'."),
         dest="google_credentials_path",
     )
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=settings.get("workers", 1),
+        help=(
+            "Number of worker processes to use in parallel. Defaults to 1 (sequential). "
+            "Affects the 'render' action (each worker renders whole cards) and the 'tile' "
+            "action (each worker renders a whole tile's worth of cards)."
+        ),
+        dest="workers",
+    )
 
     args = parser.parse_args()
     main(
@@ -1645,4 +1745,5 @@ if __name__ == "__main__":
         args.google_credentials_path,
         args.no_spellbooks,
         args.spellbooks_whitelist,
+        args.workers,
     )

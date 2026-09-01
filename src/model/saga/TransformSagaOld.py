@@ -1,11 +1,15 @@
+from PIL import Image, ImageDraw
+
+from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.saga.RegularSagaOld import RegularSagaOld
+from utils import load_font
 
 
-class TransformBackside(RegularCard):
+class TransformSagaOld(RegularSagaOld):
     """
-    A layered image representing a transform backside and all the collection info on it,
-    with all relevant card metadata.
+    A layered image representing a transform saga frontside (legacy 1500x2100 scale) and all the
+    collection info on it, with all relevant card metadata.
 
     Attributes
     ----------
@@ -36,7 +40,7 @@ class TransformBackside(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["TransformSagaOld"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,17 +57,28 @@ class TransformBackside(RegularCard):
         )
 
         # Title Box
-        self.TITLE_BOX_WIDTH = 1585
+        self.TITLE_BOX_X = 220
+        self.TITLE_BOX_WIDTH = 1183
 
         # Title Text
-        self.TITLE_WIDTH = 1528
-        self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_X = 240
+        self.TITLE_WIDTH = 1158
 
-        # Type Text
-        self.TYPE_FONT_COLOR = (255, 255, 255)
+        # Rules Text
+        self.RULES_TEXT_HEIGHT = 1410
 
-        # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+        # Reverse Power & Toughness Text
+        self.REVERSE_POWER_TOUGHNESS_X = 117
+        self.REVERSE_POWER_TOUGHNESS_Y = 1663
+        self.REVERSE_POWER_TOUGHNESS_WIDTH = 90
+        self.REVERSE_POWER_TOUGHNESS_HEIGHT = 71
+        self.REVERSE_POWER_TOUGHNESS_FONT_SIZE = 60
+        self.REVERSE_POWER_TOUGHNESS_FONT_COLOR = (102, 102, 102)
+
+        # Banner
+        self.BANNER_STRIPE_HEIGHT = 888
+
+        self._determine_ability_heights_and_y_values()
 
     def create_layers(
         self,
@@ -77,6 +92,7 @@ class TransformBackside(RegularCard):
         create_type_layer: bool = True,
         create_rules_text_layer: bool = True,
         create_power_toughness_layer: bool = True,
+        create_reverse_power_toughness_layer: bool = True,
         create_overlay_layers: bool = True,
     ):
         """
@@ -89,9 +105,6 @@ class TransformBackside(RegularCard):
 
         create_frame_layers: bool, default: True
             Whether to put the card's frames on or not.
-
-        create_level_header_frame_layer: bool, default: True
-            Whether to put the header frames for the level titles above the rules text or not.
 
         create_watermark_layer: bool, default: True
             Whether to put the watermark on the card or not.
@@ -117,8 +130,8 @@ class TransformBackside(RegularCard):
         create_power_toughness_layer: bool, default: True
             Whether to put the power & toughness of the card on it or not.
 
-        create_level_headers_layers: bool, default: True
-            Whether to put the name and mana cost of each level on the class or not.
+        create_reverse_power_toughness_layer: bool, default: True
+            Whether to put the reverse power & toughness of the card on it or not.
 
         create_overlay_layers: bool, default: True
             Whether to put the overlays on top of the card after everything else or not.
@@ -128,7 +141,7 @@ class TransformBackside(RegularCard):
             create_art_layer,
             create_frame_layers,
             create_watermark_layer,
-            False,  # don't render rarity symbol for backside cards
+            create_rarity_symbol_layer,
             create_footer_layer,
             create_mana_cost_layer,
             create_title_layer,
@@ -137,3 +150,47 @@ class TransformBackside(RegularCard):
             create_power_toughness_layer,
             create_overlay_layers,
         )
+
+        if create_reverse_power_toughness_layer:
+            self._create_reverse_power_toughness_layer()
+
+    def _create_reverse_power_toughness_layer(self):
+        """
+        Process reverse power & toughness text for transform cards and append it to `self.text_layers`.
+        """
+
+        text = self.get_metadata(CARD_TRANSFORM_HINT)
+        if len(text) == 0:
+            return
+
+        power_toughness_x = self.REVERSE_POWER_TOUGHNESS_X
+        power_toughness_y = self.REVERSE_POWER_TOUGHNESS_Y
+        power_toughness_width = self.REVERSE_POWER_TOUGHNESS_WIDTH
+        power_toughness_height = self.REVERSE_POWER_TOUGHNESS_HEIGHT
+
+        power_toughness_font = load_font(BELEREN_BOLD_SMALL_CAPS, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE)
+        power_toughness_fallback_fonts = self._load_fallback_fonts(
+            BELEREN_BOLD_SMALL_CAPS, self.REVERSE_POWER_TOUGHNESS_FONT_SIZE
+        )
+        image = Image.new("RGBA", (power_toughness_width, power_toughness_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        text_width = self._get_ucs_chunks_length(text, power_toughness_font, power_toughness_fallback_fonts)
+        bounding_box = power_toughness_font.getbbox(text)
+        text_height = int(bounding_box[3] - bounding_box[1])
+        self._draw_ucs_chunks(
+            draw,
+            (
+                (power_toughness_width - text_width) // 2,
+                (power_toughness_height - text_height) // 2,
+            ),
+            text,
+            power_toughness_font,
+            power_toughness_fallback_fonts,
+            primary_font_path=BELEREN_BOLD_SMALL_CAPS,
+            font_size=self.REVERSE_POWER_TOUGHNESS_FONT_SIZE,
+            fill=self.REVERSE_POWER_TOUGHNESS_FONT_COLOR,
+            anchor="lt",
+        )
+
+        self.text_layers.append(Layer(image, (power_toughness_x, power_toughness_y)))

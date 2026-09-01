@@ -131,11 +131,16 @@ BARLOW = "fonts/barlow/barlow.ttf"
 BARLOW_BOLD = "fonts/barlow/barlow_bold.ttf"
 BARLOW_ITALICS = "fonts/barlow/barlow_italics.ttf"
 
+DF_MARU_GOTHIC = "fonts/df_maru_gothic/df_maru_gothic.ttf"
+
 ETHNOCENTRIC_ITALICS = "fonts/ethnocentric/ethnocentric_italics.ttf"
 
 HELVETICA_NEUE_MEDIUM = "fonts/helvetica_neue/helvetica_neue_medium.ttf"
 HELVETICA_NEUE_ITALICS = "fonts/helvetica_neue/helvetica_neue_italics.ttf"
 HELVETICA_NEUE_BOLD = "fonts/helvetica_neue/helvetica_neue_bold.ttf"
+
+KLEE_ONE = "fonts/klee_one/klee_one.ttf"
+KLEE_ONE_SEMI_BOLD = "fonts/klee_one/klee_one_semi_bold.ttf"
 
 LATO = "fonts/lato/lato.ttf"
 LATO_BOLD = "fonts/lato/lato_bold.ttf"
@@ -162,6 +167,8 @@ NOTO_SANS_THAI = "fonts/noto/noto_sans_thai.ttf"
 NOTO_SANS_TAMIL = "fonts/noto/noto_sans_tamil.ttf"
 NOTO_SANS_BENGALI = "fonts/noto/noto_sans_bengali.ttf"
 NOTO_EMOJI = "fonts/noto/noto_emoji.ttf"
+
+NUD_MOTOYA_EX_APORO = "fonts/nud_motoya_ex_aporo/nud_motoya_ex_aporo.ttf"
 
 PIXEL = "fonts/pixel/pixel_regular.ttf"
 
@@ -309,7 +316,9 @@ COLOR_TAG_PATTERN_NO_BRACES = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re
 # Recognized "{name : value}" directives that can follow frame paths or live inside text cells,
 # e.g. "chat/window{offset:(50, 70)}". Add new directive names to the alternation as they're
 # implemented. The colon is what distinguishes directives from ordinary tags like {flavor}.
-DIRECTIVE_PATTERN = re.compile(r"\{\s*(offset)\s*:\s*([^{}]*?)\s*\}", re.IGNORECASE)
+# "symbol" (on the Rarity cell) overrides the rarity/set symbol image path outright, e.g.
+# "rare{symbol:secret_lair/showcase}", resolved relative to SET_SYMBOLS_PATH with no extension.
+DIRECTIVE_PATTERN = re.compile(r"\{\s*(offset|symbol)\s*:\s*([^{}]*?)\s*\}", re.IGNORECASE)
 
 # Accepts "(x, y)", "x, y", "( x , y )", negatives, etc.
 OFFSET_VALUE_PATTERN = re.compile(r"^\(?\s*([+-]?\d+)\s*[,;]\s*([+-]?\d+)\s*\)?$")
@@ -549,6 +558,96 @@ PLAYTEST_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/mono/2
 PLAYTEST_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/x.png")
 PLAYTEST_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/y.png")
 PLAYTEST_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/playtest/variable/z.png")
+
+MYSTICAL_ARCHIVE_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/white.png")
+MYSTICAL_ARCHIVE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/blue.png")
+MYSTICAL_ARCHIVE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/black.png")
+MYSTICAL_ARCHIVE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/red.png")
+MYSTICAL_ARCHIVE_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/green.png")
+MYSTICAL_ARCHIVE_COLORLESS_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/colorless.png"
+)
+
+MYSTICAL_ARCHIVE_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/0.png")
+MYSTICAL_ARCHIVE_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/1.png")
+MYSTICAL_ARCHIVE_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/2.png")
+MYSTICAL_ARCHIVE_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/3.png")
+MYSTICAL_ARCHIVE_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/4.png")
+MYSTICAL_ARCHIVE_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/5.png")
+MYSTICAL_ARCHIVE_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/6.png")
+MYSTICAL_ARCHIVE_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/7.png")
+MYSTICAL_ARCHIVE_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/8.png")
+MYSTICAL_ARCHIVE_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/mono/9.png")
+
+MYSTICAL_ARCHIVE_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/tap/tap.png")
+
+MYSTICAL_ARCHIVE_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/variable/x.png")
+
+MYSTICAL_ARCHIVE_WHITE_BLUE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/white_blue.png"
+)
+MYSTICAL_ARCHIVE_WHITE_BLACK_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/white_black.png"
+)
+MYSTICAL_ARCHIVE_BLUE_BLACK_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/blue_black.png"
+)
+MYSTICAL_ARCHIVE_BLUE_RED_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/blue_red.png"
+)
+MYSTICAL_ARCHIVE_BLACK_RED_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/black_red.png"
+)
+MYSTICAL_ARCHIVE_BLACK_GREEN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/black_green.png"
+)
+MYSTICAL_ARCHIVE_RED_GREEN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/red_green.png"
+)
+MYSTICAL_ARCHIVE_RED_WHITE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/red_white.png"
+)
+MYSTICAL_ARCHIVE_GREEN_WHITE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/green_white.png"
+)
+MYSTICAL_ARCHIVE_GREEN_BLUE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/green_blue.png"
+)
+
+MYSTICAL_ARCHIVE_COLORLESS_WHITE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/colorless_white.png"
+)
+MYSTICAL_ARCHIVE_COLORLESS_BLUE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/colorless_blue.png"
+)
+MYSTICAL_ARCHIVE_COLORLESS_BLACK_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/colorless_black.png"
+)
+MYSTICAL_ARCHIVE_COLORLESS_RED_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/colorless_red.png"
+)
+MYSTICAL_ARCHIVE_COLORLESS_GREEN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/colorless_green.png"
+)
+
+MYSTICAL_ARCHIVE_TWO_WHITE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/white.png"
+)
+MYSTICAL_ARCHIVE_TWO_BLUE_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/blue.png"
+)
+MYSTICAL_ARCHIVE_TWO_BLACK_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/black.png"
+)
+MYSTICAL_ARCHIVE_TWO_RED_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/red.png"
+)
+MYSTICAL_ARCHIVE_TWO_GREEN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/green.png"
+)
+MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/colorless.png"
+)
 
 # Showcase Pixel Mana Symbols
 PIXEL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/white.png")
@@ -1058,6 +1157,75 @@ PLAYTEST_SYMBOL_PLACEHOLDER_KEY = {
     "x": Symbol(PLAYTEST_X_MANA),
     "y": Symbol(PLAYTEST_Y_MANA),
     "z": Symbol(PLAYTEST_Z_MANA),
+}
+
+MYSTICAL_ARCHIVE_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(MYSTICAL_ARCHIVE_WHITE_MANA),
+    "u": Symbol(MYSTICAL_ARCHIVE_BLUE_MANA),
+    "b": Symbol(MYSTICAL_ARCHIVE_BLACK_MANA),
+    "r": Symbol(MYSTICAL_ARCHIVE_RED_MANA),
+    "g": Symbol(MYSTICAL_ARCHIVE_GREEN_MANA),
+    "c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_MANA),
+    # Numbered Mana
+    "0": Symbol(MYSTICAL_ARCHIVE_ZERO_MANA),
+    "1": Symbol(MYSTICAL_ARCHIVE_ONE_MANA),
+    "2": Symbol(MYSTICAL_ARCHIVE_TWO_MANA),
+    "3": Symbol(MYSTICAL_ARCHIVE_THREE_MANA),
+    "4": Symbol(MYSTICAL_ARCHIVE_FOUR_MANA),
+    "5": Symbol(MYSTICAL_ARCHIVE_FIVE_MANA),
+    "6": Symbol(MYSTICAL_ARCHIVE_SIX_MANA),
+    "7": Symbol(MYSTICAL_ARCHIVE_SEVEN_MANA),
+    "8": Symbol(MYSTICAL_ARCHIVE_EIGHT_MANA),
+    "9": Symbol(MYSTICAL_ARCHIVE_NINE_MANA),
+    # Tapping
+    "t": Symbol(MYSTICAL_ARCHIVE_TAP),
+    # Variable Mana
+    "x": Symbol(MYSTICAL_ARCHIVE_X_MANA),
+    # Standard Hybrid Mana
+    "w/u": Symbol(MYSTICAL_ARCHIVE_WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/w": Symbol(MYSTICAL_ARCHIVE_WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/b": Symbol(MYSTICAL_ARCHIVE_WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/w": Symbol(MYSTICAL_ARCHIVE_WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/b": Symbol(MYSTICAL_ARCHIVE_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/u": Symbol(MYSTICAL_ARCHIVE_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/r": Symbol(MYSTICAL_ARCHIVE_BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/u": Symbol(MYSTICAL_ARCHIVE_BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/r": Symbol(MYSTICAL_ARCHIVE_BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/b": Symbol(MYSTICAL_ARCHIVE_BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/g": Symbol(MYSTICAL_ARCHIVE_BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/b": Symbol(MYSTICAL_ARCHIVE_BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/g": Symbol(MYSTICAL_ARCHIVE_RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/r": Symbol(MYSTICAL_ARCHIVE_RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/w": Symbol(MYSTICAL_ARCHIVE_RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/r": Symbol(MYSTICAL_ARCHIVE_RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/w": Symbol(MYSTICAL_ARCHIVE_GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/g": Symbol(MYSTICAL_ARCHIVE_GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/u": Symbol(MYSTICAL_ARCHIVE_GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/g": Symbol(MYSTICAL_ARCHIVE_GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/w": Symbol(MYSTICAL_ARCHIVE_COLORLESS_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/u": Symbol(MYSTICAL_ARCHIVE_COLORLESS_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/b": Symbol(MYSTICAL_ARCHIVE_COLORLESS_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/r": Symbol(MYSTICAL_ARCHIVE_COLORLESS_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/g": Symbol(MYSTICAL_ARCHIVE_COLORLESS_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/c": Symbol(MYSTICAL_ARCHIVE_COLORLESS_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Hybrid Generic Mana
+    "2/w": Symbol(MYSTICAL_ARCHIVE_TWO_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/2": Symbol(MYSTICAL_ARCHIVE_TWO_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/u": Symbol(MYSTICAL_ARCHIVE_TWO_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/2": Symbol(MYSTICAL_ARCHIVE_TWO_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/b": Symbol(MYSTICAL_ARCHIVE_TWO_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/2": Symbol(MYSTICAL_ARCHIVE_TWO_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/r": Symbol(MYSTICAL_ARCHIVE_TWO_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/2": Symbol(MYSTICAL_ARCHIVE_TWO_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/g": Symbol(MYSTICAL_ARCHIVE_TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/2": Symbol(MYSTICAL_ARCHIVE_TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "2/c": Symbol(MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "c/2": Symbol(MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
 }
 
 PIXEL_SYMBOL_RESAMPLE = Image.NEAREST

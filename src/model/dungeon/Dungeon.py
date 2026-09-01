@@ -11,7 +11,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from utils import (
     add_drop_shadow,
     allocate_by_weight,
@@ -27,7 +27,7 @@ from utils import (
 )
 
 
-class Dungeon(RegularCard):
+class Dungeon(RegularCardSmall):
     """
     A layered image representing a dungeon card (Adventures in the Forgotten Realms style), with all
     relevant card metadata.
@@ -261,7 +261,7 @@ class Dungeon(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

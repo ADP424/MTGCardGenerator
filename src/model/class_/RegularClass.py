@@ -68,31 +68,31 @@ class RegularClass(RegularCard):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1779
+        self.TYPE_BOX_Y = 2384
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1872
+        self.TYPE_BOTTOM_Y = 2508
 
         # Level Text
         self.LEVEL_FONT = MPLANTIN
-        self.LEVEL_FONT_SIZE = 58
+        self.LEVEL_FONT_SIZE = 78
 
         # Rules Text Box
-        self.RULES_BOX_X = 752
-        self.RULES_BOX_Y = 238
-        self.RULES_BOX_WIDTH = 633
-        self.RULES_BOX_HEIGHT = 1522
+        self.RULES_BOX_X = 1007
+        self.RULES_BOX_Y = 319
+        self.RULES_BOX_WIDTH = 849
+        self.RULES_BOX_HEIGHT = 2039
 
         # Rules Text
-        self.RULES_TEXT_X = 752
-        self.RULES_TEXT_Y = 238
-        self.RULES_TEXT_WIDTH = 633
-        self.RULES_TEXT_HEIGHT = 1522
+        self.RULES_TEXT_X = 1007
+        self.RULES_TEXT_Y = 319
+        self.RULES_TEXT_WIDTH = 849
+        self.RULES_TEXT_HEIGHT = 2039
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1305
-        self.SET_SYMBOL_Y = 1795
-        self.SET_SYMBOL_WIDTH = 80
+        self.SET_SYMBOL_X = 1749
+        self.SET_SYMBOL_Y = 2405
+        self.SET_SYMBOL_WIDTH = 107
 
         # Determine the heights and y-values of each subclass/level rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)

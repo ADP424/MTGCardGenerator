@@ -10,11 +10,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from utils import paste_image, str_to_float
 
 
-class Playtest(RegularCard):
+class Playtest(RegularCardSmall):
     """
     A layered image representing a playtest card and all the collection info on it,
     with all relevant card metadata.
@@ -48,7 +48,7 @@ class Playtest(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -196,7 +196,7 @@ class Playtest(RegularCard):
         rules_texts = full_rules_text.split("{end}")
         rules_text = rules_texts[0].strip()
         reminder_text = (
-            rules_texts[1].strip() if len(rules_texts) > 1 else "{bi}TEST CARD{/bi} {i}- Not for constructed play{/i}"
+            rules_texts[1].strip() if len(rules_texts) > 1 else "{i}{bold}TEST CARD{/bold} - Not for constructed play"
         )
 
         self.set_metadata(CARD_RULES_TEXT, rules_text)

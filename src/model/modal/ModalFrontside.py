@@ -66,26 +66,26 @@ class ModalFrontside(RegularCard):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 220
-        self.TITLE_BOX_WIDTH = 1183
+        self.TITLE_BOX_X = 295
+        self.TITLE_BOX_WIDTH = 1585
 
         # Title Text
-        self.TITLE_X = 240
-        self.TITLE_WIDTH = 1158
+        self.TITLE_X = 322
+        self.TITLE_WIDTH = 1552
 
         # Rules Text
-        self.RULES_TEXT_HEIGHT = 552
+        self.RULES_TEXT_HEIGHT = 740
 
         # Reminder Text/Box
-        self.REMINDER_X = 102
-        self.REMINDER_Y = 1866
-        self.REMINDER_TEXT_MANA_BOTTOM_Y = 1931
-        self.REMINDER_TEXT_BOTTOM_Y = 1942
-        self.REMINDER_WIDTH = 548
-        self.REMINDER_HEIGHT = 88
-        self.REMINDER_MANA_FONT_SIZE = 55
-        self.REMINDER_TYPE_MAX_FONT_SIZE = 50
-        self.REMINDER_MANA_MIN_FONT_SIZE = 6
+        self.REMINDER_X = 137
+        self.REMINDER_Y = 2500
+        self.REMINDER_TEXT_MANA_BOTTOM_Y = 2588
+        self.REMINDER_TEXT_BOTTOM_Y = 2602
+        self.REMINDER_WIDTH = 734
+        self.REMINDER_HEIGHT = 118
+        self.REMINDER_MANA_FONT_SIZE = 74
+        self.REMINDER_TYPE_MAX_FONT_SIZE = 67
+        self.REMINDER_MANA_MIN_FONT_SIZE = 8
         self.REMINDER_TYPE_HINT_FONT_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
@@ -98,7 +98,7 @@ class ModalFrontside(RegularCard):
             and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
             else (0, 0, 0)
         )
-        self.REMINDER_TYPE_MANA_GAP = 25
+        self.REMINDER_TYPE_MANA_GAP = 34
 
     def create_layers(
         self,

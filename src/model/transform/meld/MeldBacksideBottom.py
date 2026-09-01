@@ -1,11 +1,13 @@
+from constants import CARD_FRAME_LAYOUT_EXTRAS
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
 
 
-class TransformBackside(RegularCard):
+class MeldBacksideBottom(RegularCard):
     """
-    A layered image representing a transform backside and all the collection info on it,
-    with all relevant card metadata.
+    A layered image representing the bottom half of a meld backside (see `MeldBacksideTop` for the
+    top half, and `MeldBacksideMiddle` for the plain art strip between them). Together, the three
+    halves' physical cards line up to form one large landscape image.
 
     Attributes
     ----------
@@ -52,35 +54,73 @@ class TransformBackside(RegularCard):
             overlay_layers,
         )
 
-        # Title Box
-        self.TITLE_BOX_WIDTH = 1585
+        # Overall Card
+        self.CARD_WIDTH = 2814
+        self.CARD_HEIGHT = 2010
 
-        # Title Text
-        self.TITLE_WIDTH = 1528
-        self.TITLE_FONT_COLOR = (255, 255, 255)
+        # Type Box
+        self.TYPE_BOX_Y = 260
+        self.TYPE_BOX_HEIGHT = 218
 
         # Type Text
+        self.TYPE_X = 241 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 374
+        self.TYPE_BOTTOM_Y = 446
+        self.TYPE_WIDTH = 2462
+        self.TYPE_MAX_FONT_SIZE = 128
         self.TYPE_FONT_COLOR = (255, 255, 255)
 
+        # Rules Text Box
+        self.RULES_BOX_X = 208
+        self.RULES_BOX_Y = 507
+        self.RULES_BOX_WIDTH = 2400
+        self.RULES_BOX_HEIGHT = 1195
+
+        # Rules Text
+        self.RULES_TEXT_X = 208
+        self.RULES_TEXT_Y = 507
+        self.RULES_TEXT_WIDTH = 2400
+        self.RULES_TEXT_HEIGHT = 1195
+        self.RULES_TEXT_MAX_FONT_SIZE = 147
+
         # Power & Toughness Text
+        self.POWER_TOUGHNESS_X = 2190
+        self.POWER_TOUGHNESS_Y = 1568
+        self.POWER_TOUGHNESS_WIDTH = 466
+        self.POWER_TOUGHNESS_HEIGHT = 223
+        self.POWER_TOUGHNESS_FONT_SIZE = 154
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+
+        # Set / Rarity Symbol (doesn't get used on backsides but just in case)
+        self.SET_SYMBOL_X = 2431
+        self.SET_SYMBOL_Y = 284
+        self.SET_SYMBOL_WIDTH = 170
+
+        # Footer
+        self.FOOTER_ROTATION = 0
+        self.FOOTER_X = 181
+        self.FOOTER_Y = 1765
+        self.FOOTER_WIDTH = 2455
+        self.FOOTER_HEIGHT = 260
+        self.FOOTER_FONT_SIZE = 66
+
+        # Other
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")
 
     def create_layers(
         self,
         create_art_layer: bool = True,
         create_frame_layers: bool = True,
         create_watermark_layer: bool = True,
-        create_rarity_symbol_layer: bool = True,
         create_footer_layer: bool = True,
-        create_mana_cost_layer: bool = True,
-        create_title_layer: bool = True,
         create_type_layer: bool = True,
         create_rules_text_layer: bool = True,
         create_power_toughness_layer: bool = True,
         create_overlay_layers: bool = True,
     ):
         """
-        Append every frame, text, and collector layer to the card based on `self.metadata`.
+        Append every frame, text, and collector layer to the card based on `self.metadata`. Everything
+        a normal card would show is drawn here except the title, which belongs on `MeldBacksideTop`.
 
         Parameters
         ----------
@@ -89,9 +129,6 @@ class TransformBackside(RegularCard):
 
         create_frame_layers: bool, default: True
             Whether to put the card's frames on or not.
-
-        create_level_header_frame_layer: bool, default: True
-            Whether to put the header frames for the level titles above the rules text or not.
 
         create_watermark_layer: bool, default: True
             Whether to put the watermark on the card or not.
@@ -102,12 +139,6 @@ class TransformBackside(RegularCard):
         create_footer_layer: bool, default: True
             Whether to put the footer collector info on the bottom of the card or not.
 
-        create_mana_cost_layer: bool, default: True
-            Whether to put the mana cost of the card on it or not.
-
-        create_title_layer: bool, default: True
-            Whether to put the title of the card on it or not.
-
         create_type_layer: bool, default: True
             Whether to put the type line of the card on it or not.
 
@@ -117,23 +148,30 @@ class TransformBackside(RegularCard):
         create_power_toughness_layer: bool, default: True
             Whether to put the power & toughness of the card on it or not.
 
-        create_level_headers_layers: bool, default: True
-            Whether to put the name and mana cost of each level on the class or not.
-
         create_overlay_layers: bool, default: True
             Whether to put the overlays on top of the card after everything else or not.
         """
 
-        super().create_layers(
-            create_art_layer,
-            create_frame_layers,
-            create_watermark_layer,
-            False,  # don't render rarity symbol for backside cards
-            create_footer_layer,
-            create_mana_cost_layer,
-            create_title_layer,
-            create_type_layer,
-            create_rules_text_layer,
-            create_power_toughness_layer,
-            create_overlay_layers,
-        )
+        if create_art_layer:
+            self._create_art_layer()
+
+        if create_frame_layers:
+            self._create_frame_layers()
+
+        if create_watermark_layer:
+            self._create_watermark_layer()
+
+        if create_footer_layer:
+            self._create_footer_layer()
+
+        if create_type_layer:
+            self._create_type_layer()
+
+        if create_rules_text_layer:
+            self._create_rules_text_layer()
+
+        if create_power_toughness_layer:
+            self._create_power_toughness_layer()
+
+        if create_overlay_layers:
+            self._create_overlay_layers()

@@ -29,3 +29,7 @@ log.txt
 # secrets
 credentials/*
 !credentials/.gitkeep
+
+# claude
+.claude
+CLAUDE.md

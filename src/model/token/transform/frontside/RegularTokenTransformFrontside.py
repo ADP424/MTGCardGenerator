@@ -1,10 +1,10 @@
 from constants import BELEREN_BOLD_SMALL_CAPS
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
-from model.transform.TransformFrontside import TransformFrontside
+from model.regular.RegularCardSmall import RegularCardSmall
+from model.transform.TransformFrontsideOld import TransformFrontsideOld
 
 
-class RegularTokenTransformFrontside(TransformFrontside):
+class RegularTokenTransformFrontside(TransformFrontsideOld):
     """
     A layered image representing a regular token transform frontside and all the collection info on it,
     with all relevant card metadata.
@@ -38,7 +38,7 @@ class RegularTokenTransformFrontside(TransformFrontside):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class RegularEdifice(RegularCard):
+class RegularEdifice(RegularCardSmall):
     """
     A layered image representing an edifice and all the collection info on it,
     with all relevant card metadata.
@@ -36,7 +36,7 @@ class RegularEdifice(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,

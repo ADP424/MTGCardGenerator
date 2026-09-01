@@ -16,11 +16,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 from utils import add_drop_shadow, load_font, open_image, replace_ticks
 
 
-class BreakingNews(RegularCard):
+class BreakingNews(RegularCardSmall):
     """
     A layered image representing a "breaking news" broadcast-styled showcase card and all the
     collection info on it, with all relevant card metadata.
@@ -54,7 +54,7 @@ class BreakingNews(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -306,9 +306,12 @@ class BreakingNews(RegularCard):
         rarity_symbol = None
         tried_symbol_paths = []
         for candidate_set in candidate_sets:
-            symbol_path = f"{SET_SYMBOLS_PATH}/{candidate_set}/{rarity}.png"
-            tried_symbol_paths.append(symbol_path)
-            rarity_symbol = open_image(symbol_path)
+            for symbol_source in ("custom", "official"):
+                symbol_path = f"{SET_SYMBOLS_PATH}/{symbol_source}/{candidate_set}/{rarity}.png"
+                tried_symbol_paths.append(symbol_path)
+                rarity_symbol = open_image(symbol_path)
+                if rarity_symbol is not None:
+                    break
             if rarity_symbol is not None:
                 if candidate_set != card_set:
                     log(

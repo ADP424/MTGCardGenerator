@@ -1,11 +1,11 @@
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class TransformBackside(RegularCard):
+class TransformBacksideOld(RegularCardSmall):
     """
     A layered image representing a transform backside and all the collection info on it,
-    with all relevant card metadata.
+    with all relevant card metadata, at the legacy 1500x2100 resolution.
 
     Attributes
     ----------
@@ -36,7 +36,7 @@ class TransformBackside(RegularCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,10 +53,10 @@ class TransformBackside(RegularCard):
         )
 
         # Title Box
-        self.TITLE_BOX_WIDTH = 1585
+        self.TITLE_BOX_WIDTH = 1183
 
         # Title Text
-        self.TITLE_WIDTH = 1528
+        self.TITLE_WIDTH = 1140
         self.TITLE_FONT_COLOR = (255, 255, 255)
 
         # Type Text

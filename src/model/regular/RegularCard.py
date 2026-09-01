@@ -117,23 +117,23 @@ class RegularCard:
         self._fallback_font_y_offset_cache: dict[tuple[str, int, bool, str], int] = {}
 
         # Overall Card
-        self.CARD_WIDTH = 1500
-        self.CARD_HEIGHT = 2100
+        self.CARD_WIDTH = 2010
+        self.CARD_HEIGHT = 2814
 
         # Title Box
-        self.TITLE_BOX_X = 90
-        self.TITLE_BOX_Y = 105
-        self.TITLE_BOX_WIDTH = 1313
-        self.TITLE_BOX_HEIGHT = 114
+        self.TITLE_BOX_X = 121
+        self.TITLE_BOX_Y = 141
+        self.TITLE_BOX_WIDTH = 1759
+        self.TITLE_BOX_HEIGHT = 153
 
         # Symbols
         self.MANA_SYMBOL_KEY = SYMBOL_PLACEHOLDER_KEY
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 70
-        self.MANA_COST_SYMBOL_SPACING = 6
+        self.MANA_COST_SYMBOL_SIZE = 94
+        self.MANA_COST_SYMBOL_SPACING = 8
         self.MANA_COST_ALIGN = "right"
-        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 6)
+        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (-1, 8)
         self.MANA_COST_SYMBOL_SHADOW_COLOR = (0, 0, 0)
         self.MANA_COST_SYMBOL_OUTLINE_SIZE = 0
         self.MANA_COST_SYMBOL_OUTLINE_COLOR = (0, 0, 0)
@@ -141,11 +141,11 @@ class RegularCard:
         self.MANA_COST_TEXT_COLOR = (0, 0, 0)
 
         # Title Text
-        self.TITLE_X = 128
-        self.TITLE_BOTTOM_Y = 200
-        self.TITLE_WIDTH = 1244
-        self.TITLE_MAX_FONT_SIZE = 79
-        self.TITLE_MIN_FONT_SIZE = 6
+        self.TITLE_X = 172
+        self.TITLE_BOTTOM_Y = 268
+        self.TITLE_WIDTH = 1667
+        self.TITLE_MAX_FONT_SIZE = 106
+        self.TITLE_MIN_FONT_SIZE = 8
         self.TITLE_FONT = BELEREN_BOLD
         self.TITLE_FONT_COLOR = (0, 0, 0)
         self.TITLE_TEXT_ALIGN = "left"
@@ -155,15 +155,15 @@ class RegularCard:
         self.TITLE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Type Box
-        self.TYPE_BOX_Y = 1187
-        self.TYPE_BOX_HEIGHT = 114
+        self.TYPE_BOX_Y = 1591
+        self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
-        self.TYPE_X = 128 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 199
-        self.TYPE_BOTTOM_Y = 1280
-        self.TYPE_WIDTH = 1244 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1173
-        self.TYPE_MAX_FONT_SIZE = 67
-        self.TYPE_MIN_FONT_SIZE = 6
+        self.TYPE_X = 172 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 267
+        self.TYPE_BOTTOM_Y = 1715
+        self.TYPE_WIDTH = 1667 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1572
+        self.TYPE_MAX_FONT_SIZE = 90
+        self.TYPE_MIN_FONT_SIZE = 8
         self.TYPE_FONT = BELEREN_BOLD
         self.TYPE_FONT_COLOR = (0, 0, 0)
         self.TYPE_TEXT_ALIGN = "left"
@@ -173,38 +173,39 @@ class RegularCard:
         self.TYPE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Rules Text Box
-        self.RULES_BOX_X = 112
-        self.RULES_BOX_Y = 1315
-        self.RULES_BOX_WIDTH = 1278
-        self.RULES_BOX_HEIGHT = 623
+        self.RULES_BOX_X = 150
+        self.RULES_BOX_Y = 1762
+        self.RULES_BOX_WIDTH = 1713
+        self.RULES_BOX_HEIGHT = 835
 
         # Rules Text
-        self.RULES_TEXT_X = 112
-        self.RULES_TEXT_Y = 1315
-        self.RULES_TEXT_WIDTH = 1272
-        self.RULES_TEXT_HEIGHT = 623
+        self.RULES_TEXT_X = 150
+        self.RULES_TEXT_Y = 1762
+        self.RULES_TEXT_WIDTH = 1704
+        self.RULES_TEXT_HEIGHT = 835
         self.RULES_TEXT_FONT = MPLANTIN
         self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 78
-        self.RULES_TEXT_MIN_FONT_SIZE = 6
+        self.RULES_TEXT_MAX_FONT_SIZE = 105
+        self.RULES_TEXT_MIN_FONT_SIZE = 8
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
         self.RULES_TEXT_OUTLINE_RELATIVE_SIZE = 0
         self.RULES_TEXT_OUTLINE_COLOR = (0, 0, 0)
+        self.RULES_TEXT_BOLD_RELATIVE_SIZE = 0.04
         self.RULES_TEXT_MANA_SYMBOL_SCALE = 0.78
-        self.RULES_TEXT_MANA_SYMBOL_SPACING = 5
+        self.RULES_TEXT_MANA_SYMBOL_SPACING = 7
         self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO = 4
-        self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER = 5
-        self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 8
+        self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER = 7
+        self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 11
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
         self.RULES_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1166
-        self.POWER_TOUGHNESS_Y = 1866
-        self.POWER_TOUGHNESS_WIDTH = 252
-        self.POWER_TOUGHNESS_HEIGHT = 124
+        self.POWER_TOUGHNESS_X = 1562
+        self.POWER_TOUGHNESS_Y = 2500
+        self.POWER_TOUGHNESS_WIDTH = 338
+        self.POWER_TOUGHNESS_HEIGHT = 166
         self.POWER_TOUGHNESS_FONT = BELEREN_BOLD_SMALL_CAPS
-        self.POWER_TOUGHNESS_FONT_SIZE = 80
+        self.POWER_TOUGHNESS_FONT_SIZE = 107
         self.POWER_TOUGHNESS_FONT_COLOR = (
             (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
         )
@@ -218,31 +219,31 @@ class RegularCard:
         self.WATERMARK_OPACITY = 0.4
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1296
-        self.SET_SYMBOL_Y = 1198
-        self.SET_SYMBOL_WIDTH = 90
+        self.SET_SYMBOL_X = 1737
+        self.SET_SYMBOL_Y = 1605
+        self.SET_SYMBOL_WIDTH = 121
 
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
         self.FOOTER_ROTATION = 0
-        self.FOOTER_X = 96
-        self.FOOTER_Y = 1968
-        self.FOOTER_WIDTH = 1304
-        self.FOOTER_HEIGHT = 152
+        self.FOOTER_X = 129
+        self.FOOTER_Y = 2637
+        self.FOOTER_WIDTH = 1747
+        self.FOOTER_HEIGHT = 204
         self.FOOTER_FONT = GOTHAM_BOLD
         self.ARTIST_FONT = BELEREN_BOLD_SMALL_CAPS
         self.LEGAL_FONT = MPLANTIN
-        self.FOOTER_FONT_SIZE = 35
-        self.FOOTER_FONT_OUTLINE_SIZE = 3
+        self.FOOTER_FONT_SIZE = 47
+        self.FOOTER_FONT_OUTLINE_SIZE = 4
         self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
-        self.FOOTER_TAB_LENGTH = 25
-        self.FOOTER_ARTIST_GAP_LENGTH = 5
+        self.FOOTER_TAB_LENGTH = 34
+        self.FOOTER_ARTIST_GAP_LENGTH = 7
 
         # Other
         self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
-        self.HOLO_STAMP_X = 658
-        self.HOLO_STAMP_Y = 1898
+        self.HOLO_STAMP_X = 882
+        self.HOLO_STAMP_Y = 2543
 
         # Reverse Power & Toughness Text
         self.REVERSE_POWER_TOUGHNESS_X = float("inf")
@@ -636,7 +637,7 @@ class RegularCard:
         if len(card_set) == 0:
             return
 
-        rarity = self.get_metadata(CARD_RARITY).lower()
+        rarity, directives = self._extract_directives(self.get_metadata(CARD_RARITY).lower())
         if rarity in ("token", "land"):
             rarity = "common"
         if len(rarity) == 0 or "{skip}" in rarity:
@@ -647,26 +648,40 @@ class RegularCard:
             rarity = rarity.replace("{last}", "")
             overlay = True
 
-        all_sets = [set_name.lower().replace(" ", "_") for set_name in self.get_metadata(CARD_ALL_SETS, [card_set])]
-        candidate_sets = [card_set] + [set_name for set_name in all_sets if set_name != card_set]
-
-        rarity_symbol = None
-        tried_symbol_paths = []
-        for candidate_set in candidate_sets:
-            symbol_path = f"{SET_SYMBOLS_PATH}/{candidate_set}/{rarity}.png"
-            tried_symbol_paths.append(symbol_path)
+        symbol_override = directives.get("symbol")
+        if symbol_override is not None:
+            symbol_path = f"{SET_SYMBOLS_PATH}/{symbol_override}.png"
             rarity_symbol = open_image(symbol_path)
-            if rarity_symbol is not None:
-                if candidate_set != card_set:
-                    log(
-                        f"No rarity symbol for '{self.get_metadata(CARD_TITLE)}' in '{card_set}'. "
-                        f"Falling back to the symbol from '{candidate_set}'."
-                    )
-                break
+            if rarity_symbol is None:
+                log(f"Could not find rarity symbol override at '{symbol_path}'.")
+                return
+        else:
+            all_sets = [set_name.lower().replace(" ", "_") for set_name in self.get_metadata(CARD_ALL_SETS, [card_set])]
+            candidate_sets = [card_set] + [set_name for set_name in all_sets if set_name != card_set]
 
-        if rarity_symbol is None:
-            log(f"Could not find rarity symbol under any of: {', '.join(f"'{path}'" for path in tried_symbol_paths)}.")
-            return
+            rarity_symbol = None
+            tried_symbol_paths = []
+            for candidate_set in candidate_sets:
+                for symbol_source in ("custom", "official"):
+                    symbol_path = f"{SET_SYMBOLS_PATH}/{symbol_source}/{candidate_set}/{rarity}.png"
+                    tried_symbol_paths.append(symbol_path)
+                    rarity_symbol = open_image(symbol_path)
+                    if rarity_symbol is not None:
+                        break
+                if rarity_symbol is not None:
+                    if candidate_set != card_set:
+                        log(
+                            f"No rarity symbol for '{self.get_metadata(CARD_TITLE)}' in '{card_set}'. "
+                            f"Falling back to the symbol from '{candidate_set}'."
+                        )
+                    break
+
+            if rarity_symbol is None:
+                log(
+                    "Could not find rarity symbol under any of: "
+                    f"{', '.join(f"'{path}'" for path in tried_symbol_paths)}."
+                )
+                return
 
         rarity_symbol = rarity_symbol.resize(
             (
@@ -1469,8 +1484,14 @@ class RegularCard:
                 )
             )
 
+        # The type line must fit before both the right edge of its own box and the rarity/set
+        # symbol, whichever comes first. On most frames the symbol sits inside the box and is the
+        # tighter constraint; on frames where the type box is narrower than SET_SYMBOL_X (e.g. a
+        # showcase layout with its own, separately-positioned type box), the box's own edge is.
+        type_right_bound = min(self.TYPE_X + self.TYPE_WIDTH, self.SET_SYMBOL_X)
+
         type_length = get_type_length()
-        while self.TYPE_X + type_length > self.SET_SYMBOL_X and font_size >= self.TYPE_MIN_FONT_SIZE:
+        while self.TYPE_X + type_length > type_right_bound and font_size >= self.TYPE_MIN_FONT_SIZE:
             font_size -= 1
             type_font = load_font(self.TYPE_FONT, font_size)
             type_fallback_fonts = self._load_fallback_fonts(self.TYPE_FONT, font_size)
@@ -1486,7 +1507,7 @@ class RegularCard:
         if text_align == "left":
             x_pos = int(self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
         elif text_align == "center":
-            x_pos = (self.SET_SYMBOL_X - self.TYPE_X - type_length) // 2 + int(
+            x_pos = (type_right_bound - self.TYPE_X - type_length) // 2 + int(
                 self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size
             )
 
@@ -1583,7 +1604,7 @@ class RegularCard:
         )
         return symbol_image.width, symbol_image.height, symbol_image
 
-    def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont) -> int:
+    def _get_rules_text_fragment_length(self, text: str, font: ImageFont.FreeTypeFont, bold: bool = False) -> int:
         """
         Return the length of the text if it were written in the given font in the rules text box.
 
@@ -1595,16 +1616,23 @@ class RegularCard:
         font: FreeTypeFont
             The font the text would be written in.
 
+        bold: bool
+            Whether the text is bolded, which (like the outline) widens each glyph via `stroke_width`
+            without changing `font.getlength`, so it must be compensated for here too. Both strokes are
+            centered on the same glyph contour, so the wider of the two (not their sum) sets the extra
+            width.
+
         Returns
         -------
         int
             The length of the text written in the given font if it were written in the rules text box.
         """
 
-        return int(font.getlength(text) * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
+        bold_relative_size = self.RULES_TEXT_BOLD_RELATIVE_SIZE if bold else 0
+        return int(font.getlength(text) * (1 + max(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE, bold_relative_size)))
 
     def _get_rules_text_layout(self, text: str) -> tuple[
-        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont, str | None]]]],
+        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]]],
         int,
         int,
         int,
@@ -1622,15 +1650,16 @@ class RegularCard:
         Returns
         -------
         tuple[
-            list[list[list[tuple[str, str, ImageFont.FreeTypeFont, str | None]]]],
+            list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]],
             int,
             int,
             int,
             int,
         ]
-            The lines of rules/flavor text (each fragment tuple's 4th element is the active
-            directive fallback-font name, or None for primary-font text), the font size, the
-            margin size, the height of the content, and the maximum usable height of the rules box
+            The lines of rules/flavor text (each fragment tuple's 4th element is the fallback-font
+            baseline y-offset, 0 for primary-font text, and 5th element is whether it's bolded), the
+            font size, the margin size, the height of the content, and the maximum usable height of
+            the rules box
         """
 
         text, _ = self._extract_directives(text)
@@ -1658,11 +1687,6 @@ class RegularCard:
         def parse_fragments(line: str) -> list[tuple[str, str]]:
             """
             Return [("text", str), ("symbol", token), ("format", "italic_on"/"italic_off", etc.), ...]
-
-            Any token matching a key of `DIRECTIVE_FONTS` (e.g. "ucs", "emoji", "jp", "arabic", ...)
-            produces a ("format", "fallback_on:<directive>") / ("format", "fallback_off") pair,
-            marking a switch to/from that directive's fallback font (see `DIRECTIVE_FONTS`) for
-            characters unsupported by the main card fonts.
             """
 
             fragments = []
@@ -1678,6 +1702,14 @@ class RegularCard:
                         fragments.append(("format", "italic_on"))
                     elif token in ("\\i", "/i"):
                         fragments.append(("format", "italic_off"))
+                    elif token == "bold":
+                        fragments.append(("format", "bold_on"))
+                    elif token in ("\\bold", "/bold"):
+                        fragments.append(("format", "bold_off"))
+                    elif token == "nobreak":
+                        fragments.append(("format", "nobreak_on"))
+                    elif token in ("\\nobreak", "/nobreak"):
+                        fragments.append(("format", "nobreak_off"))
                     elif token in directive_names:
                         fragments.append(("format", f"fallback_on:{token}"))
                     elif token.lstrip("\\/") in directive_names and (token.startswith("\\") or token.startswith("/")):
@@ -1718,7 +1750,8 @@ class RegularCard:
             italic_fallback_fonts: dict[str, ImageFont.FreeTypeFont],
             fallback_y_offsets: dict[str, int],
             italic_fallback_y_offsets: dict[str, int],
-        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont, int]]]:
+            italic_main_y_offset: int,
+        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]:
             """
             Split the lines into individual words and symbols, then wrap them so that they fit within
             `max_line_width` (based on rules box size and margins).
@@ -1731,6 +1764,8 @@ class RegularCard:
             curr_font = regular_font  # regular vs italics vs a directive fallback font
             curr_directive = None  # the active DIRECTIVE_FONTS key, or None while on curr_main_font
             curr_y_offset = 0  # baseline-alignment offset for curr_font, 0 while on curr_main_font
+            curr_bold = False  # independent of curr_font, toggled separately by "{bold}"/"{/bold}"
+            curr_nobreak = False  # "{nobreak}"/"{/nobreak}": break words mid-character instead of wrapping whole
 
             indent = 0
             draw_text = True
@@ -1741,7 +1776,7 @@ class RegularCard:
                     lines.append(curr_fragment)
                 curr_fragment, curr_width = [], indent
                 if indent > 0:
-                    curr_fragment.append(("indent", indent, curr_font, curr_y_offset))
+                    curr_fragment.append(("indent", indent, curr_font, curr_y_offset, curr_bold))
 
             for kind, value in frags:
                 if kind == "format":
@@ -1749,13 +1784,17 @@ class RegularCard:
                         curr_main_font = italic_font if value == "italic_on" else regular_font
                         if curr_directive is None:
                             curr_font = curr_main_font
-                            curr_y_offset = 0
+                            curr_y_offset = italic_main_y_offset if value == "italic_on" else 0
                         else:
                             is_italic = curr_main_font is italic_font
                             active_fallback_fonts = italic_fallback_fonts if is_italic else fallback_fonts
                             active_y_offsets = italic_fallback_y_offsets if is_italic else fallback_y_offsets
                             curr_font = active_fallback_fonts[curr_directive]
                             curr_y_offset = active_y_offsets[curr_directive]
+                    elif value in ("bold_on", "bold_off"):
+                        curr_bold = value == "bold_on"
+                    elif value in ("nobreak_on", "nobreak_off"):
+                        curr_nobreak = value == "nobreak_on"
                     elif value.startswith("fallback_on:"):
                         curr_directive = value.split(":", 1)[1]
                         is_italic = curr_main_font is italic_font
@@ -1768,9 +1807,9 @@ class RegularCard:
                         curr_font = curr_main_font
                         curr_y_offset = 0
                     elif value[:10] == "dice_start":
-                        curr_fragment.append((value, None, curr_font, curr_y_offset))
+                        curr_fragment.append((value, None, curr_font, curr_y_offset, curr_bold))
                     elif value == "dice_off":
-                        curr_fragment.append(("dice_end", None, curr_font, curr_y_offset))
+                        curr_fragment.append(("dice_end", None, curr_font, curr_y_offset, curr_bold))
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
@@ -1780,17 +1819,17 @@ class RegularCard:
                     width, _, _ = self._get_symbol_metrics(value, curr_font, font_size)
                     if curr_fragment and curr_width + width > max_line_width:
                         go_to_newline()
-                    curr_fragment.append(("symbol", value, curr_font, curr_y_offset))
+                    curr_fragment.append(("symbol", value, curr_font, curr_y_offset, curr_bold))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                 elif kind == "bullet":
                     draw_kind = "text" if draw_text else "spacing"
-                    bullet_width = self._get_rules_text_fragment_length(f"{value} ", curr_font)
-                    curr_fragment.append((draw_kind, f"{value} ", curr_font, curr_y_offset))
+                    bullet_width = self._get_rules_text_fragment_length(f"{value} ", curr_font, curr_bold)
+                    curr_fragment.append((draw_kind, f"{value} ", curr_font, curr_y_offset, curr_bold))
                     curr_width += bullet_width
                     indent = bullet_width
                 elif kind == "dice":
-                    dice_section_width = self._get_rules_text_fragment_length(f"{value} | ", curr_font)
-                    curr_fragment.append(("dice", value, curr_font, curr_y_offset))
+                    dice_section_width = self._get_rules_text_fragment_length(f"{value} | ", curr_font, curr_bold)
+                    curr_fragment.append(("dice", value, curr_font, curr_y_offset, curr_bold))
                     curr_width += dice_section_width
                 elif kind == "spacing":
                     draw_text = False if value == "start" else True
@@ -1798,7 +1837,7 @@ class RegularCard:
                     draw_kind = "text" if draw_text else "spacing"
                     for word in re.findall(r"\S+|\s+", value):
                         word = replace_ticks(word)
-                        width = self._get_rules_text_fragment_length(word, curr_font)
+                        width = self._get_rules_text_fragment_length(word, curr_font, curr_bold)
 
                         if word.isspace():
                             if not curr_fragment:
@@ -1806,28 +1845,40 @@ class RegularCard:
                             if curr_width + width > max_line_width:
                                 go_to_newline()
                                 continue
-                            curr_fragment.append((draw_kind, word, curr_font, curr_y_offset))
+                            curr_fragment.append((draw_kind, word, curr_font, curr_y_offset, curr_bold))
                             curr_width += width
                         else:
-                            if curr_fragment and curr_width + width > max_line_width:
+                            fits_remaining_width = not curr_fragment or curr_width + width <= max_line_width
+                            if curr_nobreak and not fits_remaining_width:
+                                for char in word:
+                                    char_width = self._get_rules_text_fragment_length(char, curr_font, curr_bold)
+                                    if curr_fragment and curr_width + char_width > max_line_width:
+                                        go_to_newline()
+                                    curr_fragment.append((draw_kind, char, curr_font, curr_y_offset, curr_bold))
+                                    curr_width += char_width
+                                continue
+
+                            if not fits_remaining_width:
                                 go_to_newline()
                             if width > max_line_width:
                                 for char in word:
-                                    char_width = width = self._get_rules_text_fragment_length(char, curr_font)
+                                    char_width = width = self._get_rules_text_fragment_length(
+                                        char, curr_font, curr_bold
+                                    )
                                     if curr_fragment and curr_width + char_width > max_line_width:
                                         go_to_newline()
-                                    curr_fragment.append((draw_kind, char, curr_font, curr_y_offset))
+                                    curr_fragment.append((draw_kind, char, curr_font, curr_y_offset, curr_bold))
                                     curr_width += char_width
                             else:
-                                curr_fragment.append((draw_kind, word, curr_font, curr_y_offset))
+                                curr_fragment.append((draw_kind, word, curr_font, curr_y_offset, curr_bold))
                                 curr_width += width
                 else:
-                    curr_fragment.append((kind, value, curr_font, curr_y_offset))
+                    curr_fragment.append((kind, value, curr_font, curr_y_offset, curr_bold))
 
             if curr_fragment:
                 lines.append(curr_fragment)
             else:
-                lines.append([("text", "", curr_font, curr_y_offset)])
+                lines.append([("text", "", curr_font, curr_y_offset, curr_bold)])
             return lines
 
         for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
@@ -1843,13 +1894,17 @@ class RegularCard:
                 directive: self._fallback_font_y_offset(self.RULES_TEXT_FONT_ITALICS, font_size, True, directive)
                 for directive in DIRECTIVE_FONTS
             }
+            # Aligns the italic font's baseline with the regular font's when they're different
+            # typefaces with different ascent-to-ink ratios (e.g. two genuinely different fonts,
+            # rather than a regular/italic pair from the same family sharing metrics).
+            italic_main_y_offset = rules_font.getmetrics()[0] - italics_font.getmetrics()[0]
 
             line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
             margin = int(font_size * 0.25)
             max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
 
             # Split the text into lines that fit the rules box horizontally
-            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int]]]] = []
+            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]] = []
             for text_type, raw_text in rules_text_blocks:
                 rules_lines.append([])
                 if text_type == "flavor":
@@ -1867,6 +1922,7 @@ class RegularCard:
                             italic_fallback_fonts,
                             fallback_y_offsets,
                             italic_fallback_y_offsets,
+                            italic_main_y_offset if text_type != "flavor" else 0,
                         )
                         rules_lines[-1].append([("newline", None)])
                 rules_lines[-1].pop()  # remove the ending newline
@@ -1892,10 +1948,10 @@ class RegularCard:
             def get_final_line_width():
                 final_line = rules_lines[-1][-1]
                 final_line_width = 0
-                for kind, value, frag_font, _y_offset in final_line:
+                for kind, value, frag_font, _y_offset, bold in final_line:
                     if kind == "text" or kind == "dice":
                         if value:
-                            final_line_width += self._get_rules_text_fragment_length(value, frag_font)
+                            final_line_width += self._get_rules_text_fragment_length(value, frag_font, bold)
                     elif kind == "symbol":
                         width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                         final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
@@ -1979,12 +2035,13 @@ class RegularCard:
         font_cap_center = (_cap_bbox[1] + _cap_bbox[3]) / 2
 
         def draw_lines(
-            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int]]],
+            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]],
         ):
             """
             Render lines of text as images. Each fragment's 4th element is a y-offset (see
             `_fallback_font_y_offset`) applied only to fallback-font text fragments, so their
-            baseline lines up with the surrounding primary-font text.
+            baseline lines up with the surrounding primary-font text. The 5th element is whether
+            the fragment is bolded.
             """
 
             curr_font_color = self.RULES_TEXT_FONT_COLOR
@@ -1993,6 +2050,26 @@ class RegularCard:
             dice_row_toggle = True
             dice_section_y = -1
             dice_section = None
+
+            def draw_bolded_text(xy: tuple[int, int], value: str, font: ImageFont.FreeTypeFont, bold: bool, **kwargs):
+                """
+                Draw text with the regular outline, then (if bolded) draw it again with a second,
+                fill-colored stroke on top to fatten the glyphs. This is the standard faux-bold
+                technique for simulating a bold weight with no true bold font file (see Firefox's
+                `gfxFont::GetSyntheticBoldOffset`). Both strokes are centered on the same glyph
+                contour, so they combine visually instead of stacking.
+                """
+
+                draw.text(xy, value, font=font, **kwargs)
+                if bold:
+                    draw.text(
+                        xy,
+                        value,
+                        font=font,
+                        fill=kwargs["fill"],
+                        stroke_width=(self.RULES_TEXT_BOLD_RELATIVE_SIZE * font_size),
+                        stroke_fill=kwargs["fill"],
+                    )
 
             for line_fragments in lines:
                 if line_fragments and line_fragments[0][0] == "newline":
@@ -2012,10 +2089,10 @@ class RegularCard:
 
                 if centered:
                     total_line_length = 0
-                    for kind, value, frag_font, _y_offset in line_fragments:
+                    for kind, value, frag_font, _y_offset, bold in line_fragments:
                         if kind in ("text", "dice"):
                             if value:
-                                total_line_length += self._get_rules_text_fragment_length(value, frag_font)
+                                total_line_length += self._get_rules_text_fragment_length(value, frag_font, bold)
                         elif kind == "symbol":
                             width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                             total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
@@ -2027,18 +2104,19 @@ class RegularCard:
                 else:
                     curr_x = margin + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
-                for kind, value, frag_font, y_offset in line_fragments:
+                for kind, value, frag_font, y_offset, bold in line_fragments:
                     if kind == "text":
                         if value:
-                            draw.text(
+                            draw_bolded_text(
                                 (curr_x, curr_y + y_offset),
                                 value,
-                                font=frag_font,
+                                frag_font,
+                                bold,
                                 fill=curr_font_color,
                                 stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                                 stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                             )
-                            curr_x += self._get_rules_text_fragment_length(value, frag_font)
+                            curr_x += self._get_rules_text_fragment_length(value, frag_font, bold)
                     elif kind == "symbol":
                         width, _, symbol_image = self._get_symbol_metrics(value, frag_font, font_size, curr_font_color)
                         if symbol_image is not None:
@@ -2051,10 +2129,11 @@ class RegularCard:
                             )
                         else:
                             placeholder = f"[{value}]"
-                            draw.text(
+                            draw_bolded_text(
                                 (curr_x, curr_y),
                                 placeholder,
-                                font=frag_font,
+                                frag_font,
+                                bold,
                                 fill="red",
                                 stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                                 stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
@@ -2069,7 +2148,7 @@ class RegularCard:
                             curr_font_color = value
                     elif kind == "spacing":
                         if value:
-                            curr_x += self._get_rules_text_fragment_length(value, frag_font)
+                            curr_x += self._get_rules_text_fragment_length(value, frag_font, bold)
                     elif kind == "dice":
                         if dice_section_y > -1:
                             if not dice_row_toggle:
@@ -2091,24 +2170,26 @@ class RegularCard:
                                 dice_row_toggle = False
                             dice_section_y = curr_y
 
-                        draw.text(
+                        draw_bolded_text(
                             (curr_x, curr_y),
                             value,
-                            font=frag_font,
+                            frag_font,
+                            bold,
                             fill=curr_font_color,
                             stroke_width=(1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                             stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                         )
-                        curr_x += self._get_rules_text_fragment_length(value, frag_font)
-                        draw.text(
+                        curr_x += self._get_rules_text_fragment_length(value, frag_font, bold)
+                        draw_bolded_text(
                             (curr_x, curr_y),
                             " | ",
-                            font=frag_font,
+                            frag_font,
+                            bold,
                             fill=curr_font_color,
                             stroke_width=(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size),
                             stroke_fill=self.RULES_TEXT_OUTLINE_COLOR,
                         )
-                        curr_x += self._get_rules_text_fragment_length(" | ", frag_font)
+                        curr_x += self._get_rules_text_fragment_length(" | ", frag_font, bold)
 
                 curr_y += line_height
 

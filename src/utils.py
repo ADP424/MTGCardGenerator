@@ -1,4 +1,5 @@
 import re
+import warnings
 from datetime import MINYEAR, datetime
 
 from PIL import Image, ImageChops, ImageFont
@@ -27,7 +28,10 @@ def load_font(filepath: str, size: int) -> ImageFont.FreeTypeFont:
     """
 
     try:
-        return ImageFont.truetype(filepath, size, layout_engine=ImageFont.Layout.RAQM)
+        with warnings.catch_warnings():
+            # TODO: Add optional Raqm install path when handling complex fonts like arabic
+            warnings.filterwarnings("ignore", message="Raqm layout was requested")
+            return ImageFont.truetype(filepath, size, layout_engine=ImageFont.Layout.RAQM)
     except ImportError:
         return ImageFont.truetype(filepath, size)
 

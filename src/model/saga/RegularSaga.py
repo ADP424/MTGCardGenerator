@@ -63,49 +63,49 @@ class RegularSaga(RegularCard):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1779
+        self.TYPE_BOX_Y = 2384
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1872
+        self.TYPE_BOTTOM_Y = 2508
 
         # Rules Text Box
-        self.RULES_BOX_X = 116
-        self.RULES_BOX_Y = 238
-        self.RULES_BOX_WIDTH = 633
-        self.RULES_BOX_HEIGHT = 1522
+        self.RULES_BOX_X = 155
+        self.RULES_BOX_Y = 319
+        self.RULES_BOX_WIDTH = 848
+        self.RULES_BOX_HEIGHT = 2039
 
         # Saga Ability Text
-        self.CHAPTER_TEXT_INDENT = 62
+        self.CHAPTER_TEXT_INDENT = 83
 
         # Rules Text
-        self.RULES_TEXT_X = 116
-        self.RULES_TEXT_Y = 238
-        self.RULES_TEXT_WIDTH = 633
-        self.RULES_TEXT_HEIGHT = 1522
+        self.RULES_TEXT_X = 155
+        self.RULES_TEXT_Y = 319
+        self.RULES_TEXT_WIDTH = 848
+        self.RULES_TEXT_HEIGHT = 2039
 
         # Chapter Number Frame
-        self.CHAPTER_NUMBER_X = 58
-        self.CHAPTER_NUMBER_WIDTH = 118
-        self.CHAPTER_NUMBER_HEIGHT = 132
+        self.CHAPTER_NUMBER_X = 78
+        self.CHAPTER_NUMBER_WIDTH = 158
+        self.CHAPTER_NUMBER_HEIGHT = 177
 
         # Chapter Text
-        self.STATIC_TEXT_HEIGHT = 339
-        self.STATIC_CHAPTER_TEXT_GAP = 33
-        self.CHAPTER_TEXT_START_Y = 620
+        self.STATIC_TEXT_HEIGHT = 454
+        self.STATIC_CHAPTER_TEXT_GAP = 44
+        self.CHAPTER_TEXT_START_Y = 831
         self.CHAPTER_NUMBER_FONT = MPLANTIN
-        self.CHAPTER_NUMBER_FONT_SIZE = 70
+        self.CHAPTER_NUMBER_FONT_SIZE = 94
         self.CHAPTER_NUMBER_FONT_COLOR = (0, 0, 0)
 
         # Banner
-        self.BANNER_STRIPE_X = 110
-        self.BANNER_STRIPE_Y = 644
-        self.BANNER_STRIPE_WIDTH = 12
-        self.BANNER_STRIPE_HEIGHT = 1000
+        self.BANNER_STRIPE_X = 147
+        self.BANNER_STRIPE_Y = 863
+        self.BANNER_STRIPE_WIDTH = 16
+        self.BANNER_STRIPE_HEIGHT = 1340
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1305
-        self.SET_SYMBOL_Y = 1795
-        self.SET_SYMBOL_WIDTH = 80
+        self.SET_SYMBOL_X = 1749
+        self.SET_SYMBOL_Y = 2405
+        self.SET_SYMBOL_WIDTH = 107
 
         # Other
         self.HOLO_STAMP_X = float("inf")

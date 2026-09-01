@@ -57,19 +57,19 @@ class TransformFrontside(RegularCard):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 220
-        self.TITLE_BOX_WIDTH = 1183
+        self.TITLE_BOX_X = 295
+        self.TITLE_BOX_WIDTH = 1585
 
         # Title Text
-        self.TITLE_X = 240
-        self.TITLE_WIDTH = 1140
+        self.TITLE_X = 322
+        self.TITLE_WIDTH = 1528
 
         # Reverse Power & Toughness Text
-        self.REVERSE_POWER_TOUGHNESS_X = 1301
-        self.REVERSE_POWER_TOUGHNESS_Y = 1767
-        self.REVERSE_POWER_TOUGHNESS_WIDTH = 90
-        self.REVERSE_POWER_TOUGHNESS_HEIGHT = 71
-        self.REVERSE_POWER_TOUGHNESS_FONT_SIZE = 60
+        self.REVERSE_POWER_TOUGHNESS_X = 1743
+        self.REVERSE_POWER_TOUGHNESS_Y = 2368
+        self.REVERSE_POWER_TOUGHNESS_WIDTH = 121
+        self.REVERSE_POWER_TOUGHNESS_HEIGHT = 95
+        self.REVERSE_POWER_TOUGHNESS_FONT_SIZE = 80
         self.REVERSE_POWER_TOUGHNESS_FONT_COLOR = (102, 102, 102)
 
     def create_layers(

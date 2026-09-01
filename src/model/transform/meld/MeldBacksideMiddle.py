@@ -1,11 +1,11 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class FullArtBasicTHB(RegularCardSmall):
+class MeldBacksideMiddle(RegularCard):
     """
-    A layered image representing a full art basic land card from THB and all the collection info on it,
-    with all relevant card metadata.
+    A layered image representing the middle strip of a meld backside, sitting between
+    `MeldBacksideTop` and `MeldBacksideBottom`.
 
     Attributes
     ----------
@@ -36,7 +36,7 @@ class FullArtBasicTHB(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -52,11 +52,40 @@ class FullArtBasicTHB(RegularCardSmall):
             overlay_layers,
         )
 
-        # Type Box
-        self.TYPE_BOX_Y = 1779
+        # Overall Card
+        self.CARD_WIDTH = 2814
+        self.CARD_HEIGHT = 2010
 
-        # Type Text
-        self.TYPE_BOTTOM_Y = 1865
+        # Nothing besides art and frames is ever drawn on this strip
+        self.SET_SYMBOL_X = float("inf")
+        self.SET_SYMBOL_Y = float("inf")
+        self.HOLO_STAMP_X = float("inf")
+        self.HOLO_STAMP_Y = float("inf")
 
-        # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1791
+    def create_layers(
+        self,
+        create_art_layer: bool = True,
+        create_frame_layers: bool = True,
+        create_overlay_layers: bool = True,
+    ):
+        """
+        Append the art and frame layers to the card based on `self.metadata`. No text or collector
+        info is drawn.
+
+        Parameters
+        ----------
+        create_art_layer: bool, default: True
+            Whether to put the card's art in or not.
+
+        create_frame_layers: bool, default: True
+            Whether to put the card's frames on or not.
+        """
+
+        if create_art_layer:
+            self._create_art_layer()
+
+        if create_frame_layers:
+            self._create_frame_layers()
+
+        if create_overlay_layers:
+            self._create_overlay_layers()
