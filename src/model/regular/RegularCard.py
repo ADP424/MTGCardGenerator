@@ -990,14 +990,14 @@ class RegularCard:
         """
 
         card_set = self.get_metadata(CARD_SET)
-        rarity = self.get_metadata(CARD_RARITY)
+        rarity, _ = self._extract_directives(self.get_metadata(CARD_RARITY).lower())
         creation_date = self.get_metadata(CARD_CREATION_DATE)
         language = self.get_metadata(CARD_LANGUAGE)
         artist = self.get_metadata(CARD_ARTIST)
         spellbook = self.get_metadata(CARD_SPELLBOOK)
 
         index = self.get_metadata(CARD_INDEX).zfill(len(str(self.get_metadata(CARD_FOOTER_LARGEST_INDEX))))
-        rarity_initial = RARITY_TO_INITIAL.get(rarity.lower(), "")
+        rarity_initial = RARITY_TO_INITIAL.get(rarity.strip().lower(), "")
 
         footer_font = load_font(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
         artist_font = load_font(self.ARTIST_FONT, self.FOOTER_FONT_SIZE)
@@ -1553,7 +1553,6 @@ class RegularCard:
         )
         new_text = re.sub("{-}", "—", new_text)
         new_text = re.sub("{ln}", "\n", new_text, flags=re.IGNORECASE)
-        new_text = re.sub("{center}", "", new_text, flags=re.IGNORECASE)
         return new_text
 
     def _get_symbol_metrics(
@@ -1617,10 +1616,7 @@ class RegularCard:
             The font the text would be written in.
 
         bold: bool
-            Whether the text is bolded, which (like the outline) widens each glyph via `stroke_width`
-            without changing `font.getlength`, so it must be compensated for here too. Both strokes are
-            centered on the same glyph contour, so the wider of the two (not their sum) sets the extra
-            width.
+            Whether the text is bolded or not.
 
         Returns
         -------
@@ -1632,7 +1628,7 @@ class RegularCard:
         return int(font.getlength(text) * (1 + max(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE, bold_relative_size)))
 
     def _get_rules_text_layout(self, text: str) -> tuple[
-        list[list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]]],
+        list[list[tuple[str, list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]]]],
         int,
         int,
         int,
@@ -1650,16 +1646,12 @@ class RegularCard:
         Returns
         -------
         tuple[
-            list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]],
+            list[list[tuple[str, list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]]],
             int,
             int,
             int,
             int,
         ]
-            The lines of rules/flavor text (each fragment tuple's 4th element is the fallback-font
-            baseline y-offset, 0 for primary-font text, and 5th element is whether it's bolded), the
-            font size, the margin size, the height of the content, and the maximum usable height of
-            the rules box
         """
 
         text, _ = self._extract_directives(text)
@@ -1710,6 +1702,19 @@ class RegularCard:
                         fragments.append(("format", "nobreak_on"))
                     elif token in ("\\nobreak", "/nobreak"):
                         fragments.append(("format", "nobreak_off"))
+                    elif token in ("center", "right", "left", "hardright"):
+                        fragments.append(("format", f"align_{token}"))
+                    elif token in (
+                        "\\center",
+                        "/center",
+                        "\\right",
+                        "/right",
+                        "\\left",
+                        "/left",
+                        "\\hardright",
+                        "/hardright",
+                    ):
+                        fragments.append(("format", "align_left"))
                     elif token in directive_names:
                         fragments.append(("format", f"fallback_on:{token}"))
                     elif token.lstrip("\\/") in directive_names and (token.startswith("\\") or token.startswith("/")):
@@ -1751,30 +1756,42 @@ class RegularCard:
             fallback_y_offsets: dict[str, int],
             italic_fallback_y_offsets: dict[str, int],
             italic_main_y_offset: int,
-        ) -> list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]:
+            get_line_max_width=lambda align: max_line_width,
+            starting_align: str = "left",
+            advance_line=lambda: None,
+        ) -> list[tuple[str, list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]]:
             """
             Split the lines into individual words and symbols, then wrap them so that they fit within
-            `max_line_width` (based on rules box size and margins).
+            the max width for each line's alignment.
             """
 
             lines = []
             curr_fragment = []
             curr_width = 0
+            curr_align = starting_align
+            next_align = starting_align
+
+            advance_line()
+
+            curr_line_width = get_line_max_width(curr_align)
             curr_main_font = regular_font  # regular vs italics
             curr_font = regular_font  # regular vs italics vs a directive fallback font
             curr_directive = None  # the active DIRECTIVE_FONTS key, or None while on curr_main_font
             curr_y_offset = 0  # baseline-alignment offset for curr_font, 0 while on curr_main_font
             curr_bold = False  # independent of curr_font, toggled separately by "{bold}"/"{/bold}"
-            curr_nobreak = False  # "{nobreak}"/"{/nobreak}": break words mid-character instead of wrapping whole
+            curr_nobreak = False  # "{nobreak}"/"{/nobreak}": break words between lines instead of wrapping
 
             indent = 0
             draw_text = True
 
             def go_to_newline():
-                nonlocal curr_fragment, curr_width
+                nonlocal curr_fragment, curr_width, curr_line_width, curr_align
                 if curr_fragment:
-                    lines.append(curr_fragment)
+                    lines.append((curr_align, curr_fragment))
                 curr_fragment, curr_width = [], indent
+                curr_align = next_align
+                advance_line()
+                curr_line_width = get_line_max_width(curr_align)
                 if indent > 0:
                     curr_fragment.append(("indent", indent, curr_font, curr_y_offset, curr_bold))
 
@@ -1810,6 +1827,12 @@ class RegularCard:
                         curr_fragment.append((value, None, curr_font, curr_y_offset, curr_bold))
                     elif value == "dice_off":
                         curr_fragment.append(("dice_end", None, curr_font, curr_y_offset, curr_bold))
+                    elif value.startswith("align_"):
+                        next_align = value[len("align_") :]
+                        if next_align != "left":
+                            # opening a tag mid-line retroactively centers/right-aligns the whole line
+                            curr_align = next_align
+                            curr_line_width = get_line_max_width(curr_align)
                     continue
                 elif kind == "symbol":
                     if value.lower() == "lns":
@@ -1817,7 +1840,7 @@ class RegularCard:
                         go_to_newline()
                         continue
                     width, _, _ = self._get_symbol_metrics(value, curr_font, font_size)
-                    if curr_fragment and curr_width + width > max_line_width:
+                    if curr_fragment and curr_width + width > curr_line_width:
                         go_to_newline()
                     curr_fragment.append(("symbol", value, curr_font, curr_y_offset, curr_bold))
                     curr_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
@@ -1842,17 +1865,17 @@ class RegularCard:
                         if word.isspace():
                             if not curr_fragment:
                                 continue
-                            if curr_width + width > max_line_width:
+                            if curr_width + width > curr_line_width:
                                 go_to_newline()
                                 continue
                             curr_fragment.append((draw_kind, word, curr_font, curr_y_offset, curr_bold))
                             curr_width += width
                         else:
-                            fits_remaining_width = not curr_fragment or curr_width + width <= max_line_width
+                            fits_remaining_width = not curr_fragment or curr_width + width <= curr_line_width
                             if curr_nobreak and not fits_remaining_width:
                                 for char in word:
                                     char_width = self._get_rules_text_fragment_length(char, curr_font, curr_bold)
-                                    if curr_fragment and curr_width + char_width > max_line_width:
+                                    if curr_fragment and curr_width + char_width > curr_line_width:
                                         go_to_newline()
                                     curr_fragment.append((draw_kind, char, curr_font, curr_y_offset, curr_bold))
                                     curr_width += char_width
@@ -1860,12 +1883,12 @@ class RegularCard:
 
                             if not fits_remaining_width:
                                 go_to_newline()
-                            if width > max_line_width:
+                            if width > curr_line_width:
                                 for char in word:
                                     char_width = width = self._get_rules_text_fragment_length(
                                         char, curr_font, curr_bold
                                     )
-                                    if curr_fragment and curr_width + char_width > max_line_width:
+                                    if curr_fragment and curr_width + char_width > curr_line_width:
                                         go_to_newline()
                                     curr_fragment.append((draw_kind, char, curr_font, curr_y_offset, curr_bold))
                                     curr_width += char_width
@@ -1876,9 +1899,9 @@ class RegularCard:
                     curr_fragment.append((kind, value, curr_font, curr_y_offset, curr_bold))
 
             if curr_fragment:
-                lines.append(curr_fragment)
+                lines.append((curr_align, curr_fragment))
             else:
-                lines.append([("text", "", curr_font, curr_y_offset, curr_bold)])
+                lines.append((curr_align, [("text", "", curr_font, curr_y_offset, curr_bold)]))
             return lines
 
         for font_size in range(self.RULES_TEXT_MAX_FONT_SIZE, self.RULES_TEXT_MIN_FONT_SIZE - 1, -1):
@@ -1894,74 +1917,107 @@ class RegularCard:
                 directive: self._fallback_font_y_offset(self.RULES_TEXT_FONT_ITALICS, font_size, True, directive)
                 for directive in DIRECTIVE_FONTS
             }
-            # Aligns the italic font's baseline with the regular font's when they're different
-            # typefaces with different ascent-to-ink ratios (e.g. two genuinely different fonts,
-            # rather than a regular/italic pair from the same family sharing metrics).
+
+            # Aligns the italic font's baseline with the regular font's when they're different typeface
             italic_main_y_offset = rules_font.getmetrics()[0] - italics_font.getmetrics()[0]
 
             line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
             margin = int(font_size * 0.25)
             max_line_width = self.RULES_TEXT_WIDTH - 2 * margin
+            curr_y = 0
 
-            # Split the text into lines that fit the rules box horizontally
-            rules_lines: list[list[list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]] = []
-            for text_type, raw_text in rules_text_blocks:
-                rules_lines.append([])
-                if text_type == "flavor":
-                    target_font = italics_font
-                else:
-                    target_font = rules_font
-                for line in raw_text.split("\n"):
-                    fragments = parse_fragments(line)
-                    if fragments:
-                        rules_lines[-1] += wrap_text_fragments(
-                            fragments,
-                            target_font,
-                            italics_font,
-                            fallback_fonts,
-                            italic_fallback_fonts,
-                            fallback_y_offsets,
-                            italic_fallback_y_offsets,
-                            italic_main_y_offset if text_type != "flavor" else 0,
+            def wrap_all_blocks(
+                get_line_max_width,
+            ) -> list[list[tuple[str, list[tuple[str, str, ImageFont.FreeTypeFont, int, bool]]]]]:
+                """
+                Split the text into lines that fit the rules box horizontally, using
+                `get_line_max_width(align)` to get the max width for each line as it's wrapped.
+                """
+
+                nonlocal curr_y
+
+                def advance_line():
+                    nonlocal curr_y
+                    curr_y += line_height
+
+                blocks = []
+                for text_type, raw_text in rules_text_blocks:
+                    blocks.append([])
+                    target_font = italics_font if text_type == "flavor" else rules_font
+                    carried_align = "left"
+                    for line in raw_text.split("\n"):
+                        fragments = parse_fragments(line)
+                        if fragments:
+                            wrapped = wrap_text_fragments(
+                                fragments,
+                                target_font,
+                                italics_font,
+                                fallback_fonts,
+                                italic_fallback_fonts,
+                                fallback_y_offsets,
+                                italic_fallback_y_offsets,
+                                italic_main_y_offset if text_type != "flavor" else 0,
+                                get_line_max_width,
+                                carried_align,
+                                advance_line,
+                            )
+                            blocks[-1] += wrapped
+                            carried_align = wrapped[-1][0]
+                            curr_y += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
+                            blocks[-1].append(("newline", [("newline", None)]))
+                    blocks[-1].pop()  # remove the ending newline
+                    if len(blocks) < len(rules_text_blocks):
+                        curr_y += (
+                            self.RULES_TEXT_DIVIDER.image.height + line_height
+                            if self.RULES_TEXT_DIVIDER is not None
+                            else line_height
                         )
-                        rules_lines[-1].append([("newline", None)])
-                rules_lines[-1].pop()  # remove the ending newline
+                return blocks
+
+            def get_content_height(lines_by_block) -> int:
+                height = 0
+                for idx, lines in enumerate(lines_by_block):
+                    for _, line in lines:
+                        if line[0][0] == "newline":
+                            height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
+                        else:
+                            height += line_height
+                    if idx < len(lines_by_block) - 1:
+                        height += (
+                            self.RULES_TEXT_DIVIDER.image.height + line_height
+                            if self.RULES_TEXT_DIVIDER is not None
+                            else line_height
+                        )
+                return height
+
+            # Pass 1: Wwrap at full box width to determine line count/order and each line's alignment
+            rules_lines = wrap_all_blocks(lambda align: max_line_width)
 
             # If the lines of text are too tall, try the process again with a different font
-            content_height = 0
-            for idx, lines in enumerate(rules_lines):
-                for line in lines:
-                    if line[0][0] == "newline":
-                        content_height += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
-                    else:
-                        content_height += line_height
-                if idx < len(rules_lines) - 1:
-                    content_height += (
-                        self.RULES_TEXT_DIVIDER.image.height + line_height
-                        if self.RULES_TEXT_DIVIDER is not None
-                        else line_height
-                    )
+            content_height = get_content_height(rules_lines)
             usable_height = self.RULES_TEXT_HEIGHT - 2 * margin
             if content_height > usable_height:
                 continue
 
-            def get_final_line_width():
-                final_line = rules_lines[-1][-1]
-                final_line_width = 0
-                for kind, value, frag_font, _y_offset, bold in final_line:
+            def get_line_width(line):
+                line_width = 0
+                for kind, value, frag_font, _, bold in line:
                     if kind == "text" or kind == "dice":
                         if value:
-                            final_line_width += self._get_rules_text_fragment_length(value, frag_font, bold)
+                            line_width += self._get_rules_text_fragment_length(value, frag_font, bold)
                     elif kind == "symbol":
                         width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
-                        final_line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
+                        line_width += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
                     elif kind == "indent":
-                        final_line_width += value
-                return final_line_width
+                        line_width += value
+                return line_width
+
+            def get_final_line_width():
+                return get_line_width(rules_lines[-1][-1][1])
 
             starting_y = margin + (usable_height - content_height) // 2
 
-            # check for power/toughness overlap
+            # Check for power/toughness overlap
             if (
                 len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
                 and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
@@ -1971,7 +2027,7 @@ class RegularCard:
             ):
                 continue
 
-            # check for holo stamp overlap
+            # Check for holo stamp overlap
             if (
                 "/holo" in self.get_metadata(CARD_FRAMES)
                 and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
@@ -1981,7 +2037,7 @@ class RegularCard:
             ):
                 continue
 
-            # check for reverse power/toughness overlap
+            # Check for reverse power/toughness overlap
             if (
                 len(self.get_metadata(CARD_TRANSFORM_HINT)) > 0
                 and self.RULES_TEXT_Y + starting_y + content_height + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
@@ -1990,6 +2046,102 @@ class RegularCard:
                 >= self.REVERSE_POWER_TOUGHNESS_X
             ):
                 continue
+
+            # Second pass
+            holo_active = "/holo" in self.get_metadata(CARD_FRAMES)
+            pt_active = len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
+            reverse_pt_active = len(self.get_metadata(CARD_TRANSFORM_HINT)) > 0
+            box_left = self.RULES_TEXT_X + margin
+            box_right = self.RULES_TEXT_X + self.RULES_TEXT_WIDTH - margin
+
+            def get_right_align_shift(card_y_bottom: int) -> int:
+                shift = 0
+                for zone_active, zone_y, zone_x in (
+                    (pt_active, self.POWER_TOUGHNESS_Y, self.POWER_TOUGHNESS_X),
+                    (reverse_pt_active, self.REVERSE_POWER_TOUGHNESS_Y, self.REVERSE_POWER_TOUGHNESS_X),
+                ):
+                    if zone_active and card_y_bottom >= zone_y:
+                        allowed_right = zone_x - self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                        shift = max(shift, box_right - allowed_right)
+                return shift
+
+            if holo_active or pt_active or reverse_pt_active:
+                reject_font_size = False
+
+                def get_line_max_width(align):
+                    nonlocal reject_font_size
+                    if align in ("left", "right"):
+                        return max_line_width
+                    card_y_bottom = self.RULES_TEXT_Y + curr_y + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+
+                    if holo_active and card_y_bottom >= self.HOLO_STAMP_Y:
+                        reject_font_size = True
+                        return 0
+
+                    right_limit = box_right
+                    for zone_active, zone_y, zone_x in (
+                        (pt_active, self.POWER_TOUGHNESS_Y, self.POWER_TOUGHNESS_X),
+                        (reverse_pt_active, self.REVERSE_POWER_TOUGHNESS_Y, self.REVERSE_POWER_TOUGHNESS_X),
+                    ):
+                        if zone_active and card_y_bottom >= zone_y:
+                            right_limit = min(right_limit, zone_x - self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER)
+
+                    return max(right_limit - box_left, 0)
+
+                curr_y = starting_y
+                rules_lines = wrap_all_blocks(get_line_max_width)
+
+                if reject_font_size:
+                    continue
+
+                content_height = get_content_height(rules_lines)
+                if content_height > usable_height:
+                    continue
+
+                # For left-aligned text, redo at a smaller font size if it overlaps with stuff
+                # For right-aligned text, try shifting it leftward if it overlaps with stuff, then redo if impossible
+                line_y = starting_y
+                for lines in rules_lines:
+                    for align, line in lines:
+                        if line[0][0] == "newline":
+                            line_y += line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
+                            continue
+                        line_y += line_height
+                        if align not in ("left", "right"):
+                            continue
+                        card_y_bottom = self.RULES_TEXT_Y + line_y + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+                        if align == "left":
+                            if holo_active and card_y_bottom >= self.HOLO_STAMP_Y:
+                                if (
+                                    self.RULES_TEXT_X
+                                    + get_line_width(line)
+                                    + margin
+                                    + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                                    >= self.HOLO_STAMP_X
+                                ):
+                                    reject_font_size = True
+                                    continue
+                            for zone_active, zone_y, zone_x in (
+                                (pt_active, self.POWER_TOUGHNESS_Y, self.POWER_TOUGHNESS_X),
+                                (reverse_pt_active, self.REVERSE_POWER_TOUGHNESS_Y, self.REVERSE_POWER_TOUGHNESS_X),
+                            ):
+                                if (
+                                    zone_active
+                                    and card_y_bottom >= zone_y
+                                    and box_left + get_line_width(line) + self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                                    >= zone_x
+                                ):
+                                    reject_font_size = True
+                            continue
+
+                        if holo_active and card_y_bottom >= self.HOLO_STAMP_Y:
+                            reject_font_size = True
+                            continue
+                        shift = get_right_align_shift(card_y_bottom)
+                        if shift > 0 and box_right - shift - get_line_width(line) < box_left:
+                            reject_font_size = True
+                if reject_font_size:
+                    continue
 
             break
         else:
@@ -2012,11 +2164,6 @@ class RegularCard:
         if len(text.strip()) == 0:
             return
 
-        centered = False
-        if "{center}" in text:
-            text = text.replace("{center}", "")
-            centered = True
-
         overlay = False
         if "{last}" in text:
             text = text.replace("{last}", "")
@@ -2034,8 +2181,29 @@ class RegularCard:
         _cap_bbox = _rules_font.getbbox("H")
         font_cap_center = (_cap_bbox[1] + _cap_bbox[3]) / 2
 
+        pt_active = len(self.get_metadata(CARD_POWER_TOUGHNESS)) > 0
+        reverse_pt_active = len(self.get_metadata(CARD_TRANSFORM_HINT)) > 0
+
+        def get_right_align_shift(line_bottom_y: int) -> int:
+            """
+            How far left a right-aligned line ending at local-space `line_bottom_y` needs to shift to
+            clear the power/toughness or reverse power/toughness box, without changing its word wrap.
+            """
+
+            card_y_bottom = self.RULES_TEXT_Y + line_bottom_y + self.RULES_TEXT_LIMIT_VERTICAL_BUFFER
+            box_right = self.RULES_TEXT_X + self.RULES_TEXT_WIDTH - margin
+            shift = 0
+            for zone_active, zone_y, zone_x in (
+                (pt_active, self.POWER_TOUGHNESS_Y, self.POWER_TOUGHNESS_X),
+                (reverse_pt_active, self.REVERSE_POWER_TOUGHNESS_Y, self.REVERSE_POWER_TOUGHNESS_X),
+            ):
+                if zone_active and card_y_bottom >= zone_y:
+                    allowed_right = zone_x - self.RULES_TEXT_LIMIT_HORIZONTAL_BUFFER
+                    shift = max(shift, box_right - allowed_right)
+            return max(shift, 0)
+
         def draw_lines(
-            lines: list[list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]],
+            lines: list[tuple[str, list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]]],
         ):
             """
             Render lines of text as images. Each fragment's 4th element is a y-offset (see
@@ -2071,7 +2239,7 @@ class RegularCard:
                         stroke_fill=kwargs["fill"],
                     )
 
-            for line_fragments in lines:
+            for align, line_fragments in lines:
                 if line_fragments and line_fragments[0][0] == "newline":
                     curr_y += (
                         line_height // self.RULES_TEXT_LINE_HEIGHT_TO_GAP_RATIO
@@ -2087,7 +2255,7 @@ class RegularCard:
                         log(f"Dice section color '{color}' not found. Using colorless...")
                         dice_section = open_image(f"{DICE_SECTION_PATH}/colorless.png")
 
-                if centered:
+                if align in ("center", "right", "hardright"):
                     total_line_length = 0
                     for kind, value, frag_font, _y_offset, bold in line_fragments:
                         if kind in ("text", "dice"):
@@ -2096,11 +2264,14 @@ class RegularCard:
                         elif kind == "symbol":
                             width, _, _ = self._get_symbol_metrics(value, frag_font, font_size)
                             total_line_length += width + self.RULES_TEXT_MANA_SYMBOL_SPACING
-                    curr_x = (
-                        self.RULES_TEXT_WIDTH
-                        - total_line_length
-                        + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
-                    ) // 2
+                    outline_padding = int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
+                    if align == "right":
+                        shift = get_right_align_shift(curr_y + line_height)
+                        curr_x = self.RULES_TEXT_WIDTH - margin - total_line_length + outline_padding - shift
+                    elif align == "hardright":
+                        curr_x = self.RULES_TEXT_WIDTH - margin - total_line_length + outline_padding
+                    else:
+                        curr_x = (self.RULES_TEXT_WIDTH - total_line_length + outline_padding) // 2
                 else:
                     curr_x = margin + int(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE * font_size)
 
