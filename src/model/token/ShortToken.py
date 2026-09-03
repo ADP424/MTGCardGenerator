@@ -1,9 +1,9 @@
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from model.token.RegularToken import RegularToken
+from model.token.Token import Token
 
 
-class ShortToken(RegularToken):
+class ShortToken(Token):
     """
     A layered image representing a short token and all the collection info on it,
     with all relevant card metadata.

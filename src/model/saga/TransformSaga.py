@@ -3,11 +3,11 @@ from PIL import Image, ImageDraw
 from constants import BELEREN_BOLD_SMALL_CAPS, CARD_TRANSFORM_HINT
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from model.saga.RegularSaga import RegularSaga
+from model.saga.Saga import Saga
 from utils import load_font
 
 
-class TransformSaga(RegularSaga):
+class TransformSaga(Saga):
     """
     A layered image representing a transform saga frontside and all the collection info on it,
     with all relevant card metadata.

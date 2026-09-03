@@ -1,9 +1,9 @@
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from model.token.RegularToken import RegularToken
+from model.token.Token import Token
 
 
-class TextlessToken(RegularToken):
+class TextlessToken(Token):
     """
     A layered image representing a textless token and all the collection info on it,
     with all relevant card metadata.

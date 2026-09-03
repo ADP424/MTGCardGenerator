@@ -1990,7 +1990,7 @@ class RegularCard:
                         )
                 return height
 
-            # Pass 1: Wwrap at full box width to determine line count/order and each line's alignment
+            # Pass 1: Wrap at full box width to determine line count/order and each line's alignment
             rules_lines = wrap_all_blocks(lambda align: max_line_width)
 
             # If the lines of text are too tall, try the process again with a different font

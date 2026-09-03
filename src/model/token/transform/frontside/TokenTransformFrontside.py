@@ -1,13 +1,13 @@
-from constants import CARD_FRAME_LAYOUT_EXTRAS, RULES_DIVIDING_LINE
+from constants import BELEREN_BOLD_SMALL_CAPS
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
-from model.showcase.promo.Promo import Promo
+from model.regular.RegularCardSmall import RegularCardSmall
+from model.transform.TransformFrontsideOld import TransformFrontsideOld
 
 
-class ExtendedPromo(Promo):
+class TokenTransformFrontside(TransformFrontsideOld):
     """
-    A layered image representing a promo card with an extended art frame
-    and all the collection info on it, with all relevant card metadata.
+    A layered image representing a regular token transform frontside and all the collection info on it,
+    with all relevant card metadata.
 
     Attributes
     ----------
@@ -38,7 +38,7 @@ class ExtendedPromo(Promo):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -55,17 +55,25 @@ class ExtendedPromo(Promo):
         )
 
         # Title Text
+        self.TITLE_X = 128
+        self.TITLE_WIDTH = 1244
+        self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
         self.TITLE_FONT_COLOR = (0, 0, 0)
-        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.TITLE_TEXT_ALIGN = "center"
+
+        # Type Box
+        self.TYPE_BOX_Y = 1361
+
+        # Type Text
+        self.TYPE_BOTTOM_Y = 1456
+
+        # Rules Text Box
+        self.RULES_BOX_Y = 1496
+        self.RULES_BOX_HEIGHT = 437
 
         # Rules Text
-        self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
-        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.RULES_TEXT_Y = 1496
+        self.RULES_TEXT_HEIGHT = 437
 
-        # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (
-            (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
-        )
-
-        # Other
-        self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
+        # Set / Rarity Symbol
+        self.SET_SYMBOL_Y = 1373

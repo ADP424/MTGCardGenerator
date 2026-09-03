@@ -1,13 +1,11 @@
-from constants import CARD_FRAME_LAYOUT_EXTRAS, RULES_DIVIDING_LINE
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
-from model.showcase.promo.Promo import Promo
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class ExtendedPromo(Promo):
+class Edifice(RegularCardSmall):
     """
-    A layered image representing a promo card with an extended art frame
-    and all the collection info on it, with all relevant card metadata.
+    A layered image representing an edifice and all the collection info on it,
+    with all relevant card metadata.
 
     Attributes
     ----------
@@ -38,7 +36,7 @@ class ExtendedPromo(Promo):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,18 +52,9 @@ class ExtendedPromo(Promo):
             overlay_layers,
         )
 
-        # Title Text
-        self.TITLE_FONT_COLOR = (0, 0, 0)
-        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
-
-        # Rules Text
-        self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
-        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
-
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (
-            (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
-        )
-
-        # Other
-        self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
+        self.POWER_TOUGHNESS_X = 1281
+        self.POWER_TOUGHNESS_Y = 1850
+        self.POWER_TOUGHNESS_WIDTH = 134
+        self.POWER_TOUGHNESS_HEIGHT = 125
+        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)

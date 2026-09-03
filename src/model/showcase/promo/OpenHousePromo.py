@@ -1,10 +1,10 @@
 from constants import CARD_FRAME_LAYOUT_EXTRAS
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from model.showcase.promo.RegularPromo import RegularPromo
+from model.showcase.promo.Promo import Promo
 
 
-class OpenHousePromo(RegularPromo):
+class OpenHousePromo(Promo):
     """
     A layered image representing a promo card with an open house frame
     and all the collection info on it, with all relevant card metadata.

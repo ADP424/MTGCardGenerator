@@ -1,13 +1,12 @@
-from constants import CARD_FRAME_LAYOUT_EXTRAS, RULES_DIVIDING_LINE
+from constants import LIGHT_RULES_DIVIDING_LINE
 from model.Layer import Layer
-from model.regular.RegularCard import RegularCard
-from model.showcase.promo.Promo import Promo
+from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class ExtendedPromo(Promo):
+class Promo(RegularCardSmall):
     """
-    A layered image representing a promo card with an extended art frame
-    and all the collection info on it, with all relevant card metadata.
+    A layered image representing a regular/generic promo card and all the collection info on it,
+    with all relevant card metadata.
 
     Attributes
     ----------
@@ -38,7 +37,7 @@ class ExtendedPromo(Promo):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCard"]] = None,
+        metadata: dict[str, str | list["RegularCardSmall"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -55,17 +54,32 @@ class ExtendedPromo(Promo):
         )
 
         # Title Text
-        self.TITLE_FONT_COLOR = (0, 0, 0)
-        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.TITLE_FONT_COLOR = (255, 255, 255)
+        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.03, 0.03)
+
+        # Type Box
+        self.TYPE_BOX_Y = 1362
+
+        # Type Text
+        self.TYPE_BOTTOM_Y = 1455
+        self.TYPE_FONT_COLOR = (255, 255, 255)
+        self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.03, 0.03)
+
+        # Rules Text Box
+        self.RULES_BOX_Y = 1490
+        self.RULES_BOX_HEIGHT = 448
 
         # Rules Text
-        self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
-        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
+        self.RULES_TEXT_Y = 1490
+        self.RULES_TEXT_HEIGHT = 448
+        self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
+        self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.03, 0.03)
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_FONT_COLOR = (
-            (0, 0, 0) if "vehicle" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else (255, 255, 255)
-        )
+        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
+
+        # Set / Rarity Symbol
+        self.SET_SYMBOL_Y = 1373
 
         # Other
-        self.RULES_TEXT_DIVIDER = RULES_DIVIDING_LINE
+        self.RULES_TEXT_DIVIDER = LIGHT_RULES_DIVIDING_LINE

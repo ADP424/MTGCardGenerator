@@ -65,28 +65,29 @@ from constants import (
     SETTINGS_PATH,
 )
 from log import decrease_log_indent, increase_log_indent, log, reset_log
-from model.adventure.RegularAdventure import RegularAdventure
+from model.adventure.Adventure import Adventure
 from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
-from model.class_.RegularClass import RegularClass
+from model.class_.Class import Class
 from model.conspiracy.Conspiracy import Conspiracy
 from model.dungeon.Dungeon import Dungeon
 from model.dungeon.ExpandedDungeonGlobal import ExpandedDungeonGlobal
 from model.dungeon.ExpandedDungeonLocal import ExpandedDungeonLocal
-from model.edifice.RegularEdifice import RegularEdifice
+from model.edifice.Edifice import Edifice
+from model.leveler.Leveler import Leveler
 from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
-from model.omen.RegularOmen import RegularOmen
-from model.planeswalker.RegularPlaneswalker import RegularPlaneswalker
-from model.prepare.RegularPrepare import RegularPrepare
+from model.omen.Omen import Omen
+from model.planeswalker.Planeswalker import Planeswalker
+from model.prepare.Prepare import Prepare
 from model.regular.RegularCard import RegularCard
 from model.regular.RegularCardSmall import RegularCardSmall
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.regular.RegularSplitRulesTextSmall import RegularSplitRulesTextSmall
-from model.room.RegularRoom import RegularRoom
-from model.saga.RegularSaga import RegularSaga
+from model.room.Room import Room
+from model.saga.Saga import Saga
 from model.saga.TransformSagaOld import TransformSagaOld
 from model.showcase.Chat import Chat
 from model.showcase.ClearTextbox import ClearTextbox
@@ -112,27 +113,27 @@ from model.showcase.Playtest import Playtest
 from model.showcase.Poker import Poker
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
-from model.showcase.promo.RegularPromo import RegularPromo
+from model.showcase.promo.Promo import Promo
 from model.showcase.Sketch import Sketch
-from model.showcase.transparent.RegularTransparent import RegularTransparent
+from model.showcase.transparent.Transparent import Transparent
 from model.showcase.Zendikar import Zendikar
-from model.split.fuse.RegularFuse import RegularFuse
-from model.split.RegularSplit import RegularSplit
-from model.token.RegularToken import RegularToken
+from model.split.fuse.Fuse import Fuse
+from model.split.Split import Split
 from model.token.ShortToken import ShortToken
 from model.token.TallToken import TallToken
 from model.token.TextlessToken import TextlessToken
-from model.token.transform.backside.RegularTokenTransformBackside import (
-    RegularTokenTransformBackside,
-)
+from model.token.Token import Token
 from model.token.transform.backside.TextlessTokenTransformBackside import (
     TextlessTokenTransformBackside,
 )
-from model.token.transform.frontside.RegularTokenTransformFrontside import (
-    RegularTokenTransformFrontside,
+from model.token.transform.backside.TokenTransformBackside import (
+    TokenTransformBackside,
 )
 from model.token.transform.frontside.TextlessTokenTransformFrontside import (
     TextlessTokenTransformFrontside,
+)
+from model.token.transform.frontside.TokenTransformFrontside import (
+    TokenTransformFrontside,
 )
 from model.transform.meld.MeldBacksideBottom import MeldBacksideBottom
 from model.transform.meld.MeldBacksideMiddle import MeldBacksideMiddle
@@ -510,36 +511,36 @@ def process_spreadsheets(
         "short modal frontside": ShortModalFrontside,
         "short modal backside": ShortModalBackside,
         # Split
-        "regular split": RegularSplit,
-        "regular fuse": RegularFuse,
+        "split": Split,
+        "fuse": Fuse,
         # Token
-        "regular token": RegularToken,
+        "token": Token,
         "textless token": TextlessToken,
         "short token": ShortToken,
         "tall token": TallToken,
         # Transform Token
-        "regular token transform frontside": RegularTokenTransformFrontside,
-        "regular token transform backside": RegularTokenTransformBackside,
+        "token transform frontside": TokenTransformFrontside,
+        "token transform backside": TokenTransformBackside,
         "textless token transform frontside": TextlessTokenTransformFrontside,
         "textless token transform backside": TextlessTokenTransformBackside,
         # Planeswalker
-        "regular planeswalker": RegularPlaneswalker,
+        "planeswalker": Planeswalker,
         # Saga
-        "regular saga": RegularSaga,
+        "saga": Saga,
         "transform saga": TransformSagaOld,
         # Class
-        "regular class": RegularClass,
+        "class": Class,
         # Adventure
-        "regular adventure": RegularAdventure,
+        "adventure": Adventure,
         # Omen
-        "regular omen": RegularOmen,
+        "omen": Omen,
         # Prepare
-        "regular prepare": RegularPrepare,
+        "prepare": Prepare,
         # Battle
         "battle": Battle,
         "transform battle": TransformBattle,
         # Room
-        "regular room": RegularRoom,
+        "room": Room,
         # Conspiracy
         "conspiracy": Conspiracy,
         # Dungeon
@@ -548,9 +549,11 @@ def process_spreadsheets(
         "expanded dungeon global": ExpandedDungeonGlobal,
         "expanded dungeon local": ExpandedDungeonLocal,
         # Edifice
-        "regular edifice": RegularEdifice,
+        "edifice": Edifice,
+        # Leveler
+        "leveler": Leveler,
         # Showcase
-        "regular transparent": RegularTransparent,
+        "transparent": Transparent,
         "full text": FullText,
         "japan": Japan,
         "japanese mystical archive": JapaneseMysticalArchive,
@@ -569,7 +572,7 @@ def process_spreadsheets(
         # Showcase Meme
         "demotivational poster": DemotivationalPoster,
         # Showcase Promo
-        "regular promo": RegularPromo,
+        "promo": Promo,
         "extended promo": ExtendedPromo,
         "open house promo": OpenHousePromo,
         # Showcase Full Art Basic Lands
