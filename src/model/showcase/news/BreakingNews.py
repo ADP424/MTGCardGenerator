@@ -16,11 +16,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import add_drop_shadow, load_font, open_image, replace_ticks
 
 
-class BreakingNews(RegularCardSmall):
+class BreakingNews(RegularCard):
     """
     A layered image representing a "breaking news" broadcast-styled showcase card and all the
     collection info on it, with all relevant card metadata.
@@ -54,7 +54,7 @@ class BreakingNews(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -71,37 +71,37 @@ class BreakingNews(RegularCardSmall):
         )
 
         # Overall Card
-        self.CARD_WIDTH = 2100
-        self.CARD_HEIGHT = 1500
+        self.CARD_WIDTH = 2814
+        self.CARD_HEIGHT = 2010
 
         # Mana Cost Box
-        self.TITLE_BOX_X = 1363
-        self.TITLE_BOX_Y = 62
-        self.TITLE_BOX_WIDTH = 636
-        self.TITLE_BOX_HEIGHT = 206
+        self.TITLE_BOX_X = 1826
+        self.TITLE_BOX_Y = 83
+        self.TITLE_BOX_WIDTH = 852
+        self.TITLE_BOX_HEIGHT = 276
         self.MANA_COST_ALIGN = "center"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 6
-        self.MANA_COST_SYMBOL_SIZE = 100
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
+        self.MANA_COST_SYMBOL_SIZE = 134
 
         # Set / Rarity Symbol Box
-        self.SET_SYMBOL_X = 101
-        self.SET_SYMBOL_Y = 823
-        self.SET_SYMBOL_WIDTH = 446
-        self.SET_SYMBOL_HEIGHT = 347
+        self.SET_SYMBOL_X = 135
+        self.SET_SYMBOL_Y = 1103
+        self.SET_SYMBOL_WIDTH = 598
+        self.SET_SYMBOL_HEIGHT = 465
         self.SET_SYMBOL_SCALE = 0.8
 
         # Title/Type Box
-        self.TITLE_TYPE_BOX_X = 587
-        self.TITLE_TYPE_BOX_Y = 823
-        self.TITLE_TYPE_BOX_WIDTH = 1412
-        self.TITLE_TYPE_BOX_HEIGHT = 116
-        self.TITLE_TYPE_BOX_MARGIN = 40
-        self.TITLE_TYPE_BULLET_GAP = 24
+        self.TITLE_TYPE_BOX_X = 787
+        self.TITLE_TYPE_BOX_Y = 1103
+        self.TITLE_TYPE_BOX_WIDTH = 1892
+        self.TITLE_TYPE_BOX_HEIGHT = 155
+        self.TITLE_TYPE_BOX_MARGIN = 54
+        self.TITLE_TYPE_BULLET_GAP = 32
 
         self.TITLE_FONT = ARIAL_BLACK
         self.TITLE_FONT_COLOR = (255, 255, 255)
-        self.TITLE_MAX_FONT_SIZE = 80
+        self.TITLE_MAX_FONT_SIZE = 107
         self.TITLE_MIN_FONT_SIZE = 6
 
         self.TYPE_FONT = ARIAL_BLACK
@@ -111,46 +111,46 @@ class BreakingNews(RegularCardSmall):
         self.TYPE_MIN_FONT_SIZE = 6
 
         # Rules Text Box
-        self.RULES_BOX_X = 587
-        self.RULES_BOX_Y = 947
-        self.RULES_BOX_WIDTH = 1412
-        self.RULES_BOX_HEIGHT = 322
+        self.RULES_BOX_X = 787
+        self.RULES_BOX_Y = 1269
+        self.RULES_BOX_WIDTH = 1892
+        self.RULES_BOX_HEIGHT = 431
 
         # Rules Text
-        self.RULES_TEXT_X = 587
-        self.RULES_TEXT_Y = 947
-        self.RULES_TEXT_WIDTH = 1412
-        self.RULES_TEXT_HEIGHT = 322
+        self.RULES_TEXT_X = 787
+        self.RULES_TEXT_Y = 1269
+        self.RULES_TEXT_WIDTH = 1892
+        self.RULES_TEXT_HEIGHT = 431
         self.RULES_TEXT_FONT = HELVETICA_NEUE_MEDIUM
         self.RULES_TEXT_FONT_ITALICS = HELVETICA_NEUE_ITALICS
         self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
-        self.RULES_TEXT_MAX_FONT_SIZE = 70
+        self.RULES_TEXT_MAX_FONT_SIZE = 94
 
         # Second Rules Text Box
-        self.SECOND_RULES_BOX_X = 101
-        self.SECOND_RULES_BOX_Y = 1178
-        self.SECOND_RULES_BOX_WIDTH = 446
-        self.SECOND_RULES_BOX_HEIGHT = 91
+        self.SECOND_RULES_BOX_X = 135
+        self.SECOND_RULES_BOX_Y = 1579
+        self.SECOND_RULES_BOX_WIDTH = 598
+        self.SECOND_RULES_BOX_HEIGHT = 122
 
         # Second Rules Text
-        self.SECOND_RULES_TEXT_X = 101
-        self.SECOND_RULES_TEXT_Y = 1178
-        self.SECOND_RULES_TEXT_WIDTH = 446
-        self.SECOND_RULES_TEXT_HEIGHT = 91
+        self.SECOND_RULES_TEXT_X = 135
+        self.SECOND_RULES_TEXT_Y = 1579
+        self.SECOND_RULES_TEXT_WIDTH = 598
+        self.SECOND_RULES_TEXT_HEIGHT = 122
         self.SECOND_RULES_TEXT_FONT_COLOR = (255, 255, 255)
-        self.SECOND_RULES_TEXT_MAX_FONT_SIZE = 48
+        self.SECOND_RULES_TEXT_MAX_FONT_SIZE = 64
 
         # Footer
         self.FOOTER_ROTATION = 0
-        self.FOOTER_X = 101
-        self.FOOTER_Y = 1420
-        self.FOOTER_WIDTH = self.CARD_WIDTH - 2 * 101
-        self.FOOTER_HEIGHT = 95
-        self.FOOTER_FONT_SIZE = 24
-        self.FOOTER_FONT_OUTLINE_SIZE = 2
+        self.FOOTER_X = 135
+        self.FOOTER_Y = 1903
+        self.FOOTER_WIDTH = self.CARD_WIDTH - 2 * 135
+        self.FOOTER_HEIGHT = 127
+        self.FOOTER_FONT_SIZE = 32
+        self.FOOTER_FONT_OUTLINE_SIZE = 3
         self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
-        self.FOOTER_TAB_LENGTH = 18
-        self.FOOTER_ARTIST_GAP_LENGTH = 4
+        self.FOOTER_TAB_LENGTH = 24
+        self.FOOTER_ARTIST_GAP_LENGTH = 5
 
     def _create_type_layer(self):
         """

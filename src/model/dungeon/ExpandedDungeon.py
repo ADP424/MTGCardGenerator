@@ -35,11 +35,11 @@ class ExpandedDungeon(Dungeon):
         Any additional layers to render above everything else on the card. Rendered absolutely last.
     """
 
-    CARD_FACE_WIDTH = 1500
-    CARD_FACE_HEIGHT = 2100
-    FLOOR_INSET_X = 150  # 2 tiles, outermost card columns only
-    FLOOR_INSET_Y = 300  # 4 tiles, title (top) and footer (bottom) card rows only
-    EXPANDED_TILE_SIZE = 75
+    CARD_FACE_WIDTH = 2010
+    CARD_FACE_HEIGHT = 2814
+    EXPANDED_TILE_SIZE = 100
+    FLOOR_INSET_X = 2 * EXPANDED_TILE_SIZE  # 2 tiles, outermost card columns only
+    FLOOR_INSET_Y = 4 * EXPANDED_TILE_SIZE  # 4 tiles, title (top) and footer (bottom) card rows only
 
     def __init__(
         self,
@@ -219,8 +219,8 @@ class ExpandedDungeon(Dungeon):
         self.WALL_VERTICAL_DOORWAY_PIECE = "vertical_doorway"
         self.DOOR_OPENING_COLUMNS = 2
         self.DOOR_OPENING_ROWS = 2
-        self.DOORWAY_PIECE_WIDTH = 225
-        self.DOORWAY_PIECE_HEIGHT = 150
+        self.DOORWAY_PIECE_WIDTH = 302
+        self.DOORWAY_PIECE_HEIGHT = 201
         self.DOOR_MIN_SHARED_COLUMNS = self.DOOR_OPENING_COLUMNS + 2
         self.DOOR_MIN_SHARED_ROWS = self.DOOR_OPENING_ROWS + 2
 
@@ -229,8 +229,8 @@ class ExpandedDungeon(Dungeon):
             direction: f"{self.WALL_PATH}/arrow/{direction}"
             for direction in ("up", "down", "left", "right", "left_right", "up_down")
         }
-        self.ARROW_WIDTH = 75
-        self.ARROW_HEIGHT = 75
+        self.ARROW_WIDTH = 100
+        self.ARROW_HEIGHT = 100
         self.ARROW_OFFSET_Y = 0
         self.ARROW_OFFSET_X = 0
 

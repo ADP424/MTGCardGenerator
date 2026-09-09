@@ -1,10 +1,10 @@
 from constants import BELEREN_BOLD_SMALL_CAPS
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
-from model.transform.TransformFrontsideOld import TransformFrontsideOld
+from model.regular.RegularCard import RegularCard
+from model.transform.TransformFrontside import TransformFrontside
 
 
-class TextlessTokenTransformFrontside(TransformFrontsideOld):
+class TextlessTokenTransformFrontside(TransformFrontside):
     """
     A layered image representing a regular token transform frontside and all the collection info on it,
     with all relevant card metadata.
@@ -38,7 +38,7 @@ class TextlessTokenTransformFrontside(TransformFrontsideOld):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -55,25 +55,25 @@ class TextlessTokenTransformFrontside(TransformFrontsideOld):
         )
 
         # Title Text
-        self.TITLE_X = 128
-        self.TITLE_WIDTH = 1244
+        self.TITLE_X = 172
+        self.TITLE_WIDTH = 1667
         self.TITLE_FONT = BELEREN_BOLD_SMALL_CAPS
         self.TITLE_FONT_COLOR = (0, 0, 0)
         self.TITLE_TEXT_ALIGN = "center"
 
         # Type Box
-        self.TYPE_BOX_Y = 1717
+        self.TYPE_BOX_Y = 2301
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1814
+        self.TYPE_BOTTOM_Y = 2431
 
         # Rules Text Box
-        self.RULES_BOX_Y = 1496
-        self.RULES_BOX_HEIGHT = 437
+        self.RULES_BOX_Y = 2005
+        self.RULES_BOX_HEIGHT = 586
 
         # Rules Text
-        self.RULES_TEXT_Y = 1496
-        self.RULES_TEXT_HEIGHT = 437
+        self.RULES_TEXT_Y = 2005
+        self.RULES_TEXT_HEIGHT = 586
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1731
+        self.SET_SYMBOL_Y = 2320

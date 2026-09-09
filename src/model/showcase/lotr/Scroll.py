@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class ScrollLOTR(RegularCardSmall):
+class ScrollLOTR(RegularCard):
     """
     A layered image representing a showcase Lord of the Rings scroll-styled card
     and all the collection info on it, with all relevant card metadata.
@@ -36,7 +36,7 @@ class ScrollLOTR(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,7 +53,7 @@ class ScrollLOTR(RegularCardSmall):
         )
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_WIDTH = 85
+        self.SET_SYMBOL_WIDTH = 114
 
         # Other
-        self.HOLO_STAMP_X = 644
+        self.HOLO_STAMP_X = 863

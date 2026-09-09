@@ -2,14 +2,6 @@
 Script for turning outline images into "effect" images for the Dungeon walls.
 Generally, the outlines should be the same width as the shape files (10px) and be
 offset outward from those shapes by 3px.
-
-For an open shape (not a closed loop) that connects to a neighboring tile through one
-or more of its canvas edges, pass ``--outer-sides`` with a comma-separated subset of
-top,bottom,left,right naming which sides are true exterior (get shadow+bevel). Any side
-not listed is treated as the shape's own connecting gap and gets no shadow/bevel, e.g.
-``--outer-sides=bottom,left`` for an L-corner piece connecting to neighbors above and to
-the right. Omit entirely for a closed shape (border flood fill), like the original
-outer.png.
 """
 
 import argparse

@@ -55,23 +55,23 @@ class Fuse(Split):
         )
 
         # First Rules Box
-        self.FIRST_RULES_BOX_HEIGHT = 430
+        self.FIRST_RULES_BOX_HEIGHT = 576
 
         # Second Rules Box
-        self.SECOND_RULES_BOX_HEIGHT = 430
+        self.SECOND_RULES_BOX_HEIGHT = 576
 
         # First Rules Text
-        self.FIRST_RULES_TEXT_HEIGHT = 430
+        self.FIRST_RULES_TEXT_HEIGHT = 576
 
         # Second Rules Text
-        self.SECOND_RULES_TEXT_HEIGHT = 430
+        self.SECOND_RULES_TEXT_HEIGHT = 576
 
         # Reminder Rules Text
-        self.REMINDER_RULES_TEXT_X = 212
-        self.REMINDER_RULES_TEXT_Y = 1337
-        self.REMINDER_RULES_TEXT_WIDTH = 1782
-        self.REMINDER_RULES_TEXT_HEIGHT = 107
-        self.REMINDER_RULES_TEXT_MAX_FONT_SIZE = 60
+        self.REMINDER_RULES_TEXT_X = 284
+        self.REMINDER_RULES_TEXT_Y = 1792
+        self.REMINDER_RULES_TEXT_WIDTH = 2388
+        self.REMINDER_RULES_TEXT_HEIGHT = 143
+        self.REMINDER_RULES_TEXT_MAX_FONT_SIZE = 80
 
     def _create_rules_text_layer(self):
         """

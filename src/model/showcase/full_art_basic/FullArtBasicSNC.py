@@ -1,9 +1,9 @@
 from constants import CARD_SUBTYPES, CARD_SUPERTYPES, CARD_TYPES
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class FullArtBasicSNC(RegularCardSmall):
+class FullArtBasicSNC(RegularCard):
     """
     A layered image representing a full art basic land card from SNC and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +37,7 @@ class FullArtBasicSNC(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,17 +54,17 @@ class FullArtBasicSNC(RegularCardSmall):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1718
+        self.TYPE_BOX_Y = 2302
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1814
+        self.TYPE_BOTTOM_Y = 2431
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1730
+        self.SET_SYMBOL_Y = 2318
 
         # Subtype Text
-        self.SUBTYPE_X = 869
-        self.SUBTYPE_WIDTH = 538
+        self.SUBTYPE_X = 1164
+        self.SUBTYPE_WIDTH = 721
 
     def _create_type_layer(self):
         """

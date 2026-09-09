@@ -8,10 +8,11 @@ from constants import (
     CARD_FRAMES,
     CARD_RULES_TEXT,
     FRAMES_PATH,
+    get_frame_base_size,
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import (
     add_drop_shadow,
     allocate_by_weight,
@@ -27,7 +28,7 @@ from utils import (
 )
 
 
-class Dungeon(RegularCardSmall):
+class Dungeon(RegularCard):
     """
     A layered image representing a dungeon card (Adventures in the Forgotten Realms style), with all
     relevant card metadata.
@@ -261,7 +262,7 @@ class Dungeon(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -281,13 +282,13 @@ class Dungeon(RegularCardSmall):
         self.DUNGEON_PLACEHOLDER_REGEX = self._get_dungeon_placeholder_regex()
 
         # Title Box
-        self.TITLE_BOX_X = 90
-        self.TITLE_BOX_Y = 105
-        self.TITLE_BOX_WIDTH = 1313
-        self.TITLE_BOX_HEIGHT = 114
-        self.TITLE_X = 128
-        self.TITLE_BOTTOM_Y = 200
-        self.TITLE_WIDTH = 1244
+        self.TITLE_BOX_X = 121
+        self.TITLE_BOX_Y = 141
+        self.TITLE_BOX_WIDTH = 1759
+        self.TITLE_BOX_HEIGHT = 153
+        self.TITLE_X = 172
+        self.TITLE_BOTTOM_Y = 268
+        self.TITLE_WIDTH = 1667
 
         # Title Text
         self.TITLE_FONT_COLOR = (
@@ -306,18 +307,18 @@ class Dungeon(RegularCardSmall):
         self.MIN_ROW_TILES = 2
 
         # Room Content
-        self.ROOM_CONTENT_INSET_X = 32
-        self.ROOM_CONTENT_INSET_Y = 32
+        self.ROOM_CONTENT_INSET_X = 43
+        self.ROOM_CONTENT_INSET_Y = 43
         self.ROOM_TEXT_CENTERED = True
-        self.ROOM_TEXT_MAX_FONT_SIZE = 52
-        self.ROOM_TEXT_MIN_FONT_SIZE = 8
+        self.ROOM_TEXT_MAX_FONT_SIZE = 70
+        self.ROOM_TEXT_MIN_FONT_SIZE = 11
         self.ROOM_TEXT_UNIFORM_FONT_SIZE = True  # use one size for every room, like the real cards
         self.ROOM_INLINE_SEPARATOR_SPACES = 4  # gap between an inline name and its rules text
         self.ROOM_INLINE_WIDTH_SLACK = 4
         self.ROOM_NAME_FONT = BELEREN_BOLD
         self.ROOM_NAME_FONT_SCALE = 1.15  # the name is always a little bigger than the rules text
-        self.ROOM_NAME_MAX_FONT_SIZE = 64
-        self.ROOM_NAME_MIN_FONT_SIZE = 10
+        self.ROOM_NAME_MAX_FONT_SIZE = 86
+        self.ROOM_NAME_MIN_FONT_SIZE = 13
         self.ROOM_NAME_FONT_COLOR = (0, 0, 0)
         self.ROOM_NAME_OUTLINE_SIZE = 0
         self.ROOM_NAME_DROP_SHADOW_OFFSET = (0, 0)
@@ -700,11 +701,11 @@ class Dungeon(RegularCardSmall):
         `GRID_COLUMNS`, `GRID_ROWS`).
         """
 
-        self.TILE_SIZE = 80
-        self.GRID_ORIGIN_X = 110
-        self.GRID_ORIGIN_Y = 289
-        self.GRID_COLUMNS = 16  # 16 * 80 = 1280 = 1500 - 2 * 110
-        self.GRID_ROWS = 19  # 19 * 80 = 1520 ~= 1522
+        self.TILE_SIZE = 107
+        self.GRID_ORIGIN_X = 147
+        self.GRID_ORIGIN_Y = 387
+        self.GRID_COLUMNS = 16  # 16 * 107 = 1712 ~= 1716 = 2010 - 2 * 147
+        self.GRID_ROWS = 19  # 19 * 107 = 2033 ~= 2036
 
     def _init_wall_constants(self):
         """
@@ -724,8 +725,8 @@ class Dungeon(RegularCardSmall):
         self.WALL_VERTICAL_DOORWAY_PIECE = "vertical_doorway"
         self.DOOR_OPENING_COLUMNS = 2
         self.DOOR_OPENING_ROWS = 2
-        self.DOORWAY_PIECE_WIDTH = 240
-        self.DOORWAY_PIECE_HEIGHT = 160
+        self.DOORWAY_PIECE_WIDTH = 322
+        self.DOORWAY_PIECE_HEIGHT = 214
         self.DOOR_MIN_SHARED_COLUMNS = self.DOOR_OPENING_COLUMNS + 2
         self.DOOR_MIN_SHARED_ROWS = self.DOOR_OPENING_ROWS + 2
 
@@ -738,8 +739,8 @@ class Dungeon(RegularCardSmall):
             "left_right": "dungeon/regular/wall/arrow/left_right",
             "up_down": "dungeon/regular/wall/arrow/up_down",
         }
-        self.ARROW_WIDTH = 80
-        self.ARROW_HEIGHT = 80
+        self.ARROW_WIDTH = 107
+        self.ARROW_HEIGHT = 107
         self.ARROW_OFFSET_Y = 0
         self.ARROW_OFFSET_X = 0
 
@@ -1726,7 +1727,10 @@ class Dungeon(RegularCardSmall):
         if centered is None:
             centered = self.ROOM_TEXT_CENTERED or bool(re.search(r"\{center\}", room.body, re.IGNORECASE))
         text = re.sub(r"\{center\}", "", room.body, flags=re.IGNORECASE)
-        return f"{text}{{center}}" if centered else text
+        # {center} must come first: applied mid-stream it only retroactively centers the line
+        # being built when it's encountered, so a trailing {center} would leave any line that
+        # already wrapped before it (e.g. a multi-line room body) stuck left-aligned.
+        return f"{{center}}{text}" if centered else text
 
     def _get_room_name_text(self, room: "Dungeon.Room") -> str:
         """
@@ -1850,11 +1854,11 @@ class Dungeon(RegularCardSmall):
                 line_count = 0
                 first_line_width = 0
                 for block in blocks:
-                    for line in block:
-                        if line and line[0][0] == "newline":
+                    for _alignment, fragments in block:
+                        if fragments and fragments[0][0] == "newline":
                             continue
                         if line_count == 0:
-                            first_line_width = get_laid_out_line_width(line, size)
+                            first_line_width = get_laid_out_line_width(fragments, size)
                         line_count += 1
                 if len(blocks) > 1:
                     line_count = max(line_count, 2)
@@ -1975,6 +1979,14 @@ class Dungeon(RegularCardSmall):
                         continue
                     combined = ImageChops.multiply(combined, mask.convert("RGBA").getchannel("A").resize(texture.size))
                 texture = apply_alpha_mask(texture, combined)
+
+            target_size = (self.CARD_WIDTH, self.CARD_HEIGHT)
+            base_size = get_frame_base_size(path)
+            if base_size != target_size:
+                scale_x = target_size[0] / base_size[0]
+                scale_y = target_size[1] / base_size[1]
+                scaled_size = (round(texture.width * scale_x), round(texture.height * scale_y))
+                texture = texture.resize(scaled_size, resample=Image.Resampling.HAMMING)
 
             canvas = paste_image(texture, canvas, (0, 0))
             found = True

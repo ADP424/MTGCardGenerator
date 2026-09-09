@@ -50,6 +50,7 @@ from constants import (
     SYMBOL_PLACEHOLDER_KEY,
     WATERMARK_COLORS,
     WATERMARKS_PATH,
+    get_frame_base_size,
 )
 from log import log
 from model.Layer import Layer
@@ -356,10 +357,48 @@ class RegularCard:
         for layer in (
             [self.art_layer] + self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers
         ):
-            composite_image = paste_image(layer.image, composite_image, layer.position)
-            if close_images and layer.image:
-                layer.image.close()
-                layer.image = None
+            composite_image = self._paste_layer(layer, composite_image, close_images)
+
+        return composite_image
+
+    def _paste_layer(self, layer: "Layer", composite_image: Image.Image, close_images: bool) -> Image.Image:
+        """
+        Paste a single layer onto the composite image, scaling it up/down first if it carries a
+        `base_size` that doesn't match this card's own canvas size. Frame images are stored at
+        whatever resolution their family was authored at (e.g. the legacy 1500x2100, or the newer
+        2010x2814), so mixing frames from different families on one card (e.g. a 2010x2814
+        legendary crown over a 1500x2100 token frame) requires scaling each one individually, right
+        before compositing, by the ratio between its own family size and this card's canvas size.
+
+        Parameters
+        ----------
+        layer: Layer
+            The layer to paste. Scaled in place first if `layer.base_size` requires it.
+
+        composite_image: Image
+            The image to paste `layer` onto.
+
+        close_images: bool
+            Whether to close `layer.image` (and clear the reference) after pasting.
+
+        Returns
+        -------
+        Image
+            `composite_image` with `layer` pasted onto it.
+        """
+
+        target_size = (self.CARD_WIDTH, self.CARD_HEIGHT)
+        if layer.image is not None and layer.base_size is not None and layer.base_size != target_size:
+            scale_x = target_size[0] / layer.base_size[0]
+            scale_y = target_size[1] / layer.base_size[1]
+            scaled_size = (round(layer.image.width * scale_x), round(layer.image.height * scale_y))
+            layer.image = layer.image.resize(scaled_size, resample=Image.Resampling.HAMMING)
+            layer.position = (round(layer.position[0] * scale_x), round(layer.position[1] * scale_y))
+
+        composite_image = paste_image(layer.image, composite_image, layer.position)
+        if close_images and layer.image:
+            layer.image.close()
+            layer.image = None
 
         return composite_image
 
@@ -541,7 +580,7 @@ class RegularCard:
                 frame = apply_alpha_mask(frame, combined_mask)
                 pending_masks.clear()
 
-            layer = Layer(frame) if offset == (0, 0) else Layer(frame, offset)
+            layer = Layer(frame, offset, base_size=get_frame_base_size(frame_path))
             if before:
                 self.frame_layers.append(layer)
             else:

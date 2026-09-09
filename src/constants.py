@@ -112,6 +112,174 @@ SET_SYMBOLS_PATH = "images/collector_info/set_symbols"
 OVERLAYS_PATH = "images/art/overlay"
 DICE_SECTION_PATH = "images/other/dice_section"
 
+# The (width, height) of each frame directory under FRAMES_PATH
+FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
+    "": (2010, 2814),
+    # Top-level small frames
+    "adventure": (1500, 2100),
+    "aftermath": (1500, 2100),
+    "attraction": (1500, 2100),
+    "cardback": (1500, 2100),
+    "colorshifted": (1500, 2100),
+    "conspiracy": (1500, 2100),
+    "dungeon": (1500, 2100),
+    "flip": (1500, 2100),
+    "leveler": (1500, 2100),
+    "mutate": (1500, 2100),
+    "old": (1500, 2100),
+    "planeswalker": (1500, 2100),
+    "prototype": (1500, 2100),
+    "pycok": (1500, 2100),
+    "san_diego_comic_con_2015": (1500, 2100),
+    "the_list": (1500, 2100),
+    "token": (1500, 2100),
+    "vanguard": (1500, 2100),
+    # Top-level landscape frames
+    "battle": (2814, 2010),
+    "room": (2814, 2010),
+    "split": (2100, 1500),
+    "planechase": (2706, 1888),
+    # Modal
+    "modal/snow/old": (1500, 2100),
+    # Regular
+    "regular/clear_textbox": (1500, 2100),
+    "regular/extended": (1500, 2100),
+    "regular/transform/back/meld": (2814, 2010),
+    # Saga
+    "saga/old": (1500, 2100),
+    "saga/creature/old": (1500, 2100),
+    "saga/transform": (1500, 2100),
+    # TODO: saga/ub/mask/{banner,banner_right,border,frame,pinline,text,text_right,title,type}.png
+    # are 1500x2100 when the rest are 2010x2814
+    "seventh/regular": (1500, 2100),
+    # TODO: seventh/regular/colorless/1.png is 2010x2814 when the others are 1500x2100
+    "seventh/textless": (1500, 2100),
+    # The One Set
+    "the_one_set": (1500, 2100),
+    "the_one_set/poker": (2010, 2814),
+    "the_one_set/showcase/breaking_news": (2100, 1500),
+    "the_one_set/showcase/transparent": (2010, 2814),
+    # TODO: the_one_set/showcase/transparent/mask/{bottom,left,right,top}.png are stray 1500x2100
+    # Planeswalker
+    "planeswalker/double_feature": (2010, 2814),
+    "planeswalker/transform/double_feature": (2010, 2814),
+    # Custom
+    "custom/celid": (1500, 2100),
+    # TODO: custom/circuit/white.png is a stray 2010x2814 file
+    "custom/circuit": (1500, 2100),
+    "custom/classic_shifted": (1500, 2100),
+    "custom/classic_shifted/nickname": (2010, 2814),
+    "custom/deck_cover": (1500, 2100),
+    "custom/dual_lands": (1500, 2100),
+    "custom/feuer_ameise": (1500, 2100),
+    "custom/feuer_ameise/ixalan": (3000, 4200),
+    "custom/m15_eighth": (1500, 2100),
+    "custom/m15_eighth/modal": (2010, 2814),
+    "custom/m15_eighth/token": (2010, 2814),
+    "custom/m15_eighth/transform": (2010, 2814),
+    "custom/m15_eighth/universes_beyond/extended": (2010, 2814),
+    "custom/magrao": (1500, 2100),
+    "custom/neon": (1500, 2100),
+    "custom/pokemon": (1500, 2100),
+    "custom/simple_invention": (1500, 2100),
+    "custom/tapped": (2100, 1500),
+    # Showcase
+    "showcase/amonkhet_invocation": (1500, 2100),
+    "showcase/art_deco": (1500, 2100),
+    # TODO: showcase/borderless/mask_no_border.png is a stray 2010x2814 file
+    "showcase/borderless": (1500, 2100),
+    "showcase/box_topper": (1500, 2100),
+    "showcase/commander_legends": (1500, 2100),
+    "showcase/crystal": (1500, 2100),
+    "showcase/dnd": (1500, 2100),
+    "showcase/draconic": (1500, 2100),
+    "showcase/dragonstorm": (1500, 2100),
+    "showcase/equinox": (1500, 2100),
+    "showcase/etched": (1500, 2100),
+    "showcase/expedition": (1500, 2100),
+    "showcase/fang": (1500, 2100),
+    "showcase/fnm": (1500, 2100),
+    "showcase/full_art_basic": (1500, 2100),
+    "showcase/full_text": (1500, 2100),
+    "showcase/future": (1500, 2100),
+    "showcase/ghostfire": (4250, 5950),
+    "showcase/gilded": (1500, 2100),
+    "showcase/ikoria": (1500, 2100),
+    # TODO: showcase/ikoria/short/mask/{bottom,left,right,top}.png are stray 1500x2100 files
+    "showcase/ikoria/short/mask": (2010, 2814),
+    "showcase/invention": (1500, 2100),
+    "showcase/invention/mul": (2010, 2814),
+    "showcase/ixalan": (1500, 2100),
+    "showcase/ixalan/legends": (2010, 2814),
+    "showcase/japan": (1500, 2100),
+    "showcase/japan/nickname": (2010, 2814),
+    "showcase/kaldheim": (1500, 2100),
+    "showcase/lotr": (1500, 2100),
+    "showcase/lotr/saga": (2010, 2814),
+    "showcase/magic_fest": (1500, 2100),
+    "showcase/modern_horizons_2/legendary_crown": (3000, 4200),
+    # TODO: showcase/mystical_archive/red.png is a stray 2693x3770 file (1.34x too big)
+    "showcase/neon": (1500, 2100),
+    "showcase/ninja": (1500, 2100),
+    "showcase/oilslick": (1500, 2100),
+    "showcase/playtest": (1500, 2100),
+    "showcase/praetors": (1500, 2100),
+    "showcase/promo": (1500, 2100),
+    # TODO: showcase/promo/enchantment/{colorless,land,vehicle}.png are stray 1500x2100 files
+    "showcase/promo/enchantment": (2010, 2814),
+    "showcase/ravnica": (1500, 2100),
+    "showcase/samurai": (1500, 2100),
+    "showcase/signature_spellbook": (1500, 2100),
+    "showcase/sketch": (1500, 2100),
+    "showcase/skyscraper": (1500, 2100),
+    "showcase/stained_glass": (1500, 2100),
+    "showcase/storybook": (1500, 2100),
+    "showcase/storybook/multiverse_legends/adventure": (2010, 2814),
+    "showcase/storybook/multiverse_legends/legendary_crown": (2010, 2814),
+    "showcase/tardis": (1500, 2100),
+    "showcase/textless_2022": (1500, 2100),
+    "showcase/textless_basics": (1500, 2100),
+    "showcase/textless_generic": (1500, 2100),
+    "showcase/textless_snow_basics": (1500, 2100),
+    "showcase/textless_zendikar": (1500, 2100),
+    "showcase/unhinged": (1500, 2100),
+    "showcase/unstable": (1500, 2100),
+    # TODO: showcase/vault/legendary_crown/*.png are ALL 2187x2975
+    "showcase/zendikar": (1500, 2100),
+}
+
+
+def get_frame_base_size(frame_path: str) -> tuple[int, int]:
+    """
+    Resolve the (width, height) a frame image at the given path was authored at, by finding the
+    longest matching directory prefix in `FRAME_DIRECTORY_BASE_SIZES`.
+
+    Parameters
+    ----------
+    frame_path: str
+        A frame path relative to `FRAMES_PATH`, without a leading slash or trailing ".png"
+        (e.g. "leveler/red", "the_one_set/showcase/poker/base").
+
+    Returns
+    -------
+    tuple[int, int]
+        The (width, height) that frame directory's images were authored at.
+    """
+
+    frame_dir = frame_path.rsplit("/", 1)[0] if "/" in frame_path else ""
+
+    best_prefix = ""
+    best_size = FRAME_DIRECTORY_BASE_SIZES[""]
+    for prefix, size in FRAME_DIRECTORY_BASE_SIZES.items():
+        if prefix != "" and frame_dir != prefix and not frame_dir.startswith(f"{prefix}/"):
+            continue
+        if len(prefix) >= len(best_prefix):
+            best_prefix = prefix
+            best_size = size
+
+    return best_size
+
+
 # Standard Fonts
 BELEREN_BOLD = "fonts/beleren/beleren_bold.ttf"
 BELEREN_BOLD_SMALL_CAPS = "fonts/beleren/beleren_bold_smallcaps.ttf"

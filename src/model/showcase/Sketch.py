@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Sketch(RegularCardSmall):
+class Sketch(RegularCard):
     """
     A layered image representing a sketch showcase card and all the collection info on it,
     with all relevant card metadata.
@@ -36,7 +36,7 @@ class Sketch(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,11 +53,11 @@ class Sketch(RegularCardSmall):
         )
 
         # Title Text
-        self.TITLE_MAX_FONT_SIZE = 70
+        self.TITLE_MAX_FONT_SIZE = 94
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1174
+        self.POWER_TOUGHNESS_X = 1573
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1205
-        self.SET_SYMBOL_WIDTH = 80
+        self.SET_SYMBOL_Y = 1615
+        self.SET_SYMBOL_WIDTH = 107

@@ -9,10 +9,10 @@ from constants import (
     CARD_WATERMARK_COLOR,
 )
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Split(RegularCardSmall):
+class Split(RegularCard):
     """
     A layered image representing a split card and all the collection info on it,
     with all relevant card metadata.
@@ -46,7 +46,7 @@ class Split(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -63,91 +63,91 @@ class Split(RegularCardSmall):
         )
 
         # Overall Card
-        self.CARD_WIDTH = 2100
-        self.CARD_HEIGHT = 1500
+        self.CARD_WIDTH = 2814
+        self.CARD_HEIGHT = 2010
 
         # First Title Box
-        self.FIRST_TITLE_BOX_X = 193
+        self.FIRST_TITLE_BOX_X = 259
         self.FIRST_TITLE_BOX_Y = self.TITLE_BOX_Y
-        self.FIRST_TITLE_BOX_WIDTH = 840
+        self.FIRST_TITLE_BOX_WIDTH = 1126
         self.FIRST_TITLE_BOX_HEIGHT = self.TITLE_BOX_HEIGHT
 
         # Second Title Box
-        self.SECOND_TITLE_BOX_X = 1151
+        self.SECOND_TITLE_BOX_X = 1542
         self.SECOND_TITLE_BOX_Y = self.TITLE_BOX_Y
-        self.SECOND_TITLE_BOX_WIDTH = 840
+        self.SECOND_TITLE_BOX_WIDTH = 1126
         self.SECOND_TITLE_BOX_HEIGHT = self.TITLE_BOX_HEIGHT
 
         # First Title Text
-        self.FIRST_TITLE_X = 223
-        self.FIRST_TITLE_BOTTOM_Y = 198
-        self.FIRST_TITLE_WIDTH = 859
+        self.FIRST_TITLE_X = 299
+        self.FIRST_TITLE_BOTTOM_Y = 265
+        self.FIRST_TITLE_WIDTH = 1151
 
         # Second Title Text
-        self.SECOND_TITLE_X = 1181
-        self.SECOND_TITLE_BOTTOM_Y = 198
-        self.SECOND_TITLE_WIDTH = 859
+        self.SECOND_TITLE_X = 1583
+        self.SECOND_TITLE_BOTTOM_Y = 265
+        self.SECOND_TITLE_WIDTH = 1151
 
         # Type Box
-        self.TYPE_BOX_Y = 815
-        self.TYPE_BOX_HEIGHT = 77
+        self.TYPE_BOX_Y = 1092
+        self.TYPE_BOX_HEIGHT = 103
 
         # Type Text
         self.TYPE_MAX_FONT_SIZE = 60
         self.TYPE_MIN_FONT_SIZE = 6
 
         # First Type Text
-        self.FIRST_TYPE_X = 222
-        self.FIRST_TYPE_BOTTOM_Y = 872
-        self.FIRST_TYPE_WIDTH = 853
+        self.FIRST_TYPE_X = 297
+        self.FIRST_TYPE_BOTTOM_Y = 1168
+        self.FIRST_TYPE_WIDTH = 1143
 
         # Second Type Text
-        self.SECOND_TYPE_X = 1179
-        self.SECOND_TYPE_BOTTOM_Y = 872
-        self.SECOND_TYPE_WIDTH = 853
+        self.SECOND_TYPE_X = 1580
+        self.SECOND_TYPE_BOTTOM_Y = 1168
+        self.SECOND_TYPE_WIDTH = 1143
 
         # First Rules Text Box
-        self.FIRST_RULES_BOX_X = 212
-        self.FIRST_RULES_BOX_Y = 907
-        self.FIRST_RULES_BOX_WIDTH = 821
-        self.FIRST_RULES_BOX_HEIGHT = 526
+        self.FIRST_RULES_BOX_X = 284
+        self.FIRST_RULES_BOX_Y = 1215
+        self.FIRST_RULES_BOX_WIDTH = 1100
+        self.FIRST_RULES_BOX_HEIGHT = 705
 
         # Second Rules Text Box
-        self.SECOND_RULES_BOX_X = 1170
-        self.SECOND_RULES_BOX_Y = 907
-        self.SECOND_RULES_BOX_WIDTH = 821
-        self.SECOND_RULES_BOX_HEIGHT = 526
+        self.SECOND_RULES_BOX_X = 1568
+        self.SECOND_RULES_BOX_Y = 1215
+        self.SECOND_RULES_BOX_WIDTH = 1100
+        self.SECOND_RULES_BOX_HEIGHT = 705
 
         # First Rules Text
-        self.FIRST_RULES_TEXT_X = 212
-        self.FIRST_RULES_TEXT_Y = 907
-        self.FIRST_RULES_TEXT_WIDTH = 821
-        self.FIRST_RULES_TEXT_HEIGHT = 526
+        self.FIRST_RULES_TEXT_X = 284
+        self.FIRST_RULES_TEXT_Y = 1215
+        self.FIRST_RULES_TEXT_WIDTH = 1100
+        self.FIRST_RULES_TEXT_HEIGHT = 705
 
         # Second Rules Text
-        self.SECOND_RULES_TEXT_X = 1170
-        self.SECOND_RULES_TEXT_Y = 907
-        self.SECOND_RULES_TEXT_WIDTH = 821
-        self.SECOND_RULES_TEXT_HEIGHT = 526
+        self.SECOND_RULES_TEXT_X = 1568
+        self.SECOND_RULES_TEXT_Y = 1215
+        self.SECOND_RULES_TEXT_WIDTH = 1100
+        self.SECOND_RULES_TEXT_HEIGHT = 705
 
         # First Set / Rarity Symbol
-        self.FIRST_SET_SYMBOL_X = 970
-        self.FIRST_SET_SYMBOL_Y = 823
-        self.FIRST_SET_SYMBOL_WIDTH = 60
+        self.FIRST_SET_SYMBOL_X = 1300
+        self.FIRST_SET_SYMBOL_Y = 1103
+        self.FIRST_SET_SYMBOL_WIDTH = 80
 
         # Second Set / Rarity Symbol
-        self.SECOND_SET_SYMBOL_X = 1926
-        self.SECOND_SET_SYMBOL_Y = 823
-        self.SECOND_SET_SYMBOL_WIDTH = 60
+        self.SECOND_SET_SYMBOL_X = 2581
+        self.SECOND_SET_SYMBOL_Y = 1103
+        self.SECOND_SET_SYMBOL_WIDTH = 80
 
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
         self.FOOTER_ROTATION = 270
         self.FOOTER_X = 0
-        self.FOOTER_Y = 94
-        self.FOOTER_WIDTH = 1304
-        self.FOOTER_HEIGHT = 136
+        self.FOOTER_Y = 126
+        self.FOOTER_WIDTH = 1747
+        self.FOOTER_HEIGHT = 182
 
         # Other
         self.HOLO_STAMP_X = float("inf")

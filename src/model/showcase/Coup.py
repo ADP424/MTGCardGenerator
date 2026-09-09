@@ -1,9 +1,9 @@
 from constants import ETHNOCENTRIC_ITALICS, MAXIMILIEN_REGULAR
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Coup(RegularCardSmall):
+class Coup(RegularCard):
     """
     A layered image representing a coup showcase card and all the collection info on it,
     with all relevant card metadata.
@@ -37,7 +37,7 @@ class Coup(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,86 +54,86 @@ class Coup(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 35
-        self.TITLE_BOX_Y = 1438
-        self.TITLE_BOX_WIDTH = 600
-        self.TITLE_BOX_HEIGHT = 163
+        self.TITLE_BOX_X = 47
+        self.TITLE_BOX_Y = 1927
+        self.TITLE_BOX_WIDTH = 804
+        self.TITLE_BOX_HEIGHT = 218
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 120
+        self.MANA_COST_SYMBOL_SIZE = 161
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 12
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 16
         self.MANA_COST_TEXT_FONT = MAXIMILIEN_REGULAR
 
         # Coup Mana Cost Location
-        self.MANA_COST_BOX_X = 60
-        self.MANA_COST_BOX_Y = 72
-        self.MANA_COST_BOX_WIDTH = 1380
-        self.MANA_COST_BOX_HEIGHT = 200
+        self.MANA_COST_BOX_X = 80
+        self.MANA_COST_BOX_Y = 96
+        self.MANA_COST_BOX_WIDTH = 1849
+        self.MANA_COST_BOX_HEIGHT = 268
 
         # Title Text
-        self.TITLE_X = 54
-        self.TITLE_BOTTOM_Y = 1600
-        self.TITLE_WIDTH = 600
-        self.TITLE_MAX_FONT_SIZE = 200
+        self.TITLE_X = 72
+        self.TITLE_BOTTOM_Y = 2144
+        self.TITLE_WIDTH = 804
+        self.TITLE_MAX_FONT_SIZE = 268
         self.TITLE_FONT = MAXIMILIEN_REGULAR
         self.TITLE_FONT_COLOR = (255, 255, 255)
         self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.075, 0.075)
 
         # Type Box
-        self.TYPE_BOX_Y = 1600
-        self.TYPE_BOX_HEIGHT = 85
+        self.TYPE_BOX_Y = 2144
+        self.TYPE_BOX_HEIGHT = 114
 
         # Type Text
-        self.TYPE_X = 54
-        self.TYPE_BOTTOM_Y = 1690
-        self.TYPE_WIDTH = 527
-        self.TYPE_MAX_FONT_SIZE = 100
+        self.TYPE_X = 72
+        self.TYPE_BOTTOM_Y = 2265
+        self.TYPE_WIDTH = 706
+        self.TYPE_MAX_FONT_SIZE = 134
         self.TYPE_FONT = MAXIMILIEN_REGULAR
         self.TYPE_FONT_COLOR = (255, 255, 255)
         self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.075, 0.075)
 
         # Rules Text Box
-        self.RULES_BOX_X = 600
-        self.RULES_BOX_Y = 1691
-        self.RULES_BOX_WIDTH = 900
-        self.RULES_BOX_HEIGHT = 243
+        self.RULES_BOX_X = 804
+        self.RULES_BOX_Y = 2266
+        self.RULES_BOX_WIDTH = 1206
+        self.RULES_BOX_HEIGHT = 326
 
         # Rules Text
-        self.RULES_TEXT_X = 600
-        self.RULES_TEXT_Y = 1700
-        self.RULES_TEXT_WIDTH = 850
-        self.RULES_TEXT_HEIGHT = 225
+        self.RULES_TEXT_X = 804
+        self.RULES_TEXT_Y = 2278
+        self.RULES_TEXT_WIDTH = 1139
+        self.RULES_TEXT_HEIGHT = 302
         self.RULES_TEXT_FONT = MAXIMILIEN_REGULAR
         self.RULES_TEXT_FONT_ITALICS = ETHNOCENTRIC_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 100
+        self.RULES_TEXT_MAX_FONT_SIZE = 134
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.075, 0.075)
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1153
-        self.POWER_TOUGHNESS_Y = 1926
-        self.POWER_TOUGHNESS_WIDTH = 300
-        self.POWER_TOUGHNESS_HEIGHT = 100
+        self.POWER_TOUGHNESS_X = 1545
+        self.POWER_TOUGHNESS_Y = 2581
+        self.POWER_TOUGHNESS_WIDTH = 402
+        self.POWER_TOUGHNESS_HEIGHT = 134
         self.POWER_TOUGHNESS_FONT = MAXIMILIEN_REGULAR
-        self.POWER_TOUGHNESS_FONT_SIZE = 132
+        self.POWER_TOUGHNESS_FONT_SIZE = 177
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
         self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0.075, 0.075)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 510
-        self.SET_SYMBOL_Y = 1610
-        self.SET_SYMBOL_WIDTH = 70
+        self.SET_SYMBOL_X = 683
+        self.SET_SYMBOL_Y = 2157
+        self.SET_SYMBOL_WIDTH = 94
 
         # Footer
-        self.FOOTER_Y = 1990
-        self.FOOTER_WIDTH = 1304
-        self.FOOTER_HEIGHT = 152
-        self.FOOTER_FONT_SIZE = 35
-        self.FOOTER_FONT_OUTLINE_SIZE = 3
+        self.FOOTER_Y = 2667
+        self.FOOTER_WIDTH = 1747
+        self.FOOTER_HEIGHT = 204
+        self.FOOTER_FONT_SIZE = 47
+        self.FOOTER_FONT_OUTLINE_SIZE = 4
         self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 2
-        self.FOOTER_TAB_LENGTH = 25
-        self.FOOTER_ARTIST_GAP_LENGTH = 5
+        self.FOOTER_TAB_LENGTH = 34
+        self.FOOTER_ARTIST_GAP_LENGTH = 7
 
     def _create_mana_cost_layer(self):
         """

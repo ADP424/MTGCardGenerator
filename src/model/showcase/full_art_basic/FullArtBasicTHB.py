@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class FullArtBasicTHB(RegularCardSmall):
+class FullArtBasicTHB(RegularCard):
     """
     A layered image representing a full art basic land card from THB and all the collection info on it,
     with all relevant card metadata.
@@ -36,7 +36,7 @@ class FullArtBasicTHB(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,10 +53,10 @@ class FullArtBasicTHB(RegularCardSmall):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1779
+        self.TYPE_BOX_Y = 2384
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1865
+        self.TYPE_BOTTOM_Y = 2499
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1791
+        self.SET_SYMBOL_Y = 2400

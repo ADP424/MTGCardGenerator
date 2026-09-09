@@ -8,14 +8,14 @@ from constants import (
     CARD_RULES_TEXT,
 )
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import load_font
 
 
-class Leveler(RegularCardSmall):
+class Leveler(RegularCard):
     """
     A layered image representing a leveler creature and all the collection info on it,
-    with all relevant card metadata, at the legacy 1500x2100 resolution.
+    with all relevant card metadata.
 
     Attributes
     ----------
@@ -46,7 +46,7 @@ class Leveler(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -62,33 +62,33 @@ class Leveler(RegularCardSmall):
             overlay_layers,
         )
 
-        # Rules Text Box heights (x, y, and width stay the same as the regular small card)
-        self.FIRST_RULES_BOX_HEIGHT = 198
-        self.SECOND_RULES_BOX_HEIGHT = 204
-        self.THIRD_RULES_BOX_HEIGHT = 221
+        # Rules Text Box heights (x, y, and width stay the same as the regular card)
+        self.FIRST_RULES_BOX_HEIGHT = 265
+        self.SECOND_RULES_BOX_HEIGHT = 273
+        self.THIRD_RULES_BOX_HEIGHT = 296
 
         # Rules text in the second and third sections is pushed right to clear the level arrows,
         # and any section stops short on the left to clear its power/toughness plate (if not empty)
-        self.RULES_TEXT_LEVEL_ARROW_INDENT = 185
-        self.RULES_TEXT_POWER_TOUGHNESS_INSET = 224
+        self.RULES_TEXT_LEVEL_ARROW_INDENT = 248
+        self.RULES_TEXT_POWER_TOUGHNESS_INSET = 300
 
         # Power & Toughness Plates
-        self.FIRST_POWER_TOUGHNESS_Y = 1355
-        self.SECOND_POWER_TOUGHNESS_Y = 1553
-        self.THIRD_POWER_TOUGHNESS_Y = 1761
+        self.FIRST_POWER_TOUGHNESS_Y = 1816
+        self.SECOND_POWER_TOUGHNESS_Y = 2081
+        self.THIRD_POWER_TOUGHNESS_Y = 2360
 
         # Level Arrow Text
-        self.LEVEL_LABEL_X = 108
-        self.LEVEL_LABEL_WIDTH = 124
-        self.SECOND_LEVEL_LABEL_Y = 1558
-        self.THIRD_LEVEL_LABEL_Y = 1773
-        self.LEVEL_LABEL_HEIGHT = 107
+        self.LEVEL_LABEL_X = 145
+        self.LEVEL_LABEL_WIDTH = 166
+        self.SECOND_LEVEL_LABEL_Y = 2088
+        self.THIRD_LEVEL_LABEL_Y = 2376
+        self.LEVEL_LABEL_HEIGHT = 143
         self.LEVEL_LABEL_FONT = BELEREN_BOLD_SMALL_CAPS
-        self.LEVEL_LABEL_FONT_SIZE = 30
-        self.LEVEL_LABEL_TOP_Y = 13
+        self.LEVEL_LABEL_FONT_SIZE = 40
+        self.LEVEL_LABEL_TOP_Y = 17
         self.LEVEL_RANGE_FONT = BELEREN_BOLD
-        self.LEVEL_RANGE_FONT_SIZE = 64
-        self.LEVEL_RANGE_TOP_Y = 52
+        self.LEVEL_RANGE_FONT_SIZE = 86
+        self.LEVEL_RANGE_TOP_Y = 70
         self.LEVEL_LABEL_FONT_COLOR = (0, 0, 0)
 
         # Determine each section's rules text, and whether it has a corresponding power/toughness entry

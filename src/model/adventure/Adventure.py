@@ -9,10 +9,9 @@ from constants import (
 )
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from model.regular.RegularCardSmall import RegularCardSmall
 
 
-class Adventure(RegularCardSmall):
+class Adventure(RegularCard):
     """
     A layered image representing an adventure card and all the collection info on it,
     with all relevant card metadata.
@@ -63,59 +62,59 @@ class Adventure(RegularCardSmall):
         )
 
         # Adventure Title Box
-        self.ADVENTURE_TITLE_BOX_X = 95
-        self.ADVENTURE_TITLE_BOX_Y = 1325
-        self.ADVENTURE_TITLE_BOX_WIDTH = 633
-        self.ADVENTURE_TITLE_BOX_HEIGHT = 89
+        self.ADVENTURE_TITLE_BOX_X = 127
+        self.ADVENTURE_TITLE_BOX_Y = 1776
+        self.ADVENTURE_TITLE_BOX_WIDTH = 848
+        self.ADVENTURE_TITLE_BOX_HEIGHT = 119
 
         # Adventure Mana Cost
-        self.ADVENTURE_MANA_COST_SYMBOL_SIZE = 60
-        self.ADVENTURE_MANA_COST_SYMBOL_SPACING = 5
+        self.ADVENTURE_MANA_COST_SYMBOL_SIZE = 80
+        self.ADVENTURE_MANA_COST_SYMBOL_SPACING = 7
 
         # Adventure Title Text
-        self.ADVENTURE_TITLE_X = 123
-        self.ADVENTURE_TITLE_BOTTOM_Y = 1400
-        self.ADVENTURE_TITLE_WIDTH = 625
-        self.ADVENTURE_TITLE_MAX_FONT_SIZE = 70
+        self.ADVENTURE_TITLE_X = 165
+        self.ADVENTURE_TITLE_BOTTOM_Y = 1876
+        self.ADVENTURE_TITLE_WIDTH = 838
+        self.ADVENTURE_TITLE_MAX_FONT_SIZE = 94
         self.ADVENTURE_TITLE_FONT_COLOR = (255, 255, 255)
 
         # Adventure Type Box
-        self.ADVENTURE_TYPE_BOX_Y = 1435
-        self.ADVENTURE_TYPE_BOX_HEIGHT = 71
+        self.ADVENTURE_TYPE_BOX_Y = 1923
+        self.ADVENTURE_TYPE_BOX_HEIGHT = 95
 
         # Adventure Type Text
-        self.ADVENTURE_TYPE_X = 123
-        self.ADVENTURE_TYPE_BOTTOM_Y = 1476
-        self.ADVENTURE_TYPE_WIDTH = 650
-        self.ADVENTURE_TYPE_MAX_FONT_SIZE = 60
+        self.ADVENTURE_TYPE_X = 165
+        self.ADVENTURE_TYPE_BOTTOM_Y = 1978
+        self.ADVENTURE_TYPE_WIDTH = 871
+        self.ADVENTURE_TYPE_MAX_FONT_SIZE = 80
         self.ADVENTURE_TYPE_FONT_COLOR = (255, 255, 255)
 
         # Right Rules Text Box
-        self.RULES_BOX_X = 756
-        self.RULES_BOX_Y = 1320
-        self.RULES_BOX_WIDTH = 652
-        self.RULES_BOX_HEIGHT = 618
+        self.RULES_BOX_X = 1013
+        self.RULES_BOX_Y = 1769
+        self.RULES_BOX_WIDTH = 874
+        self.RULES_BOX_HEIGHT = 828
 
         # Adventure Rules Text Box
-        self.ADVENTURE_RULES_BOX_X = 98
-        self.ADVENTURE_RULES_BOX_Y = 1508
-        self.ADVENTURE_RULES_BOX_WIDTH = 652
-        self.ADVENTURE_RULES_BOX_HEIGHT = 430
+        self.ADVENTURE_RULES_BOX_X = 131
+        self.ADVENTURE_RULES_BOX_Y = 2021
+        self.ADVENTURE_RULES_BOX_WIDTH = 874
+        self.ADVENTURE_RULES_BOX_HEIGHT = 576
 
         # Rules Text
-        self.RULES_TEXT_MAX_FONT_SIZE = 70
+        self.RULES_TEXT_MAX_FONT_SIZE = 94
 
         # Right Rules Text
-        self.RULES_TEXT_X = 774
-        self.RULES_TEXT_Y = 1320
-        self.RULES_TEXT_WIDTH = 625
-        self.RULES_TEXT_HEIGHT = 618
+        self.RULES_TEXT_X = 1037
+        self.RULES_TEXT_Y = 1769
+        self.RULES_TEXT_WIDTH = 838
+        self.RULES_TEXT_HEIGHT = 828
 
         # Adventure Rules Text
-        self.ADVENTURE_RULES_TEXT_X = 112
-        self.ADVENTURE_RULES_TEXT_Y = 1508
-        self.ADVENTURE_RULES_TEXT_WIDTH = 625
-        self.ADVENTURE_RULES_TEXT_HEIGHT = 430
+        self.ADVENTURE_RULES_TEXT_X = 150
+        self.ADVENTURE_RULES_TEXT_Y = 2021
+        self.ADVENTURE_RULES_TEXT_WIDTH = 838
+        self.ADVENTURE_RULES_TEXT_HEIGHT = 576
 
         self.adventure_mana_cost_x = float("inf")
 

@@ -83,12 +83,10 @@ from model.omen.Omen import Omen
 from model.planeswalker.Planeswalker import Planeswalker
 from model.prepare.Prepare import Prepare
 from model.regular.RegularCard import RegularCard
-from model.regular.RegularCardSmall import RegularCardSmall
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
-from model.regular.RegularSplitRulesTextSmall import RegularSplitRulesTextSmall
 from model.room.Room import Room
 from model.saga.Saga import Saga
-from model.saga.TransformSagaOld import TransformSagaOld
+from model.saga.TransformSaga import TransformSaga
 from model.showcase.Chat import Chat
 from model.showcase.ClearTextbox import ClearTextbox
 from model.showcase.Coup import Coup
@@ -115,6 +113,7 @@ from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
 from model.showcase.promo.Promo import Promo
 from model.showcase.Sketch import Sketch
+from model.showcase.storybook.StorybookAdventure import StorybookAdventure
 from model.showcase.transparent.Transparent import Transparent
 from model.showcase.Zendikar import Zendikar
 from model.split.fuse.Fuse import Fuse
@@ -494,10 +493,9 @@ def process_spreadsheets(
     layout_to_subclass = {
         # Regular
         "regular": RegularCard,
-        "regular small": RegularCardSmall,
-        "draconic": RegularCardSmall,
+        "draconic": RegularCard,
         "regular split rules text": RegularSplitRulesText,
-        "regular split rules text old": RegularSplitRulesTextSmall,
+        "regular split rules text old": RegularSplitRulesText,
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
@@ -527,7 +525,7 @@ def process_spreadsheets(
         "planeswalker": Planeswalker,
         # Saga
         "saga": Saga,
-        "transform saga": TransformSagaOld,
+        "transform saga": TransformSaga,
         # Class
         "class": Class,
         # Adventure
@@ -581,6 +579,8 @@ def process_spreadsheets(
         # Showcase LOTR
         "lotr ring": RingLOTR,
         "lotr scroll": ScrollLOTR,
+        # Showcase Storybook
+        "storybook adventure": StorybookAdventure,
     }
 
     if oldest_date is None:
@@ -814,21 +814,34 @@ def process_spreadsheets(
             if len(card_descriptor) == 0 and len(card_original_title) == 0:
                 continue
 
+            # Cards with multiple sets were expanded into per-set clones keyed with a set suffix
+            # (see the `raw_cards = expanded_cards` step above), so raw-data lookups here must
+            # account for that suffix to correctly tell "filtered out of this render" apart from
+            # "genuinely missing from the spreadsheet".
+            card_all_sets = card.get_metadata(CARD_ALL_SETS) or [card_set]
+            multi_set = len(card_all_sets) > 1
+
+            def original_exists_in_raw_data(original_title: str, original_descriptor: str = "") -> bool:
+                if multi_set:
+                    return get_card_key(original_title, "", original_descriptor, card_set) in raw_cards
+                return get_card_key(original_title, "", original_descriptor) in raw_cards
+
             original_card = None
             if len(card_original_title) > 0:
                 original_card = card_sets[card_set].get(card_original_title)
-                if original_card is None:
+                if original_card is None and not original_exists_in_raw_data(card_original_title):
                     log(f"Could not find '{card_original_title}' as an original card of an alternate.")
 
+            plain_key = get_card_key(card_title, card_additional_titles)
             if original_card is None and len(card_descriptor) > 0:
-                original_card = card_sets[card_set].get(get_card_key(card_title, card_additional_titles))
+                original_card = card_sets[card_set].get(plain_key)
 
             if original_card is not None:
                 frame_layout = card.get_metadata(CARD_FRAME_LAYOUT).lower()
                 subclass = layout_to_subclass.get(frame_layout, RegularCard)
                 if subclass is not RegularCard:
                     card_sets[card_set][card_key] = subclass(metadata=card.metadata)
-            else:
+            elif len(card_original_title) == 0 and not original_exists_in_raw_data(card_title):
                 log(f"Could not find '{card_title}' as an original card of an alternate.")
 
     for card_set in card_sets:
@@ -964,21 +977,17 @@ class CardRenderResult(NamedTuple):
     error: str | None
 
 
-def render_card_to_image(card: RegularCard, card_key: str, *, rotate_for_tile: bool = False) -> CardRenderResult:
+def render_card_to_image(card: RegularCard, card_key: str) -> CardRenderResult:
     """
     Render a single card's layers into a finished, composited Image. Shared by both the 'render'
-    and 'tile' actions' worker functions. Exceptions are caught and returned as data (rather than
-    propagated) since this may run inside a worker process, where an uncaught exception would abort
-    the whole batch instead of allowing "log and continue" behavior for the failed card.
+    and 'tile' actions' worker functions.
     """
+
     try:
         card.create_layers()
         final_card = card.render_card()
-        if rotate_for_tile:
-            if card.FOOTER_ROTATION == 90:
-                final_card = final_card.transpose(Image.Transpose.ROTATE_270)
-            elif card.FOOTER_ROTATION == 270:
-                final_card = final_card.transpose(Image.Transpose.ROTATE_90)
+        if final_card.width > final_card.height:
+            final_card = final_card.transpose(Image.Transpose.ROTATE_90)
         return CardRenderResult(card_key, final_card, None)
     except Exception:
         return CardRenderResult(card_key, None, traceback.format_exc())
@@ -991,6 +1000,7 @@ class RenderResult(NamedTuple):
 
 
 def _render_top_level_card(output_path: str, card: RegularCard) -> RenderResult:
+
     def render_one(c: RegularCard) -> tuple[str, str | None]:
         key = get_card_key(
             c.get_metadata(CARD_TITLE),
@@ -1001,7 +1011,7 @@ def _render_top_level_card(output_path: str, card: RegularCard) -> RenderResult:
         if c.get_metadata(CARD_CATEGORY).lower() == "{skip}":
             return key, None
 
-        result = render_card_to_image(c, key, rotate_for_tile=False)
+        result = render_card_to_image(c, key)
         if result.error is not None:
             return key, result.error
 
@@ -1164,7 +1174,7 @@ def render_tile_work_item(
 
     for slot_index, slot in enumerate(item.slots):
         col, row = slot_index % columns, slot_index // columns
-        result = render_card_to_image(slot.card, slot.card_key, rotate_for_tile=True)
+        result = render_card_to_image(slot.card, slot.card_key)
         if result.error is not None:
             card_outcomes.append(CardTileOutcome(slot.card_key, False, result.error))
             continue

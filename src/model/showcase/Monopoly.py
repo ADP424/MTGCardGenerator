@@ -5,10 +5,10 @@ from constants import (
     NEUE_KABEL_ITALICS,
 )
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Monopoly(RegularCardSmall):
+class Monopoly(RegularCard):
     """
     A layered image representing a monopoly showcase card and all the collection info on it,
     with all relevant card metadata.
@@ -42,7 +42,7 @@ class Monopoly(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -59,29 +59,29 @@ class Monopoly(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 167
-        self.TITLE_BOX_Y = 146
-        self.TITLE_BOX_WIDTH = 1170
-        self.TITLE_BOX_HEIGHT = 490
+        self.TITLE_BOX_X = 224
+        self.TITLE_BOX_Y = 196
+        self.TITLE_BOX_WIDTH = 1568
+        self.TITLE_BOX_HEIGHT = 657
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 80
+        self.MANA_COST_SYMBOL_SIZE = 107
         self.MANA_COST_ALIGN = "center"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 11
         self.MANA_COST_TEXT_FONT = NEUE_KABEL
 
         # Monopoly Mana Cost Location
-        self.MANA_COST_BOX_X = 111
-        self.MANA_COST_BOX_Y = 660
-        self.MANA_COST_BOX_WIDTH = 1280
-        self.MANA_COST_BOX_HEIGHT = 190
+        self.MANA_COST_BOX_X = 149
+        self.MANA_COST_BOX_Y = 884
+        self.MANA_COST_BOX_WIDTH = 1715
+        self.MANA_COST_BOX_HEIGHT = 255
 
         # Title Text
-        self.TITLE_X = 200
-        self.TITLE_BOTTOM_Y = 600
-        self.TITLE_WIDTH = 1104
-        self.TITLE_MAX_FONT_SIZE = 158
+        self.TITLE_X = 268
+        self.TITLE_BOTTOM_Y = 804
+        self.TITLE_WIDTH = 1479
+        self.TITLE_MAX_FONT_SIZE = 212
         self.TITLE_FONT = COPPERPLATE_GOTHIC_BOLD
         self.TITLE_FONT_COLOR = (
             (0, 0, 0)
@@ -92,14 +92,14 @@ class Monopoly(RegularCardSmall):
         self.TITLE_TEXT_ALIGN = "center"
 
         # Type Box
-        self.TYPE_BOX_Y = 146
-        self.TYPE_BOX_HEIGHT = 490
+        self.TYPE_BOX_Y = 196
+        self.TYPE_BOX_HEIGHT = 657
 
         # Type Text
-        self.TYPE_X = 200
-        self.TYPE_BOTTOM_Y = 310
-        self.TYPE_WIDTH = 1104
-        self.TYPE_MAX_FONT_SIZE = 70
+        self.TYPE_X = 268
+        self.TYPE_BOTTOM_Y = 415
+        self.TYPE_WIDTH = 1479
+        self.TYPE_MAX_FONT_SIZE = 94
         self.TYPE_FONT = NEUE_KABEL
         self.TYPE_FONT_COLOR = (
             (0, 0, 0)
@@ -110,24 +110,24 @@ class Monopoly(RegularCardSmall):
         self.TYPE_TEXT_ALIGN = "center"
 
         # Rules Text Box
-        self.RULES_BOX_X = 111
-        self.RULES_BOX_Y = 841
-        self.RULES_BOX_WIDTH = 1280
-        self.RULES_BOX_HEIGHT = 1083
+        self.RULES_BOX_X = 149
+        self.RULES_BOX_Y = 1127
+        self.RULES_BOX_WIDTH = 1715
+        self.RULES_BOX_HEIGHT = 1451
 
         # Rules Text
-        self.RULES_TEXT_X = 131
-        self.RULES_TEXT_Y = 841
-        self.RULES_TEXT_WIDTH = 1240
-        self.RULES_TEXT_HEIGHT = 1083
+        self.RULES_TEXT_X = 176
+        self.RULES_TEXT_Y = 1127
+        self.RULES_TEXT_WIDTH = 1662
+        self.RULES_TEXT_HEIGHT = 1451
         self.RULES_TEXT_FONT = NEUE_KABEL
         self.RULES_TEXT_FONT_ITALICS = NEUE_KABEL_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 150
+        self.RULES_TEXT_MAX_FONT_SIZE = 201
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 700
-        self.SET_SYMBOL_Y = 500
-        self.SET_SYMBOL_WIDTH = 100
+        self.SET_SYMBOL_X = 938
+        self.SET_SYMBOL_Y = 670
+        self.SET_SYMBOL_WIDTH = 134
 
     def create_layers(
         self,

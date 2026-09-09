@@ -1,9 +1,9 @@
 from constants import CARD_FRAME_LAYOUT_EXTRAS, LIGHT_RULES_DIVIDING_LINE
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Japan(RegularCardSmall):
+class Japan(RegularCard):
     """
     A layered image representing a card with a japanese showcase frame
     and all the collection info on it, with all relevant card metadata.
@@ -37,7 +37,7 @@ class Japan(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list[RegularCardSmall]] = None,
+        metadata: dict[str, str | list[RegularCard]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,51 +54,51 @@ class Japan(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 82
-        self.TITLE_BOX_WIDTH = 1300
-        self.TITLE_BOX_HEIGHT = 131
+        self.TITLE_BOX_X = 110
+        self.TITLE_BOX_WIDTH = 1742
+        self.TITLE_BOX_HEIGHT = 176
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 70
-        self.MANA_COST_SYMBOL_SPACING = -8
+        self.MANA_COST_SYMBOL_SIZE = 94
+        self.MANA_COST_SYMBOL_SPACING = -11
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 11
 
         # Title Text
-        self.TITLE_X = 120
-        self.TITLE_WIDTH = 1252
+        self.TITLE_X = 161
+        self.TITLE_WIDTH = 1678
         self.TITLE_FONT_COLOR = (255, 255, 255)
         self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE = 0.1
 
         # Type Box
-        self.TYPE_BOX_Y = 1285
-        self.TYPE_BOX_HEIGHT = 114
+        self.TYPE_BOX_Y = 1722
+        self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
-        self.TYPE_X = 120 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 191
-        self.TYPE_BOTTOM_Y = 1373
-        self.TYPE_WIDTH = 1234 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1163
+        self.TYPE_X = 161 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 256
+        self.TYPE_BOTTOM_Y = 1840
+        self.TYPE_WIDTH = 1654 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1558
         self.TYPE_FONT_COLOR = (255, 255, 255)
         self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE = 0.1
 
         # Rules Text Box
-        self.RULES_BOX_Y = 1420
-        self.RULES_BOX_HEIGHT = 515
+        self.RULES_BOX_Y = 1903
+        self.RULES_BOX_HEIGHT = 690
 
         # Rules Text
-        self.RULES_TEXT_Y = 1420
-        self.RULES_TEXT_HEIGHT = 515
+        self.RULES_TEXT_Y = 1903
+        self.RULES_TEXT_HEIGHT = 690
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
         self.RULES_TEXT_OUTLINE_RELATIVE_SIZE = 0.15
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1168
+        self.POWER_TOUGHNESS_X = 1565
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1278
-        self.SET_SYMBOL_Y = 1292
-        self.SET_SYMBOL_WIDTH = 90
+        self.SET_SYMBOL_X = 1713
+        self.SET_SYMBOL_Y = 1731
+        self.SET_SYMBOL_WIDTH = 121
 
         # Other
         self.RULES_TEXT_DIVIDER = LIGHT_RULES_DIVIDING_LINE

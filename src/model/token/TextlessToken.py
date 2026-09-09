@@ -54,10 +54,10 @@ class TextlessToken(Token):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1717
+        self.TYPE_BOX_Y = 2301
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1814
+        self.TYPE_BOTTOM_Y = 2431
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1731
+        self.SET_SYMBOL_Y = 2320

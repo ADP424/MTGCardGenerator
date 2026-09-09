@@ -54,18 +54,18 @@ class TallToken(Token):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1187
+        self.TYPE_BOX_Y = 1591
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1280
+        self.TYPE_BOTTOM_Y = 1715
 
         # Rules Text Box
-        self.RULES_BOX_Y = 1315
-        self.RULES_BOX_HEIGHT = 623
+        self.RULES_BOX_Y = 1762
+        self.RULES_BOX_HEIGHT = 835
 
         # Rules Text
-        self.RULES_TEXT_Y = 1315
-        self.RULES_TEXT_HEIGHT = 623
+        self.RULES_TEXT_Y = 1762
+        self.RULES_TEXT_HEIGHT = 835
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1198
+        self.SET_SYMBOL_Y = 1605

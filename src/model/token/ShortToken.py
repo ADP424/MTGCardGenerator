@@ -54,18 +54,18 @@ class ShortToken(Token):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1420
+        self.TYPE_BOX_Y = 1903
 
         # Type Text
-        self.TYPE_BOTTOM_Y = 1518
+        self.TYPE_BOTTOM_Y = 2034
 
         # Rules Text Box
-        self.RULES_BOX_Y = 1555
-        self.RULES_BOX_HEIGHT = 377
+        self.RULES_BOX_Y = 2084
+        self.RULES_BOX_HEIGHT = 505
 
         # Rules Text
-        self.RULES_TEXT_Y = 1555
-        self.RULES_TEXT_HEIGHT = 377
+        self.RULES_TEXT_Y = 2084
+        self.RULES_TEXT_HEIGHT = 505
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_Y = 1432
+        self.SET_SYMBOL_Y = 1919

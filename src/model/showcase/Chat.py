@@ -19,11 +19,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import load_font, open_image, replace_ticks
 
 
-class Chat(RegularCardSmall):
+class Chat(RegularCard):
     """
     A layered image representing a showcase card in the style of a Chat messenger app,
     and all the collection info on it, with all relevant card metadata.
@@ -59,7 +59,7 @@ class Chat(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -78,17 +78,17 @@ class Chat(RegularCardSmall):
         # Chat Window
         # The coordinates are all relative to if a chat window frame was placed at (0, 0)
         # Users position each window and its text with {offset:(x, y)} directives
-        self.CHAT_WINDOW_WIDTH = 1350
-        self.CHAT_WINDOW_HEIGHT = 475
-        self.CHAT_WINDOW_TITLE_BOX_X = 36
-        self.CHAT_WINDOW_TITLE_BOX_Y = 9
-        self.CHAT_WINDOW_TITLE_BOX_WIDTH = 1334
-        self.CHAT_WINDOW_TITLE_BOX_HEIGHT = 67
-        self.CHAT_WINDOW_TITLE_BOX_MARGIN = 12
-        self.CHAT_WINDOW_RULES_BOX_X = 425
-        self.CHAT_WINDOW_RULES_BOX_Y = 84
-        self.CHAT_WINDOW_RULES_BOX_WIDTH = 945
-        self.CHAT_WINDOW_RULES_BOX_HEIGHT = 384
+        self.CHAT_WINDOW_WIDTH = 1809
+        self.CHAT_WINDOW_HEIGHT = 636
+        self.CHAT_WINDOW_TITLE_BOX_X = 48
+        self.CHAT_WINDOW_TITLE_BOX_Y = 12
+        self.CHAT_WINDOW_TITLE_BOX_WIDTH = 1788
+        self.CHAT_WINDOW_TITLE_BOX_HEIGHT = 90
+        self.CHAT_WINDOW_TITLE_BOX_MARGIN = 16
+        self.CHAT_WINDOW_RULES_BOX_X = 570
+        self.CHAT_WINDOW_RULES_BOX_Y = 113
+        self.CHAT_WINDOW_RULES_BOX_WIDTH = 1266
+        self.CHAT_WINDOW_RULES_BOX_HEIGHT = 515
 
         self.CHAT_TITLE_FONT_SCALE = 1.0
         self.CHAT_TITLE_SEPARATOR = "~"
@@ -96,12 +96,12 @@ class Chat(RegularCardSmall):
         self.CHAT_TITLE_SEPARATOR_GAP = self.RULES_TEXT_MANA_SYMBOL_SPACING
 
         # Mana Cost
-        self.TITLE_BOX_X = 87
-        self.TITLE_BOX_Y = 45
-        self.TITLE_BOX_WIDTH = self.CARD_WIDTH - self.TITLE_BOX_X - 40
-        self.TITLE_BOX_HEIGHT = 114
-        self.MANA_COST_SYMBOL_SIZE = 80
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
+        self.TITLE_BOX_X = 117
+        self.TITLE_BOX_Y = 60
+        self.TITLE_BOX_WIDTH = self.CARD_WIDTH - self.TITLE_BOX_X - 54
+        self.TITLE_BOX_HEIGHT = 153
+        self.MANA_COST_SYMBOL_SIZE = 107
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 11
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
         self.MANA_COST_TEXT_FONT = VERAMONO_BOLD
         self.MANA_COST_TEXT_COLOR = (255, 255, 255)
@@ -110,14 +110,14 @@ class Chat(RegularCardSmall):
         self.TYPE_BOX_Y = self.CHAT_WINDOW_TITLE_BOX_Y
         self.TYPE_BOX_HEIGHT = self.CHAT_WINDOW_TITLE_BOX_HEIGHT
         self.TYPE_X = self.CHAT_WINDOW_TITLE_BOX_X + self.CHAT_WINDOW_TITLE_BOX_MARGIN
-        self.TYPE_BOTTOM_Y = self.CHAT_WINDOW_TITLE_BOX_Y + self.CHAT_WINDOW_TITLE_BOX_HEIGHT - 14
+        self.TYPE_BOTTOM_Y = self.CHAT_WINDOW_TITLE_BOX_Y + self.CHAT_WINDOW_TITLE_BOX_HEIGHT - 25
         self.TYPE_WIDTH = self.CHAT_WINDOW_TITLE_BOX_WIDTH - 2 * self.CHAT_WINDOW_TITLE_BOX_MARGIN
-        self.TYPE_MAX_FONT_SIZE = 52
+        self.TYPE_MAX_FONT_SIZE = 70
         self.TYPE_FONT = VERAMONO_BOLD
         self.TYPE_FONT_COLOR = (255, 255, 255)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_WIDTH = 56
+        self.SET_SYMBOL_WIDTH = 75
         self.SET_SYMBOL_X = (
             self.CHAT_WINDOW_TITLE_BOX_X
             + self.CHAT_WINDOW_TITLE_BOX_WIDTH
@@ -141,22 +141,22 @@ class Chat(RegularCardSmall):
         self.RULES_TEXT_HEIGHT = self.CHAT_WINDOW_RULES_BOX_HEIGHT
         self.RULES_TEXT_FONT = BARLOW
         self.RULES_TEXT_FONT_ITALICS = BARLOW_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 60
+        self.RULES_TEXT_MAX_FONT_SIZE = 80
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_FONT = VERAMONO_BOLD
-        self.POWER_TOUGHNESS_FONT_SIZE = 120
+        self.POWER_TOUGHNESS_FONT_SIZE = 161
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
-        self.POWER_TOUGHNESS_WIDTH = 378
-        self.POWER_TOUGHNESS_HEIGHT = 186
-        self.POWER_TOUGHNESS_X = 1070
-        self.POWER_TOUGHNESS_Y = 1809
+        self.POWER_TOUGHNESS_WIDTH = 507
+        self.POWER_TOUGHNESS_HEIGHT = 249
+        self.POWER_TOUGHNESS_X = 1434
+        self.POWER_TOUGHNESS_Y = 2424
 
         # Footer
-        self.FOOTER_X = 60
-        self.FOOTER_Y = 1980
-        self.FOOTER_WIDTH = self.CARD_WIDTH - 2 * 60
+        self.FOOTER_X = 80
+        self.FOOTER_Y = 2653
+        self.FOOTER_WIDTH = self.CARD_WIDTH - 2 * 80
         self.ARTIST_FONT = VERAMONO_BOLD
         self.LEGAL_FONT = BARLOW
 

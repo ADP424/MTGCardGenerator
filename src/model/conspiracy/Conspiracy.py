@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class Conspiracy(RegularCardSmall):
+class Conspiracy(RegularCard):
     """
     A layered image representing a conspiracy card and all the collection info on it, with all relevant card metadata.
 
@@ -35,7 +35,7 @@ class Conspiracy(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -52,4 +52,4 @@ class Conspiracy(RegularCardSmall):
         )
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1246
+        self.SET_SYMBOL_X = 1670

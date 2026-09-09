@@ -6,10 +6,10 @@ from constants import (
     TIMES_NEW_ROMAN,
 )
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class DemotivationalPoster(RegularCardSmall):
+class DemotivationalPoster(RegularCard):
     """
     A layered image representing a demotivational poster meme showcase card and all the collection info on it,
     with all relevant card metadata.
@@ -43,7 +43,7 @@ class DemotivationalPoster(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -60,26 +60,26 @@ class DemotivationalPoster(RegularCardSmall):
         )
 
         # The art frame for the poster
-        self.ART_FRAME_X = 158
-        self.ART_FRAME_Y = 267
-        self.ART_FRAME_WIDTH = 1184
-        self.ART_FRAME_HEIGHT = 876
+        self.ART_FRAME_X = 212
+        self.ART_FRAME_Y = 358
+        self.ART_FRAME_WIDTH = 1587
+        self.ART_FRAME_HEIGHT = 1174
 
         # Title Box
         self.TITLE_BOX_X = self.ART_FRAME_X
         self.TITLE_BOX_Y = self.ART_FRAME_Y + self.ART_FRAME_HEIGHT
         self.TITLE_BOX_WIDTH = self.ART_FRAME_WIDTH
-        self.TITLE_BOX_HEIGHT = 210
+        self.TITLE_BOX_HEIGHT = 281
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 120
+        self.MANA_COST_SYMBOL_SIZE = 161
         self.MANA_COST_ALIGN = "center"
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
-        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 8
+        self.MANA_COST_SYMBOL_OUTLINE_SIZE = 11
         self.MANA_COST_TEXT_FONT = NEUE_KABEL
 
         self.MANA_COST_BOX_X = self.ART_FRAME_X
-        self.MANA_COST_BOX_Y = 20
+        self.MANA_COST_BOX_Y = 27
         self.MANA_COST_BOX_WIDTH = self.ART_FRAME_WIDTH
         self.MANA_COST_BOX_HEIGHT = self.ART_FRAME_Y - self.MANA_COST_BOX_Y
 
@@ -87,34 +87,34 @@ class DemotivationalPoster(RegularCardSmall):
         self.TITLE_X = self.TITLE_BOX_X
         self.TITLE_BOTTOM_Y = self.TITLE_BOX_Y + self.TITLE_BOX_HEIGHT
         self.TITLE_WIDTH = self.TITLE_BOX_WIDTH
-        self.TITLE_MAX_FONT_SIZE = 110
+        self.TITLE_MAX_FONT_SIZE = 147
         self.TITLE_FONT = TIMES_NEW_ROMAN
         self.TITLE_FONT_COLOR = (255, 255, 255)
         self.TITLE_TEXT_ALIGN = "center"
 
         # Type Box
-        self.TYPE_BOX_Y = self.TITLE_BOX_Y + self.TITLE_BOX_HEIGHT - 50
-        self.TYPE_BOX_HEIGHT = 113
+        self.TYPE_BOX_Y = self.TITLE_BOX_Y + self.TITLE_BOX_HEIGHT - 67
+        self.TYPE_BOX_HEIGHT = 151
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_WIDTH = 90
-        self.SET_SYMBOL_X = self.ART_FRAME_X + self.ART_FRAME_WIDTH - self.SET_SYMBOL_WIDTH - 20
-        self.SET_SYMBOL_Y = self.ART_FRAME_Y + self.ART_FRAME_HEIGHT - self.SET_SYMBOL_WIDTH - 20
+        self.SET_SYMBOL_WIDTH = 121
+        self.SET_SYMBOL_X = self.ART_FRAME_X + self.ART_FRAME_WIDTH - self.SET_SYMBOL_WIDTH - 27
+        self.SET_SYMBOL_Y = self.ART_FRAME_Y + self.ART_FRAME_HEIGHT - self.SET_SYMBOL_WIDTH - 27
 
         # Type Text
         self.TYPE_X = self.ART_FRAME_X
-        self.TYPE_BOTTOM_Y = self.TYPE_BOX_Y + self.TYPE_BOX_HEIGHT - 15
+        self.TYPE_BOTTOM_Y = self.TYPE_BOX_Y + self.TYPE_BOX_HEIGHT - 20
         self.TYPE_WIDTH = self.ART_FRAME_WIDTH
-        self.TYPE_MAX_FONT_SIZE = 60
+        self.TYPE_MAX_FONT_SIZE = 80
         self.TYPE_FONT = LATO
         self.TYPE_FONT_COLOR = (255, 255, 255)
         self.TYPE_TEXT_ALIGN = "center"
 
         # Rules Text Box
         self.RULES_BOX_X = self.ART_FRAME_X
-        self.RULES_BOX_Y = 1445
+        self.RULES_BOX_Y = 1936
         self.RULES_BOX_WIDTH = self.ART_FRAME_WIDTH
-        self.RULES_BOX_HEIGHT = 480
+        self.RULES_BOX_HEIGHT = 643
 
         # Rules Text
         self.RULES_TEXT_X = self.RULES_BOX_X
@@ -123,16 +123,16 @@ class DemotivationalPoster(RegularCardSmall):
         self.RULES_TEXT_HEIGHT = self.RULES_BOX_HEIGHT
         self.RULES_TEXT_FONT = LATO
         self.RULES_TEXT_FONT_ITALICS = LATO_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 68
+        self.RULES_TEXT_MAX_FONT_SIZE = 91
         self.RULES_TEXT_FONT_COLOR = (255, 255, 255)
 
         # Power & Toughness
-        self.POWER_TOUGHNESS_WIDTH = 250
-        self.POWER_TOUGHNESS_HEIGHT = 100
-        self.POWER_TOUGHNESS_X = 1190
-        self.POWER_TOUGHNESS_Y = 1875
+        self.POWER_TOUGHNESS_WIDTH = 335
+        self.POWER_TOUGHNESS_HEIGHT = 134
+        self.POWER_TOUGHNESS_X = 1595
+        self.POWER_TOUGHNESS_Y = 2512
         self.POWER_TOUGHNESS_FONT = LATO_BOLD
-        self.POWER_TOUGHNESS_FONT_SIZE = 100
+        self.POWER_TOUGHNESS_FONT_SIZE = 134
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
 
     def _create_mana_cost_layer(self):

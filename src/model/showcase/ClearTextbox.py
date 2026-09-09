@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class ClearTextbox(RegularCardSmall):
+class ClearTextbox(RegularCard):
     """
     A layered image representing a card with a clear (transparent-style) textbox,
     with white type line and rules text, and all the collection info on it,

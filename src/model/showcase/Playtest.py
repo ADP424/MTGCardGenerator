@@ -10,11 +10,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import paste_image, str_to_float
 
 
-class Playtest(RegularCardSmall):
+class Playtest(RegularCard):
     """
     A layered image representing a playtest card and all the collection info on it,
     with all relevant card metadata.
@@ -48,7 +48,7 @@ class Playtest(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -68,77 +68,77 @@ class Playtest(RegularCardSmall):
         self.MANA_SYMBOL_KEY = PLAYTEST_SYMBOL_PLACEHOLDER_KEY
 
         # Title Box
-        self.TITLE_BOX_X = 208
-        self.TITLE_BOX_Y = 152
-        self.TITLE_BOX_WIDTH = 1080
-        self.TITLE_BOX_HEIGHT = 128
+        self.TITLE_BOX_X = 279
+        self.TITLE_BOX_Y = 204
+        self.TITLE_BOX_WIDTH = 1447
+        self.TITLE_BOX_HEIGHT = 172
 
         # Mana Cost
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
 
         # Title Text
-        self.TITLE_X = 232
-        self.TITLE_BOTTOM_Y = 261
-        self.TITLE_WIDTH = 1182
-        self.TITLE_MAX_FONT_SIZE = 67
+        self.TITLE_X = 311
+        self.TITLE_BOTTOM_Y = 350
+        self.TITLE_WIDTH = 1584
+        self.TITLE_MAX_FONT_SIZE = 90
         self.TITLE_FONT = LATO_BOLD
 
         # Type Box
-        self.TYPE_BOX_Y = 1023
-        self.TYPE_BOX_HEIGHT = 144
+        self.TYPE_BOX_Y = 1371
+        self.TYPE_BOX_HEIGHT = 193
 
         # Type Text
-        self.TYPE_X = 232 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 272
-        self.TYPE_BOTTOM_Y = 1132
-        self.TYPE_WIDTH = 1100 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1129
-        self.TYPE_MAX_FONT_SIZE = 67
-        self.TYPE_MIN_FONT_SIZE = 6
+        self.TYPE_X = 311 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 364
+        self.TYPE_BOTTOM_Y = 1517
+        self.TYPE_WIDTH = 1474 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1513
+        self.TYPE_MAX_FONT_SIZE = 90
+        self.TYPE_MIN_FONT_SIZE = 8
         self.TYPE_FONT = LATO
 
         # Rules Text Box
-        self.RULES_BOX_X = 201
-        self.RULES_BOX_Y = 1173
-        self.RULES_BOX_WIDTH = 1105
-        self.RULES_BOX_HEIGHT = 648
+        self.RULES_BOX_X = 269
+        self.RULES_BOX_Y = 1572
+        self.RULES_BOX_WIDTH = 1481
+        self.RULES_BOX_HEIGHT = 868
 
         # Rules Text
-        self.RULES_TEXT_X = 218
-        self.RULES_TEXT_Y = 1157
-        self.RULES_TEXT_WIDTH = 1084
-        self.RULES_TEXT_HEIGHT = 664
+        self.RULES_TEXT_X = 292
+        self.RULES_TEXT_Y = 1550
+        self.RULES_TEXT_WIDTH = 1453
+        self.RULES_TEXT_HEIGHT = 890
         self.RULES_TEXT_FONT = LATO
         self.RULES_TEXT_FONT_ITALICS = LATO_ITALICS
-        self.RULES_TEXT_MAX_FONT_SIZE = 78
-        self.RULES_TEXT_MIN_FONT_SIZE = 6
+        self.RULES_TEXT_MAX_FONT_SIZE = 105
+        self.RULES_TEXT_MIN_FONT_SIZE = 8
 
         # Reminder Rules Text
-        self.REMINDER_TEXT_X = 218
-        self.REMINDER_TEXT_Y = 1819
-        self.REMINDER_TEXT_WIDTH = 1084
-        self.REMINDER_TEXT_HEIGHT = 113
-        self.REMINDER_TEXT_MAX_FONT_SIZE = 55
+        self.REMINDER_TEXT_X = 292
+        self.REMINDER_TEXT_Y = 2437
+        self.REMINDER_TEXT_WIDTH = 1453
+        self.REMINDER_TEXT_HEIGHT = 151
+        self.REMINDER_TEXT_MAX_FONT_SIZE = 74
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1079
-        self.POWER_TOUGHNESS_Y = 1835
-        self.POWER_TOUGHNESS_WIDTH = 238
-        self.POWER_TOUGHNESS_HEIGHT = 97
+        self.POWER_TOUGHNESS_X = 1446
+        self.POWER_TOUGHNESS_Y = 2459
+        self.POWER_TOUGHNESS_WIDTH = 319
+        self.POWER_TOUGHNESS_HEIGHT = 130
         self.POWER_TOUGHNESS_FONT = LATO
-        self.POWER_TOUGHNESS_FONT_SIZE = 70
+        self.POWER_TOUGHNESS_FONT_SIZE = 94
         self.POWER_TOUGHNESS_FONT_COLOR = (0, 0, 0)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1200
-        self.SET_SYMBOL_Y = 1044
-        self.SET_SYMBOL_WIDTH = 80
+        self.SET_SYMBOL_X = 1608
+        self.SET_SYMBOL_Y = 1399
+        self.SET_SYMBOL_WIDTH = 107
 
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
-        self.FOOTER_X = 183
-        self.FOOTER_Y = 1956
-        self.FOOTER_WIDTH = 1135
-        self.FOOTER_HEIGHT = 100
+        self.FOOTER_X = 245
+        self.FOOTER_Y = 2621
+        self.FOOTER_WIDTH = 1521
+        self.FOOTER_HEIGHT = 134
 
     def render_card(self, close_images: bool = True) -> Image.Image:
         """
@@ -155,14 +155,11 @@ class Playtest(RegularCardSmall):
         """
 
         art_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
-        art_image = paste_image(self.art_layer.image, art_image, (0, 0))
+        art_image = self._paste_layer(self.art_layer, art_image, close_images)
 
         composite_image = Image.new("RGBA", (self.CARD_WIDTH, self.CARD_HEIGHT), (0, 0, 0, 0))
         for layer in self.frame_layers + self.collector_layers + self.text_layers + self.overlay_layers:
-            composite_image = paste_image(layer.image, composite_image, layer.position)
-            if close_images and layer.image:
-                layer.image.close()
-                layer.image = None
+            composite_image = self._paste_layer(layer, composite_image, close_images)
 
         for extra in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS):
             if extra[:6] == "rotate":

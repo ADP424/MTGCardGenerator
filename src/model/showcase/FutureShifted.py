@@ -13,10 +13,10 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class FutureShifted(RegularCardSmall):
+class FutureShifted(RegularCard):
     """
     A layered image representing a card with a future shifted showcase frame
     and all the collection info on it, with all relevant card metadata.
@@ -50,7 +50,7 @@ class FutureShifted(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list[RegularCardSmall]] = None,
+        metadata: dict[str, str | list[RegularCard]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -67,34 +67,34 @@ class FutureShifted(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 90
-        self.TITLE_BOX_Y = 105
-        self.TITLE_BOX_WIDTH = 1313
-        self.TITLE_BOX_HEIGHT = 114
+        self.TITLE_BOX_X = 121
+        self.TITLE_BOX_Y = 141
+        self.TITLE_BOX_WIDTH = 1759
+        self.TITLE_BOX_HEIGHT = 153
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 120
+        self.MANA_COST_SYMBOL_SIZE = 161
         self.MANA_COST_SYMBOL_X = {
-            1: 184,
-            2: 123,
-            3: 93,
-            4: 93,
-            5: 119,
-            6: 214,
+            1: 247,
+            2: 165,
+            3: 125,
+            4: 125,
+            5: 159,
+            6: 287,
         }
         self.MANA_COST_SYMBOL_Y = {
-            1: 283,
-            2: 419,
-            3: 568,
-            4: 720,
-            5: 883,
-            6: 1035,
+            1: 379,
+            2: 561,
+            3: 761,
+            4: 965,
+            5: 1183,
+            6: 1387,
         }
 
         # Title Text
-        self.TITLE_X = 265
-        self.TITLE_BOTTOM_Y = 218
-        self.TITLE_WIDTH = 1100
+        self.TITLE_X = 355
+        self.TITLE_BOTTOM_Y = 292
+        self.TITLE_WIDTH = 1474
         self.TITLE_FONT_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
@@ -103,13 +103,13 @@ class FutureShifted(RegularCardSmall):
         )
 
         # Type Box
-        self.TYPE_BOX_Y = 1187
-        self.TYPE_BOX_HEIGHT = 114
+        self.TYPE_BOX_Y = 1591
+        self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
-        self.TYPE_X = 181 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 252
-        self.TYPE_BOTTOM_Y = 1276
-        self.TYPE_WIDTH = 1114 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1043
+        self.TYPE_X = 243 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 338
+        self.TYPE_BOTTOM_Y = 1710
+        self.TYPE_WIDTH = 1493 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1398
         self.TYPE_FONT_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
@@ -118,21 +118,21 @@ class FutureShifted(RegularCardSmall):
         )
 
         # Rules Text Box
-        self.RULES_BOX_X = 112
-        self.RULES_BOX_Y = 1315
-        self.RULES_BOX_WIDTH = 1278
-        self.RULES_BOX_HEIGHT = 550
+        self.RULES_BOX_X = 150
+        self.RULES_BOX_Y = 1762
+        self.RULES_BOX_WIDTH = 1713
+        self.RULES_BOX_HEIGHT = 737
 
         # Rules Text
-        self.RULES_TEXT_X = 134
-        self.RULES_TEXT_WIDTH = 1235
-        self.RULES_TEXT_HEIGHT = 550
+        self.RULES_TEXT_X = 180
+        self.RULES_TEXT_WIDTH = 1655
+        self.RULES_TEXT_HEIGHT = 737
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1144
-        self.POWER_TOUGHNESS_Y = 1887
-        self.POWER_TOUGHNESS_WIDTH = 252
-        self.POWER_TOUGHNESS_HEIGHT = 120
+        self.POWER_TOUGHNESS_X = 1533
+        self.POWER_TOUGHNESS_Y = 2529
+        self.POWER_TOUGHNESS_WIDTH = 338
+        self.POWER_TOUGHNESS_HEIGHT = 161
         self.POWER_TOUGHNESS_FONT_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
@@ -141,20 +141,20 @@ class FutureShifted(RegularCardSmall):
         )
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1334
-        self.SET_SYMBOL_Y = 1215
-        self.SET_SYMBOL_WIDTH = 70
+        self.SET_SYMBOL_X = 1788
+        self.SET_SYMBOL_Y = 1628
+        self.SET_SYMBOL_WIDTH = 94
 
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
-        self.FOOTER_Y = 1929
-        self.FOOTER_WIDTH = 1304 if len(self.get_metadata(CARD_POWER_TOUGHNESS)) == 0 else 1040
+        self.FOOTER_Y = 2585
+        self.FOOTER_WIDTH = 1747 if len(self.get_metadata(CARD_POWER_TOUGHNESS)) == 0 else 1394
 
         # Type Icon
-        self.TYPE_ICON_X = 102
-        self.TYPE_ICON_Y = 101
-        self.TYPE_ICON_SIZE = 59
+        self.TYPE_ICON_X = 137
+        self.TYPE_ICON_Y = 135
+        self.TYPE_ICON_SIZE = 79
         self.TYPE_ICON_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])

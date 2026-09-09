@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 
 
-class RingLOTR(RegularCardSmall):
+class RingLOTR(RegularCard):
     """
     A layered image representing a showcase Lord of the Rings ring-styled card
     and all the collection info on it, with all relevant card metadata.
@@ -36,7 +36,7 @@ class RingLOTR(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -53,11 +53,11 @@ class RingLOTR(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_Y = 117
-        self.TITLE_BOX_WIDTH = 1302
+        self.TITLE_BOX_Y = 157
+        self.TITLE_BOX_WIDTH = 1745
 
         # Title Text
-        self.TITLE_BOTTOM_Y = 211
+        self.TITLE_BOTTOM_Y = 283
         self.TITLE_FONT_COLOR = (255, 255, 255)
 
         # Type Text
@@ -67,8 +67,8 @@ class RingLOTR(RegularCardSmall):
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1289
+        self.SET_SYMBOL_X = 1727
 
         # Other
-        self.HOLO_STAMP_X = 646
-        self.HOLO_STAMP_Y = 1894
+        self.HOLO_STAMP_X = 866
+        self.HOLO_STAMP_Y = 2538

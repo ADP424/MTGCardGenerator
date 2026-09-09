@@ -15,11 +15,11 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.regular.RegularCardSmall import RegularCardSmall
+from model.regular.RegularCard import RegularCard
 from utils import load_font, paste_image
 
 
-class Planeswalker(RegularCardSmall):
+class Planeswalker(RegularCard):
     """
     A layered image representing a regular planeswalker and all the collection info on it,
     with all relevant card metadata.
@@ -53,7 +53,7 @@ class Planeswalker(RegularCardSmall):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["RegularCardSmall"]] = None,
+        metadata: dict[str, str | list["RegularCard"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -70,62 +70,62 @@ class Planeswalker(RegularCardSmall):
         )
 
         # Title Box
-        self.TITLE_BOX_X = 90
-        self.TITLE_BOX_Y = 76
-        self.TITLE_BOX_WIDTH = 1313
+        self.TITLE_BOX_X = 121
+        self.TITLE_BOX_Y = 102
+        self.TITLE_BOX_WIDTH = 1759
 
         # Title Text
-        self.TITLE_X = 130
-        self.TITLE_BOTTOM_Y = 164
-        self.TITLE_WIDTH = 1244
+        self.TITLE_X = 174
+        self.TITLE_BOTTOM_Y = 220
+        self.TITLE_WIDTH = 1667
 
         # Type Box
-        self.TYPE_BOX_Y = 1181
+        self.TYPE_BOX_Y = 1583
 
         # Type Text
-        self.TYPE_X = 130 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 201
-        self.TYPE_BOTTOM_Y = 1270
-        self.TYPE_WIDTH = 1240 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1169
+        self.TYPE_X = 174 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 269
+        self.TYPE_BOTTOM_Y = 1702
+        self.TYPE_WIDTH = 1662 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1566
 
         # Rules Text Box
-        self.RULES_BOX_X = 180
-        self.RULES_BOX_Y = 1315
-        self.RULES_BOX_WIDTH = 1206
-        self.RULES_BOX_HEIGHT = 608
+        self.RULES_BOX_X = 241
+        self.RULES_BOX_Y = 1762
+        self.RULES_BOX_WIDTH = 1616
+        self.RULES_BOX_HEIGHT = 815
 
         # Planeswalker Ability Cost Frame
-        self.ABILITY_COST_FRAME_X = 42
-        self.ABILITY_COST_FRAME_WIDTH = 212
+        self.ABILITY_COST_FRAME_X = 56
+        self.ABILITY_COST_FRAME_WIDTH = 284
 
         # Rules Text
-        self.RULES_TEXT_X = 254
-        self.RULES_TEXT_Y = 1315
-        self.RULES_TEXT_WIDTH = 1132
-        self.RULES_TEXT_HEIGHT = 580
+        self.RULES_TEXT_X = 340
+        self.RULES_TEXT_Y = 1762
+        self.RULES_TEXT_WIDTH = 1517
+        self.RULES_TEXT_HEIGHT = 777
 
         # Planeswalker Ability Cost Text
-        self.ABILITY_COST_TEXT_X = 80
-        self.ABILITY_COST_TEXT_WIDTH = 135
-        self.ABILITY_COST_TEXT_HEIGHT = 76
-        self.ABILITY_TEXT_MARGIN = 20
-        self.ABILITY_COST_FONT_SIZE = 60
+        self.ABILITY_COST_TEXT_X = 107
+        self.ABILITY_COST_TEXT_WIDTH = 181
+        self.ABILITY_COST_TEXT_HEIGHT = 102
+        self.ABILITY_TEXT_MARGIN = 27
+        self.ABILITY_COST_FONT_SIZE = 80
         self.ABILITY_COST_FONT_COLOR = (255, 255, 255)
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1201
-        self.POWER_TOUGHNESS_Y = 1848
-        self.POWER_TOUGHNESS_WIDTH = 228
-        self.POWER_TOUGHNESS_HEIGHT = 158
+        self.POWER_TOUGHNESS_X = 1609
+        self.POWER_TOUGHNESS_Y = 2476
+        self.POWER_TOUGHNESS_WIDTH = 306
+        self.POWER_TOUGHNESS_HEIGHT = 212
         self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1304
-        self.SET_SYMBOL_Y = 1197
-        self.SET_SYMBOL_WIDTH = 80
+        self.SET_SYMBOL_X = 1747
+        self.SET_SYMBOL_Y = 1604
+        self.SET_SYMBOL_WIDTH = 107
 
         # Other
-        self.HOLO_STAMP_X = 660
-        self.HOLO_STAMP_Y = 1894
+        self.HOLO_STAMP_X = 884
+        self.HOLO_STAMP_Y = 2538
 
         # Determine the heights and y-values of each ability rules text
         full_rules_text = self.get_metadata(CARD_RULES_TEXT)
