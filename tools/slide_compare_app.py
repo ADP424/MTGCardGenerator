@@ -711,7 +711,7 @@ def render_pair(r, key, mode, isolate, aw, ah, scale=None):
     if overlay:
         panels = [
             (
-                "OVERLAY — red=template  green=app  yellow=aligned",
+                "OVERLAY, red=template  green=app  yellow=aligned",
                 _compose_overlay(r, (x0, y0, x1, y1), isolate),
                 True,
                 True,
@@ -804,7 +804,7 @@ def render_single(r, which, idx, aw, ah, scale=None):
     _text(
         d,
         (14, 8),
-        ("MISSING IN APP — template only" if which == "template" else "EXTRA IN APP — not in template"),
+        ("MISSING IN APP, template only" if which == "template" else "EXTRA IN APP, not in template"),
         _font(18),
         fill=RED,
     )
@@ -1555,7 +1555,7 @@ class BoxEditor(tk.Toplevel):
         self.status.config(
             text=f"{len(r.t_blocks)} template / {len(r.a_blocks)} app boxes · "
             f"{len(r.pairs)} matched ({len(r.linked_pairs)} manual links) · "
-            f"{nman} manual boxes · {len(self.actions)} edits{sel}   —   {hint}"
+            f"{nman} manual boxes · {len(self.actions)} edits{sel}  ,   {hint}"
         )
 
 
@@ -1565,7 +1565,7 @@ class BoxEditor(tk.Toplevel):
 class App(tk.Tk):
     def __init__(self, t_path=None, a_path=None):
         super().__init__()
-        self.title("Slide Template vs. App — Text Diff Viewer")
+        self.title("Slide Template vs. App, Text Diff Viewer")
         self.geometry("1460x940")
         self.settings = Settings()
         self.result = None
@@ -1587,9 +1587,9 @@ class App(tk.Tk):
         bar.pack(side="top", fill="x")
         ttk.Button(bar, text="Open Template…", command=lambda: self._pick("t_path")).pack(side="left")
         ttk.Button(bar, text="Open App…", command=lambda: self._pick("a_path")).pack(side="left", padx=(4, 12))
-        self.lbl_t = ttk.Label(bar, text="template: —", width=26)
+        self.lbl_t = ttk.Label(bar, text="template:,", width=26)
         self.lbl_t.pack(side="left")
-        self.lbl_a = ttk.Label(bar, text="app: —", width=26)
+        self.lbl_a = ttk.Label(bar, text="app:,", width=26)
         self.lbl_a.pack(side="left", padx=(4, 12))
         ttk.Label(bar, text="text colour R,G,B:").pack(side="left")
         self.e_color = ttk.Entry(bar, width=11)
@@ -1996,7 +1996,7 @@ class App(tk.Tk):
         b = (self.result.t_blocks if which == "template" else self.result.a_blocks)[idx]
         kind = "MISSING IN APP" if which == "template" else "EXTRA IN APP"
         self._set_details(
-            f"{kind} — no match found in the other image\n" + self._conf_line(which, b) + "\n"
+            f"{kind}, no match found in the other image\n" + self._conf_line(which, b) + "\n"
             f"  box {b['x']},{b['y']}  {b['w']}x{b['h']}  glyph_h={b['glyph_h']:.1f}\n"
             f"  Use 'Edit boxes...' to delete it, merge it by linking, or rebuild it "
             f"from the glyphs you want."

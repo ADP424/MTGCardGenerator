@@ -1476,7 +1476,7 @@ class RegularCard:
         first_part = f"{replace_ticks(supertypes)} {replace_ticks(types)}"
         second_part = replace_ticks(subtypes)
         if len(second_part) > 0:
-            text = " — ".join((first_part, second_part)).strip()
+            text = ", ".join((first_part, second_part)).strip()
         else:
             text = first_part.strip()
 
