@@ -90,6 +90,8 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.Chat import Chat
 from model.showcase.ClearTextbox import ClearTextbox
 from model.showcase.Coup import Coup
+from model.showcase.extended.Extended import Extended
+from model.showcase.extended.ShortExtended import ShortExtended
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
 from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.FullText import FullText
@@ -113,6 +115,7 @@ from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
 from model.showcase.promo.Promo import Promo
 from model.showcase.Sketch import Sketch
+from model.showcase.StainedGlass import StainedGlass
 from model.showcase.storybook.StorybookAdventure import StorybookAdventure
 from model.showcase.transparent.Transparent import Transparent
 from model.showcase.Zendikar import Zendikar
@@ -567,6 +570,9 @@ def process_spreadsheets(
         "poker": Poker,
         "breaking news": BreakingNews,
         "clear textbox": ClearTextbox,
+        "stained glass": StainedGlass,
+        "extended": Extended,
+        "short extended": ShortExtended,
         # Showcase Meme
         "demotivational poster": DemotivationalPoster,
         # Showcase Promo
@@ -984,7 +990,7 @@ def render_card_to_image(card: RegularCard, card_key: str) -> CardRenderResult:
     """
 
     try:
-        card.create_layers()
+        card.create_layers(create_overlay_layers=False)
         final_card = card.render_card()
         if final_card.width > final_card.height:
             final_card = final_card.transpose(Image.Transpose.ROTATE_90)

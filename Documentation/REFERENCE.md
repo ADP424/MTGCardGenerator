@@ -87,7 +87,7 @@ Internally a card is identified by `Title - Additional Title - … - Descriptor 
 
 ### Alternates
 
-A row with a **Descriptor** (or an **Original**) is an alternate version of another card. Blank cells are filled from the original's row, except Set, Artist, Overlay(s), Transform Frontside, Category, and Spellbook(s). Its key and filename become `Title - Descriptor`. When rendering with `-c`, **include the original too**, or the fill-in fails.
+A row with a **Descriptor** (or an **Original**) is an alternate version of another card. Blank cells are filled from the original's row, except Set, Artist, Overlay(s), Transform Frontside, Category, and Spellbook(s). Its key and filename become `Title - Descriptor`.
 
 ### Backsides
 
@@ -165,6 +165,9 @@ In the **Multi-line cells** column, `⏎` means the cell is read line by line an
 | `Transparent` | — | Regular geometry; light/dark text via `white`/`light` tokens. |
 | `Full Text` | — | No art; text box fills the card. |
 | `Clear Textbox` | — | Regular with white type and rules text. |
+| `Stained Glass` | — | Regular geometry with all text white. |
+| `Extended` | — | Regular geometry; type line text is white. |
+| `Short Extended` | — | As `Extended`, but the rules text box is slightly shorter. |
 | `Japan` | — | Outlined white text, lower type line. |
 | `Japanese Mystical Archive` | Watermark Color(s) ⏎ (title bar colors) | Vertical title bar grows to fit. |
 | `Japanese Mystical Archive Horizontal` | — | Same fonts and symbols, normal title bar. |

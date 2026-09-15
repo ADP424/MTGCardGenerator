@@ -1476,7 +1476,7 @@ class RegularCard:
         first_part = f"{replace_ticks(supertypes)} {replace_ticks(types)}"
         second_part = replace_ticks(subtypes)
         if len(second_part) > 0:
-            text = ", ".join((first_part, second_part)).strip()
+            text = " — ".join((first_part, second_part)).strip()
         else:
             text = first_part.strip()
 
@@ -1523,10 +1523,6 @@ class RegularCard:
                 )
             )
 
-        # The type line must fit before both the right edge of its own box and the rarity/set
-        # symbol, whichever comes first. On most frames the symbol sits inside the box and is the
-        # tighter constraint; on frames where the type box is narrower than SET_SYMBOL_X (e.g. a
-        # showcase layout with its own, separately-positioned type box), the box's own edge is.
         type_right_bound = min(self.TYPE_X + self.TYPE_WIDTH, self.SET_SYMBOL_X)
 
         type_length = get_type_length()

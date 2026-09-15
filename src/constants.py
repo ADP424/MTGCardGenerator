@@ -142,8 +142,6 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     # Modal
     "modal/snow/old": (1500, 2100),
     # Regular
-    "regular/clear_textbox": (1500, 2100),
-    "regular/extended": (1500, 2100),
     "regular/transform/back/meld": (2814, 2010),
     # Saga
     "saga/old": (1500, 2100),
@@ -188,7 +186,7 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     "showcase/art_deco": (1500, 2100),
     # TODO: showcase/borderless/mask_no_border.png is a stray 2010x2814 file
     "showcase/borderless": (1500, 2100),
-    "showcase/box_topper": (1500, 2100),
+    "showcase/clear_textbox": (1500, 2100),
     "showcase/commander_legends": (1500, 2100),
     "showcase/crystal": (1500, 2100),
     "showcase/dnd": (1500, 2100),
@@ -197,6 +195,7 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     "showcase/equinox": (1500, 2100),
     "showcase/etched": (1500, 2100),
     "showcase/expedition": (1500, 2100),
+    "showcase/extended": (1500, 2100),
     "showcase/fang": (1500, 2100),
     "showcase/fnm": (1500, 2100),
     "showcase/full_art_basic": (1500, 2100),
