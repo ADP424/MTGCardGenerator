@@ -285,6 +285,8 @@ python src/main.py [options]
 | `-t, --tabs NAME [...]` | Only these XLSX / Google Sheets tabs. |
 | `-gs, --google-sheets ID_OR_URL [...]` | Also fetch these Google Sheets. |
 | `-gc, --google-credentials PATH` | Service-account JSON. Default `credentials/google_service_account.json`. |
+| `-rsz, --render-size W H` | Resize final card images to `W`×`H`. Applies to `render` output and to each card's cell size when packing `tile` sheets (which otherwise default to 1500×2100). Default: native resolution. |
+| `-tsz, --tile-size W H` | `tile` only: cap each full tile sheet image at `W`×`H`. Default 10000×10000. |
 | `-w, --workers N` | Parallel processes for `render` and `tile`. Default 1. |
 
 `python src/main.py --help` prints the same list.
@@ -306,7 +308,7 @@ Each tab is treated like a separate sheet and must have the full header row.
 
 ### tile
 
-`-a tile` packs rendered cards into large sheets for bulk printing: each card is resized to 1500×2100 and laid into a grid capped at 10000×10000 (24 cards per sheet). Output: `processed_tiles/<Set>/<category>/<n>.png`, one sequence per Category ([§2](#categories-and-collector-numbers)). Backsides follow their fronts. `-tn` re-renders specific sheets.
+`-a tile` packs rendered cards into large sheets for bulk printing: each card is resized to 1500×2100 and laid into a grid capped at 10000×10000 (24 cards per sheet). Use `-rsz` to change the per-card cell size and `-tsz` to change the sheet's maximum size (both also affect how many cards fit per sheet). Output: `processed_tiles/<Set>/<category>/<n>.png`, one sequence per Category ([§2](#categories-and-collector-numbers)). Backsides follow their fronts. `-tn` re-renders specific sheets.
 
 ### art-extract
 

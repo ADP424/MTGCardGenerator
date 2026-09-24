@@ -14,5 +14,7 @@
   "tabs_whitelist": ["MyTab"],
   "google_sheets_ids": ["1AbCDeFGhijKLmNoPQRstuVWXyz"],
   "google_credentials_path": "credentials/google_service_account.json",
+  "render_size": [750, 1050],
+  "tile_size": [8000, 8000],
   "workers": 1
 }

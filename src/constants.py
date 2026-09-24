@@ -287,6 +287,8 @@ COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate_gothic/copperplate_gothic_bold.ttf"
 
 GOTHAM_BOLD = "fonts/gotham/gotham_bold.ttf"
 
+GOUDY_MEDIEVAL = "fonts/goudy_medieval/goudy_medieval.ttf"
+
 MPLANTIN = "fonts/mplantin/mplantin.ttf"
 MPLANTIN_BOLD = "fonts/mplantin/mplantin_bold.ttf"
 MPLANTIN_ITALICS = "fonts/mplantin/mplantin_italics.ttf"

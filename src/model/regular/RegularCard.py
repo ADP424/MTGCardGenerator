@@ -755,6 +755,57 @@ class RegularCard:
             return None
         return h_bbox[3] - h_bbox[1]
 
+    def _get_left_overhang(self, font: ImageFont.FreeTypeFont, text: str) -> int:
+        """
+        Measure how far a piece of text's leftmost part sits left of its drawing origin.
+
+        Parameters
+        ----------
+        font: FreeTypeFont
+            The font `text` will be drawn in.
+
+        text: str
+            The text to measure. Only its first character matters, since that's the one that can
+            overhang a left-aligned box's edge.
+
+        Returns
+        -------
+        int
+            How many pixels of ink overhang to the left of the drawing origin.
+        """
+
+        if len(text) == 0:
+            return 0
+        bbox = font.getbbox(text[0])
+        if bbox is None or bbox[0] >= 0:
+            return 0
+        return -bbox[0]
+
+    def _get_top_overhang(self, font: ImageFont.FreeTypeFont, text: str) -> int:
+        """
+        Measure how far a piece of text's topmost ink sits above its drawing origin.
+
+        Parameters
+        ----------
+        font: FreeTypeFont
+            The font `text` will be drawn in.
+
+        text: str
+            The text to measure. Only its first character matters.
+
+        Returns
+        -------
+        int
+            How many pixels of ink overhang above the drawing origin.
+        """
+
+        if len(text) == 0:
+            return 0
+        bbox = font.getbbox(text[0])
+        if bbox is None or bbox[1] >= 0:
+            return 0
+        return -bbox[1]
+
     def _load_fallback_fonts(
         self,
         primary_font_path: str,
@@ -1432,12 +1483,17 @@ class RegularCard:
         elif text_align == "center":
             x_pos = (self.TITLE_WIDTH - title_length + int(self.TITLE_TEXT_OUTLINE_RELATIVE_SIZE * font_size)) // 2
 
+        overhang_x, overhang_y = 0, 0
+        if text_align == "left" and len(segments) > 0:
+            overhang_x = self._get_left_overhang(title_font, segments[0][0])
+            overhang_y = self._get_top_overhang(title_font, segments[0][0])
+
         ascent = title_font.getmetrics()[0]
         y_pos = (self.TITLE_BOTTOM_Y - self.TITLE_BOX_Y - ascent) // 2
         for seg_text, color in segments:
             self._draw_ucs_chunks(
                 draw,
-                (x_pos, y_pos),
+                (x_pos + overhang_x, y_pos + overhang_y),
                 seg_text,
                 title_font,
                 title_fallback_fonts,
@@ -1460,7 +1516,12 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset, self.TITLE_TEXT_DROP_SHADOW_COLOR)
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TITLE_X + offset_x, self.TITLE_BOX_Y + offset_y)))
+        layers.append(
+            Layer(
+                image,
+                (self.TITLE_X + offset_x - overhang_x, self.TITLE_BOX_Y + offset_y + overhang_y),
+            )
+        )
 
     def _create_type_layer(self):
         """
@@ -1546,10 +1607,15 @@ class RegularCard:
                 self.TYPE_TEXT_OUTLINE_RELATIVE_SIZE * font_size
             )
 
+        overhang_x, overhang_y = 0, 0
+        if text_align == "left" and len(segments) > 0:
+            overhang_x = self._get_left_overhang(type_font, segments[0][0])
+            overhang_y = self._get_top_overhang(type_font, segments[0][0])
+
         for seg_text, color in segments:
             self._draw_ucs_chunks(
                 draw,
-                (x_pos, y_pos),
+                (x_pos + overhang_x, y_pos + overhang_y),
                 seg_text,
                 type_font,
                 type_fallback_fonts,
@@ -1571,7 +1637,12 @@ class RegularCard:
         image = add_drop_shadow(image, drop_shadow_offset, self.TYPE_TEXT_DROP_SHADOW_COLOR)
 
         layers = self.text_layers if not overlay else self.overlay_layers
-        layers.append(Layer(image, (self.TYPE_X + offset_x, self.TYPE_BOX_Y + offset_y)))
+        layers.append(
+            Layer(
+                image,
+                (self.TYPE_X + offset_x - overhang_x, self.TYPE_BOX_Y + offset_y + overhang_y),
+            )
+        )
 
     def _replace_text_placeholders(self, text: str) -> str:
         """

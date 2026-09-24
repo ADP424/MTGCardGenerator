@@ -79,6 +79,7 @@ from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
+from model.old.FourthEdition import FourthEdition
 from model.omen.Omen import Omen
 from model.planeswalker.Planeswalker import Planeswalker
 from model.prepare.Prepare import Prepare
@@ -553,6 +554,8 @@ def process_spreadsheets(
         "edifice": Edifice,
         # Leveler
         "leveler": Leveler,
+        # Old
+        "4th edition": FourthEdition,
         # Showcase
         "transparent": Transparent,
         "full text": FullText,
@@ -983,17 +986,28 @@ class CardRenderResult(NamedTuple):
     error: str | None
 
 
-def render_card_to_image(card: RegularCard, card_key: str) -> CardRenderResult:
+def render_card_to_image(card: RegularCard, card_key: str, render_size: tuple[int, int] = None) -> CardRenderResult:
     """
     Render a single card's layers into a finished, composited Image. Shared by both the 'render'
     and 'tile' actions' worker functions.
+
+    Parameters
+    ----------
+    render_size: tuple[int, int], optional
+        If given, the (width, height) to resize the final card image to. This is always the last
+        step, applied after the card's native-resolution rendering and orientation are finalized.
+        Left at native resolution by default.
     """
 
     try:
-        card.create_layers(create_overlay_layers=False)
+        card.create_layers()
         final_card = card.render_card()
         if final_card.width > final_card.height:
             final_card = final_card.transpose(Image.Transpose.ROTATE_90)
+        if render_size is not None:
+            resized_card = final_card.resize(render_size)
+            final_card.close()
+            final_card = resized_card
         return CardRenderResult(card_key, final_card, None)
     except Exception:
         return CardRenderResult(card_key, None, traceback.format_exc())
@@ -1005,7 +1019,7 @@ class RenderResult(NamedTuple):
     backside_results: list[tuple[str, str | None]]
 
 
-def _render_top_level_card(output_path: str, card: RegularCard) -> RenderResult:
+def _render_top_level_card(output_path: str, card: RegularCard, render_size: tuple[int, int] = None) -> RenderResult:
 
     def render_one(c: RegularCard) -> tuple[str, str | None]:
         key = get_card_key(
@@ -1017,7 +1031,7 @@ def _render_top_level_card(output_path: str, card: RegularCard) -> RenderResult:
         if c.get_metadata(CARD_CATEGORY).lower() == "{skip}":
             return key, None
 
-        result = render_card_to_image(c, key)
+        result = render_card_to_image(c, key, render_size)
         if result.error is not None:
             return key, result.error
 
@@ -1044,14 +1058,18 @@ def _log_render_result(result: RenderResult):
     decrease_log_indent()
 
 
-def _render_cards_parallel(work_items: list[tuple[str, RegularCard]], workers: int):
+def _render_cards_parallel(
+    work_items: list[tuple[str, RegularCard]], workers: int, render_size: tuple[int, int] = None
+):
     with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(_render_top_level_card, output_path, card) for output_path, card in work_items]
+        futures = [
+            executor.submit(_render_top_level_card, output_path, card, render_size) for output_path, card in work_items
+        ]
         for future in as_completed(futures):
             _log_render_result(future.result())
 
 
-def render_cards(card_sets: dict[str, dict[str, RegularCard]], workers: int = 1):
+def render_cards(card_sets: dict[str, dict[str, RegularCard]], render_size: tuple[int, int] = None, workers: int = 1):
     for card_set, spreadsheet in card_sets.items():
         output_path = f"{OUTPUT_CARDS_PATH}/{card_set}"
         log(f"Processing set at '{output_path}'...")
@@ -1061,9 +1079,9 @@ def render_cards(card_sets: dict[str, dict[str, RegularCard]], workers: int = 1)
 
         if workers <= 1:
             for item_output_path, card in work_items:
-                _log_render_result(_render_top_level_card(item_output_path, card))
+                _log_render_result(_render_top_level_card(item_output_path, card, render_size))
         else:
-            _render_cards_parallel(work_items, workers)
+            _render_cards_parallel(work_items, workers, render_size)
 
         decrease_log_indent()
 
@@ -1090,8 +1108,8 @@ def parse_tile_num_filter(
     return tile_num_pairs, max_tile_num
 
 
-def compute_cards_per_tile(tile_image_width: int, tile_image_height: int) -> int:
-    return (tile_image_width // CARD_TILE_WIDTH) * (tile_image_height // CARD_TILE_HEIGHT)
+def compute_cards_per_tile(tile_image_width: int, tile_image_height: int, card_width: int, card_height: int) -> int:
+    return (tile_image_width // card_width) * (tile_image_height // card_height)
 
 
 class TileSlot(NamedTuple):
@@ -1173,21 +1191,24 @@ class TileResult(NamedTuple):
 
 
 def render_tile_work_item(
-    item: TileWorkItem, tile_image_width: int, tile_image_height: int, columns: int
+    item: TileWorkItem,
+    tile_image_width: int,
+    tile_image_height: int,
+    columns: int,
+    card_width: int,
+    card_height: int,
 ) -> TileResult:
     tile_image = Image.new("RGBA", (tile_image_width, tile_image_height), (0, 0, 0, 0))
     card_outcomes: list[CardTileOutcome] = []
 
     for slot_index, slot in enumerate(item.slots):
         col, row = slot_index % columns, slot_index // columns
-        result = render_card_to_image(slot.card, slot.card_key)
+        result = render_card_to_image(slot.card, slot.card_key, (card_width, card_height))
         if result.error is not None:
             card_outcomes.append(CardTileOutcome(slot.card_key, False, result.error))
             continue
 
-        resized = result.image.resize((CARD_TILE_WIDTH, CARD_TILE_HEIGHT))
-        tile_image = paste_image(resized, tile_image, (col * CARD_TILE_WIDTH, row * CARD_TILE_HEIGHT))
-        resized.close()
+        tile_image = paste_image(result.image, tile_image, (col * card_width, row * card_height))
         result.image.close()
         card_outcomes.append(CardTileOutcome(slot.card_key, True, None))
 
@@ -1209,11 +1230,19 @@ def _log_tile_result(result: TileResult):
     decrease_log_indent()
 
 
-def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: list[str] = None, workers: int = 1):
-    tile_image_width = (MAX_TILING_WIDTH // CARD_TILE_WIDTH) * CARD_TILE_WIDTH
-    tile_image_height = (MAX_TILING_HEIGHT // CARD_TILE_HEIGHT) * CARD_TILE_HEIGHT
-    columns = tile_image_width // CARD_TILE_WIDTH
-    cards_per_tile = compute_cards_per_tile(tile_image_width, tile_image_height)
+def render_tiled_cards(
+    card_sets: dict[str, dict[str, RegularCard]],
+    tile_nums: list[str] = None,
+    render_size: tuple[int, int] = None,
+    tile_size: tuple[int, int] = None,
+    workers: int = 1,
+):
+    card_width, card_height = render_size if render_size is not None else (CARD_TILE_WIDTH, CARD_TILE_HEIGHT)
+    max_tiling_width, max_tiling_height = tile_size if tile_size is not None else (MAX_TILING_WIDTH, MAX_TILING_HEIGHT)
+    tile_image_width = (max_tiling_width // card_width) * card_width
+    tile_image_height = (max_tiling_height // card_height) * card_height
+    columns = tile_image_width // card_width
+    cards_per_tile = compute_cards_per_tile(tile_image_width, tile_image_height, card_width, card_height)
 
     tile_num_pairs, max_tile_num = parse_tile_num_filter(tile_nums)
     work_items_by_set = compute_tile_work_items(card_sets, tile_num_pairs, max_tile_num, cards_per_tile)
@@ -1226,11 +1255,21 @@ def render_tiled_cards(card_sets: dict[str, dict[str, RegularCard]], tile_nums: 
         items = work_items_by_set.get(card_set, [])
         if workers <= 1:
             for item in items:
-                _log_tile_result(render_tile_work_item(item, tile_image_width, tile_image_height, columns))
+                _log_tile_result(
+                    render_tile_work_item(item, tile_image_width, tile_image_height, columns, card_width, card_height)
+                )
         else:
             with ProcessPoolExecutor(max_workers=workers) as executor:
                 futures = [
-                    executor.submit(render_tile_work_item, item, tile_image_width, tile_image_height, columns)
+                    executor.submit(
+                        render_tile_work_item,
+                        item,
+                        tile_image_width,
+                        tile_image_height,
+                        columns,
+                        card_width,
+                        card_height,
+                    )
                     for item in items
                 ]
                 for future in as_completed(futures):
@@ -1455,6 +1494,8 @@ def main(
     google_credentials_path: str = None,
     no_spellbooks: bool = False,
     spellbooks_whitelist: list[str] = None,
+    render_size: tuple[int, int] = None,
+    tile_size: tuple[int, int] = None,
     workers: int = 1,
 ):
     """
@@ -1514,6 +1555,15 @@ def main(
         (base versions and copies of other spellbooks are dropped). Has no effect if no_spellbooks
         is True.
 
+    render_size: tuple[int, int], optional
+        The (width, height) to resize final card images to. Applies to the 'render' action's output
+        PNGs, and to each card's cell size when packing tiles for the 'tile' action (which defaults
+        to 1500x2100 if not given). Left at native resolution by default.
+
+    tile_size: tuple[int, int], optional
+        The maximum (width, height) in pixels of each full tile sheet image produced by the 'tile'
+        action. Defaults to 10000x10000 if not given. Has no effect on the 'render' action.
+
     workers: int, default: 1
         Number of worker processes to use in parallel for the 'render' and 'tile' actions.
         Defaults to 1 (sequential).
@@ -1553,10 +1603,10 @@ def main(
     )
     if action == ACTIONS[0]:
         log("Rendering cards...")
-        render_cards(card_sets, workers=workers)
+        render_cards(card_sets, render_size=render_size, workers=workers)
     elif action == ACTIONS[1]:
         log("Tiling cards...")
-        render_tiled_cards(card_sets, tile_nums, workers=workers)
+        render_tiled_cards(card_sets, tile_nums, render_size=render_size, tile_size=tile_size, workers=workers)
     elif action == ACTIONS[2]:
         log("Capturing art from existing cards...")
         capture_art(card_sets)
@@ -1735,6 +1785,33 @@ if __name__ == "__main__":
         dest="google_credentials_path",
     )
     parser.add_argument(
+        "-rsz",
+        "--render-size",
+        nargs=2,
+        type=int,
+        default=settings.get("render_size"),
+        help=(
+            "The target (width, height) in pixels to resize final card images to, e.g. '-rsz 750 1050'. "
+            "This is always the last step, applied after rendering at native resolution. "
+            "Affects the 'render' action's output PNGs, and each card's cell size when packing tiles "
+            "for the 'tile' action (which defaults to 1500x2100 if this isn't given). "
+            "Left at native resolution by default."
+        ),
+        dest="render_size",
+    )
+    parser.add_argument(
+        "-tsz",
+        "--tile-size",
+        nargs=2,
+        type=int,
+        default=settings.get("tile_size"),
+        help=(
+            "The maximum (width, height) in pixels of each full tile sheet image, e.g. '-tsz 8000 8000'. "
+            "Only relevant for the 'tile' action. Defaults to 10000x10000."
+        ),
+        dest="tile_size",
+    )
+    parser.add_argument(
         "-w",
         "--workers",
         type=int,
@@ -1764,5 +1841,7 @@ if __name__ == "__main__":
         args.google_credentials_path,
         args.no_spellbooks,
         args.spellbooks_whitelist,
+        tuple(args.render_size) if args.render_size is not None else None,
+        tuple(args.tile_size) if args.tile_size is not None else None,
         args.workers,
     )
