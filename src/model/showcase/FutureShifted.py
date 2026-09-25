@@ -1,8 +1,11 @@
 import re
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from constants import (
+    BLACK_BRUSH,
+    CARD_ARTIST,
+    CARD_CREATION_DATE,
     CARD_FRAME_LAYOUT_EXTRAS,
     CARD_MANA_COST,
     CARD_POWER_TOUGHNESS,
@@ -13,10 +16,12 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
+from model.old.EighthEdition import EighthEdition
 from model.regular.RegularCard import RegularCard
+from utils import add_drop_shadow, load_font
 
 
-class FutureShifted(RegularCard):
+class FutureShifted(EighthEdition):
     """
     A layered image representing a card with a future shifted showcase frame
     and all the collection info on it, with all relevant card metadata.
@@ -93,7 +98,8 @@ class FutureShifted(RegularCard):
 
         # Title Text
         self.TITLE_X = 355
-        self.TITLE_BOTTOM_Y = 292
+        self.TITLE_BOTTOM_Y = 305
+        self.TITLE_MAX_FONT_SIZE = 125
         self.TITLE_WIDTH = 1474
         self.TITLE_FONT_COLOR = (
             (255, 255, 255)
@@ -107,8 +113,8 @@ class FutureShifted(RegularCard):
         self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
-        self.TYPE_X = 243 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 338
-        self.TYPE_BOTTOM_Y = 1710
+        self.TYPE_X = 244 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 339
+        self.TYPE_BOTTOM_Y = 1724
         self.TYPE_WIDTH = 1493 if "pip" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, []) else 1398
         self.TYPE_FONT_COLOR = (
             (255, 255, 255)
@@ -121,18 +127,18 @@ class FutureShifted(RegularCard):
         self.RULES_BOX_X = 150
         self.RULES_BOX_Y = 1762
         self.RULES_BOX_WIDTH = 1713
-        self.RULES_BOX_HEIGHT = 737
+        self.RULES_BOX_HEIGHT = 750
 
         # Rules Text
         self.RULES_TEXT_X = 180
         self.RULES_TEXT_WIDTH = 1655
-        self.RULES_TEXT_HEIGHT = 737
+        self.RULES_TEXT_HEIGHT = 764
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1533
-        self.POWER_TOUGHNESS_Y = 2529
-        self.POWER_TOUGHNESS_WIDTH = 338
-        self.POWER_TOUGHNESS_HEIGHT = 161
+        self.POWER_TOUGHNESS_Y = 2500
+        self.POWER_TOUGHNESS_WIDTH = 324
+        self.POWER_TOUGHNESS_HEIGHT = 172
         self.POWER_TOUGHNESS_FONT_COLOR = (
             (255, 255, 255)
             if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
@@ -148,8 +154,14 @@ class FutureShifted(RegularCard):
         # Footer
         # All RELATIVE values assume 0 degree rotation, the way the text would be read
         # This means width, height, tab length, etc. but NOT x or y coordinates
-        self.FOOTER_Y = 2585
-        self.FOOTER_WIDTH = 1747 if len(self.get_metadata(CARD_POWER_TOUGHNESS)) == 0 else 1394
+        self.FOOTER_Y = 2552
+        self.FOOTER_WIDTH = 1673 if len(self.get_metadata(CARD_POWER_TOUGHNESS)) == 0 else 1339
+        self.FOOTER_FONT_COLOR = (
+            (255, 255, 255)
+            if "white" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            and "light" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
+            else (0, 0, 0)
+        )
 
         # Type Icon
         self.TYPE_ICON_X = 137
@@ -312,3 +324,79 @@ class FutureShifted(RegularCard):
             num += 1
 
         self.text_layers.append(Layer(image, (0, 0)))
+
+    def _create_footer_layer(self):
+        """
+        Draw "<artist> <brush icon>", right-justified, followed on the line below by the
+        card's creation date, also right-justified. Everything is drawn white with a drop shadow.
+        """
+
+        artist = self.get_metadata(CARD_ARTIST)
+        creation_date = self.get_metadata(CARD_CREATION_DATE)
+
+        footer_font = load_font(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
+        footer_fallback_fonts = self._load_fallback_fonts(self.FOOTER_FONT, self.FOOTER_FONT_SIZE)
+
+        creation_date_font = load_font(self.LEGAL_FONT, self.CREATION_DATE_FOOTER_FONT_SIZE)
+        creation_date_fallback_fonts = self._load_fallback_fonts(self.LEGAL_FONT, self.CREATION_DATE_FOOTER_FONT_SIZE)
+
+        ascent, descent = footer_font.getmetrics()
+        line_height = ascent + descent
+        gap = line_height + line_height // self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO
+
+        image = Image.new("RGBA", (self.FOOTER_WIDTH, self.FOOTER_HEIGHT), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        brush_scale = self.BLACK_BRUSH_WIDTH / BLACK_BRUSH.image.height
+        brush_width = self.BLACK_BRUSH_WIDTH
+        brush_height = int(BLACK_BRUSH.image.height * brush_scale)
+        brush_image = BLACK_BRUSH.get_formatted_image(brush_width, brush_height, self.FOOTER_FONT_OUTLINE_SIZE)
+        tinted_brush_image = Image.new("RGBA", brush_image.size, self.FOOTER_FONT_COLOR)
+        tinted_brush_image.putalpha(brush_image.getchannel("A"))
+
+        if len(artist) > 0:
+            artist_width = self._get_ucs_chunks_length(artist, footer_font, footer_fallback_fonts)
+            line_width = brush_image.width + self.FOOTER_ARTIST_GAP_LENGTH + artist_width
+            line_x = self.FOOTER_WIDTH - self.FOOTER_FONT_OUTLINE_SIZE - line_width
+
+            image.alpha_composite(tinted_brush_image, (line_x, self.FOOTER_FONT_OUTLINE_SIZE - 52))
+            self._draw_ucs_chunks(
+                draw,
+                (
+                    line_x + brush_image.width + self.FOOTER_ARTIST_GAP_LENGTH,
+                    self.FOOTER_FONT_OUTLINE_SIZE,
+                ),
+                artist,
+                footer_font,
+                footer_fallback_fonts,
+                primary_font_path=self.FOOTER_FONT,
+                font_size=self.FOOTER_FONT_SIZE,
+                fill=self.FOOTER_FONT_COLOR,
+                stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
+                stroke_fill="black",
+            )
+
+        image = add_drop_shadow(image, (1, 1), (0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        if len(creation_date) > 0:
+            creation_date_width = self._get_ucs_chunks_length(
+                creation_date, creation_date_font, creation_date_fallback_fonts
+            )
+            self._draw_ucs_chunks(
+                draw,
+                (
+                    self.FOOTER_WIDTH - self.FOOTER_FONT_OUTLINE_SIZE - creation_date_width,
+                    self.FOOTER_FONT_OUTLINE_SIZE + gap,
+                ),
+                creation_date,
+                creation_date_font,
+                creation_date_fallback_fonts,
+                primary_font_path=self.LEGAL_FONT,
+                font_size=self.CREATION_DATE_FOOTER_FONT_SIZE,
+                fill=self.FOOTER_FONT_COLOR,
+                stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
+                stroke_fill="black",
+            )
+
+        self.text_layers.append(Layer(image, (self.FOOTER_X, self.FOOTER_Y)))

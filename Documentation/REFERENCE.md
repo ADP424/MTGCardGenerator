@@ -165,6 +165,7 @@ In the **Multi-line cells** column, `⏎` means the cell is read line by line an
 | `Transparent` | — | Regular geometry; light/dark text via `white`/`light` tokens. |
 | `Full Text` | — | No art; text box fills the card. |
 | `Clear Textbox` | — | Regular with white type and rules text. |
+| `Crystal` | — | All text white; resized rules text box, title box, set symbol, and P/T box. |
 | `Stained Glass` | — | Regular geometry with all text white. |
 | `Extended` | — | Regular geometry; type line text is white. |
 | `Short Extended` | — | As `Extended`, but the rules text box is slightly shorter. |

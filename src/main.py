@@ -79,6 +79,7 @@ from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
+from model.old.EighthEdition import EighthEdition
 from model.old.FourthEdition import FourthEdition
 from model.omen.Omen import Omen
 from model.planeswalker.Planeswalker import Planeswalker
@@ -91,6 +92,7 @@ from model.saga.TransformSaga import TransformSaga
 from model.showcase.Chat import Chat
 from model.showcase.ClearTextbox import ClearTextbox
 from model.showcase.Coup import Coup
+from model.showcase.Crystal import Crystal
 from model.showcase.extended.Extended import Extended
 from model.showcase.extended.ShortExtended import ShortExtended
 from model.showcase.full_art_basic.FullArtBasicSNC import FullArtBasicSNC
@@ -556,6 +558,7 @@ def process_spreadsheets(
         "leveler": Leveler,
         # Old
         "4th edition": FourthEdition,
+        "8th edition": EighthEdition,
         # Showcase
         "transparent": Transparent,
         "full text": FullText,
@@ -573,6 +576,7 @@ def process_spreadsheets(
         "poker": Poker,
         "breaking news": BreakingNews,
         "clear textbox": ClearTextbox,
+        "crystal": Crystal,
         "stained glass": StainedGlass,
         "extended": Extended,
         "short extended": ShortExtended,

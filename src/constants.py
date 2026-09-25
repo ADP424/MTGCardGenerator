@@ -127,6 +127,7 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     "leveler": (1500, 2100),
     "mutate": (1500, 2100),
     "old": (1500, 2100),
+    "old/8th": (2010, 2814),
     "planeswalker": (1500, 2100),
     "prototype": (1500, 2100),
     "pycok": (1500, 2100),
@@ -288,6 +289,9 @@ COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate_gothic/copperplate_gothic_bold.ttf"
 GOTHAM_BOLD = "fonts/gotham/gotham_bold.ttf"
 
 GOUDY_MEDIEVAL = "fonts/goudy_medieval/goudy_medieval.ttf"
+
+MATRIX_BOLD = "fonts/matrix/matrix_bold.ttf"
+MATRIX_BOLD_SMALL_CAPS = "fonts/matrix/matrix_bold_small_caps.ttf"
 
 MPLANTIN = "fonts/mplantin/mplantin.ttf"
 MPLANTIN_BOLD = "fonts/mplantin/mplantin_bold.ttf"
@@ -1527,3 +1531,4 @@ FUTURE_SHIFTED_TYPE_ICON_KEY = {
 RULES_DIVIDING_LINE = Symbol(open_image("images/other/divider.png"))
 LIGHT_RULES_DIVIDING_LINE = Symbol(open_image("images/other/light_divider.png"))
 ARTIST_BRUSH = Symbol(open_image("images/collector_info/artist_brush.png"), 1.25)
+BLACK_BRUSH = Symbol(open_image("images/collector_info/black_brush.png"), recolorable=True)

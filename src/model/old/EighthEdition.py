@@ -1,21 +1,20 @@
 from PIL import Image, ImageDraw
 
 from constants import (
+    BLACK_BRUSH,
     CARD_ARTIST,
     CARD_CREATION_DATE,
-    CARD_FRAME_LAYOUT_EXTRAS,
-    GOUDY_MEDIEVAL,
-    MPLANTIN,
-    MPLANTIN_ITALICS,
+    MATRIX_BOLD,
+    MATRIX_BOLD_SMALL_CAPS,
 )
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
-from utils import add_drop_shadow, load_font
+from utils import load_font
 
 
-class FourthEdition(RegularCard):
+class EighthEdition(RegularCard):
     """
-    A layered image representing a 4th Edition-bordered card and all the collection info on it,
+    A layered image representing an 8th Edition-bordered card and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -64,83 +63,70 @@ class FourthEdition(RegularCard):
         )
 
         # Mana Cost
-        self.MANA_COST_SYMBOL_SIZE = 98
-        self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
+        self.MANA_COST_SYMBOL_SIZE = 88
 
         # Title Box
-        self.TITLE_BOX_X = 86
-        self.TITLE_BOX_Y = 61
+        self.TITLE_BOX_X = 70
+        self.TITLE_BOX_Y = 163
         self.TITLE_BOX_WIDTH = 1781
-        self.TITLE_BOX_HEIGHT = 158
+        self.TITLE_BOX_HEIGHT = 155
 
         # Title Text
-        self.TITLE_X = 165
-        self.TITLE_BOTTOM_Y = 206
-        self.TITLE_MAX_FONT_SIZE = 116
-        self.TITLE_FONT = GOUDY_MEDIEVAL
-        self.TITLE_FONT_COLOR = (255, 255, 255)
-        self.TITLE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.04, 0.04)
-        self.TITLE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
+        self.TITLE_X = 181
+        self.TITLE_BOTTOM_Y = 305
+        self.TITLE_MAX_FONT_SIZE = 120
+        self.TITLE_FONT = MATRIX_BOLD
 
         # Type Box
-        self.TYPE_BOX_Y = 1547
+        self.TYPE_BOX_Y = 1590
+        self.TYPE_BOX_HEIGHT = 153
 
         # Type Text
-        self.TYPE_X = 166
-        self.TYPE_BOTTOM_Y = 1676
-        self.TYPE_FONT = MPLANTIN
-        self.TYPE_FONT_COLOR = (255, 255, 255)
-        self.TYPE_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0.04, 0.04)
-        self.TYPE_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
+        self.TYPE_X = 205
+        self.TYPE_BOTTOM_Y = 1726
+        self.TYPE_MAX_FONT_SIZE = 102
+        self.TYPE_FONT = MATRIX_BOLD
 
         # Rules Text Box
-        self.RULES_BOX_X = 221
-        self.RULES_BOX_Y = 1694
-        self.RULES_BOX_WIDTH = 1564
-        self.RULES_BOX_HEIGHT = 829
+        self.RULES_BOX_X = 172
+        self.RULES_BOX_Y = 1762
+        self.RULES_BOX_WIDTH = 1656
+        self.RULES_BOX_HEIGHT = 752
 
         # Rules Text
-        self.RULES_TEXT_X = 276
-        self.RULES_TEXT_Y = 1694
-        self.RULES_TEXT_WIDTH = 1509
-        self.RULES_TEXT_HEIGHT = 829
-        self.RULES_TEXT_FONT = MPLANTIN
-        self.RULES_TEXT_FONT_ITALICS = MPLANTIN_ITALICS
-        self.RULES_TEXT_FONT_COLOR = (0, 0, 0)
+        self.RULES_TEXT_X = 179
+        self.RULES_TEXT_Y = 1762
+        self.RULES_TEXT_WIDTH = 1638
+        self.RULES_TEXT_HEIGHT = 794
         self.RULES_TEXT_DIVIDER = None
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1616
-        self.POWER_TOUGHNESS_Y = 2520
-        self.POWER_TOUGHNESS_FONT = MPLANTIN
-        self.POWER_TOUGHNESS_FONT_SIZE = 122
-        self.POWER_TOUGHNESS_FONT_COLOR = (255, 255, 255)
-        self.POWER_TOUGHNESS_DROP_SHADOW_RELATIVE_OFFSET = (0.04, 0.04)
-        self.POWER_TOUGHNESS_DROP_SHADOW_COLOR = (0, 0, 0)
+        self.POWER_TOUGHNESS_X = 1493
+        self.POWER_TOUGHNESS_Y = 2486
+        self.POWER_TOUGHNESS_WIDTH = 372
+        self.POWER_TOUGHNESS_HEIGHT = 174
+        self.POWER_TOUGHNESS_FONT = MATRIX_BOLD_SMALL_CAPS
+        self.POWER_TOUGHNESS_FONT_SIZE = 127
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1707
-        self.SET_SYMBOL_Y = 1569
-        self.SET_SYMBOL_WIDTH = 102
+        self.SET_SYMBOL_X = 1714
+        self.SET_SYMBOL_Y = 1601
+        self.SET_SYMBOL_WIDTH = 111
 
         # Footer
-        self.FOOTER_X = 201
-        self.FOOTER_Y = 2538
-        self.FOOTER_FONT = MPLANTIN
+        self.FOOTER_X = 146
+        self.FOOTER_Y = 2580
+        self.FOOTER_FONT = MATRIX_BOLD
         self.FOOTER_FONT_OUTLINE_SIZE = 0
-        self.FOOTER_FONT_SIZE = 76
-        self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 8
-        self.CREATION_DATE_FOOTER_FONT_SIZE = 45
-        self.CREATION_DATE_FOOTER_FONT_COLOR = (
-            (0, 0, 0)
-            if "black" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
-            and "dark" not in self.get_metadata(CARD_FRAME_LAYOUT_EXTRAS, [])
-            else (255, 255, 255)
-        )
+        self.FOOTER_FONT_SIZE = 80
+        self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 1
+        self.CREATION_DATE_FOOTER_FONT_SIZE = 50
+        self.CREATION_DATE_FOOTER_FONT_COLOR = (0, 0, 0)
+        self.BLACK_BRUSH_WIDTH = 157
 
     def _create_footer_layer(self):
         """
-        Draw "Illus. <artist>", followed on the line below by the card's creation date.
+        Draw "<brush icon> <artist>", followed on the line below by the card's creation date.
         """
 
         artist = self.get_metadata(CARD_ARTIST)
@@ -159,23 +145,28 @@ class FourthEdition(RegularCard):
         image = Image.new("RGBA", (self.FOOTER_WIDTH, self.FOOTER_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
+        brush_scale = self.BLACK_BRUSH_WIDTH / BLACK_BRUSH.image.height
+        brush_width = self.BLACK_BRUSH_WIDTH
+        brush_height = int(BLACK_BRUSH.image.height * brush_scale)
+        brush_image = BLACK_BRUSH.get_formatted_image(brush_width, brush_height, self.FOOTER_FONT_OUTLINE_SIZE)
+
         if len(artist) > 0:
-            illus_text = f"Illus. {artist}"
+            image.alpha_composite(brush_image, (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE - 52))
             self._draw_ucs_chunks(
                 draw,
-                (self.FOOTER_FONT_OUTLINE_SIZE, self.FOOTER_FONT_OUTLINE_SIZE),
-                illus_text,
+                (
+                    self.FOOTER_FONT_OUTLINE_SIZE + brush_image.width + self.FOOTER_ARTIST_GAP_LENGTH,
+                    self.FOOTER_FONT_OUTLINE_SIZE,
+                ),
+                artist,
                 footer_font,
                 footer_fallback_fonts,
                 primary_font_path=self.FOOTER_FONT,
                 font_size=self.FOOTER_FONT_SIZE,
-                fill=(255, 255, 255),
+                fill=(0, 0, 0),
                 stroke_width=self.FOOTER_FONT_OUTLINE_SIZE,
                 stroke_fill="black",
             )
-
-        image = add_drop_shadow(image, (4, 4), (0, 0, 0))
-        draw = ImageDraw.Draw(image)
 
         if len(creation_date) > 0:
             self._draw_ucs_chunks(
