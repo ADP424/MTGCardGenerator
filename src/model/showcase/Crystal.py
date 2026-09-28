@@ -56,7 +56,6 @@ class Crystal(RegularCard):
 
         # Title Box
         self.TITLE_BOX_WIDTH = 1751
-        self.TITLE_BOX_HEIGHT = 143
 
         # Type Text
         self.TYPE_FONT_COLOR = (255, 255, 255)

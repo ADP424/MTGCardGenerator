@@ -286,6 +286,11 @@ BELEREN_BOLD_SMALL_CAPS = "fonts/beleren/beleren_bold_smallcaps.ttf"
 
 COPPERPLATE_GOTHIC_BOLD = "fonts/copperplate_gothic/copperplate_gothic_bold.ttf"
 
+GILL_SANS = "fonts/gill_sans/gill_sans.ttf"
+GILL_SANS_BOLD = "fonts/gill_sans/gill_sans_bold.ttf"
+GILL_SANS_ITALICS = "fonts/gill_sans/gill_sans_italics.ttf"
+GILL_SANS_BOLD_ITALICS = "fonts/gill_sans/gill_sans_bold_italics.ttf"
+
 GOTHAM_BOLD = "fonts/gotham/gotham_bold.ttf"
 
 GOUDY_MEDIEVAL = "fonts/goudy_medieval/goudy_medieval.ttf"
@@ -821,6 +826,79 @@ MYSTICAL_ARCHIVE_TWO_GREEN_MANA = open_image(
 MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA = open_image(
     f"{MANA_SYMBOLS_PATH}/showcase/japanese_mystical_archive/hybrid/generic/colorless.png"
 )
+
+# Showcase Pokemon Mana Symbols
+POKEMON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/white.png")
+POKEMON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/blue.png")
+POKEMON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/black.png")
+POKEMON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/red.png")
+POKEMON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/green.png")
+POKEMON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/colorless.png")
+POKEMON_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/snow.png")
+
+POKEMON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/0.png")
+POKEMON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/1.png")
+POKEMON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/2.png")
+POKEMON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/3.png")
+POKEMON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/4.png")
+POKEMON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/5.png")
+POKEMON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/6.png")
+POKEMON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/7.png")
+POKEMON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/8.png")
+POKEMON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/9.png")
+POKEMON_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/10.png")
+POKEMON_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/11.png")
+POKEMON_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/12.png")
+POKEMON_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/13.png")
+POKEMON_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/14.png")
+POKEMON_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/15.png")
+POKEMON_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/16.png")
+POKEMON_SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/17.png")
+POKEMON_EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/18.png")
+POKEMON_NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/19.png")
+POKEMON_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/20.png")
+
+POKEMON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/tap/tap.png")
+POKEMON_UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/tap/untap.png")
+
+POKEMON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/x.png")
+POKEMON_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/y.png")
+POKEMON_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/z.png")
+
+POKEMON_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/white.png")
+POKEMON_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/blue.png")
+POKEMON_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/black.png")
+POKEMON_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/red.png")
+POKEMON_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/green.png")
+POKEMON_COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/colorless.png")
+
+POKEMON_WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/white_blue.png")
+POKEMON_WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/white_black.png")
+POKEMON_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/blue_black.png")
+POKEMON_BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/blue_red.png")
+POKEMON_BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/black_red.png")
+POKEMON_BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/black_green.png")
+POKEMON_RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/red_green.png")
+POKEMON_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/red_white.png")
+POKEMON_GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/green_white.png")
+POKEMON_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/green_blue.png")
+
+POKEMON_WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/white_blue.png")
+POKEMON_WHITE_BLACK_PHYREXIAN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/white_black.png"
+)
+POKEMON_BLUE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/blue_black.png")
+POKEMON_BLUE_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/blue_red.png")
+POKEMON_BLACK_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/black_red.png")
+POKEMON_BLACK_GREEN_PHYREXIAN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/black_green.png"
+)
+POKEMON_RED_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/red_green.png")
+POKEMON_RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/red_white.png")
+POKEMON_GREEN_WHITE_PHYREXIAN_MANA = open_image(
+    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_white.png"
+)
+POKEMON_GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_blue.png")
 
 # Showcase Pixel Mana Symbols
 PIXEL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/white.png")
@@ -1399,6 +1477,121 @@ MYSTICAL_ARCHIVE_SYMBOL_PLACEHOLDER_KEY = {
     "g/2": Symbol(MYSTICAL_ARCHIVE_TWO_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "2/c": Symbol(MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "c/2": Symbol(MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+}
+
+POKEMON_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(POKEMON_WHITE_MANA),
+    "u": Symbol(POKEMON_BLUE_MANA),
+    "b": Symbol(POKEMON_BLACK_MANA),
+    "r": Symbol(POKEMON_RED_MANA),
+    "g": Symbol(POKEMON_GREEN_MANA),
+    "c": Symbol(POKEMON_COLORLESS_MANA),
+    "s": Symbol(POKEMON_SNOW_MANA),
+    # Numbered Mana
+    "0": Symbol(POKEMON_ZERO_MANA),
+    "1": Symbol(POKEMON_ONE_MANA),
+    "2": Symbol(POKEMON_TWO_MANA),
+    "3": Symbol(POKEMON_THREE_MANA),
+    "4": Symbol(POKEMON_FOUR_MANA),
+    "5": Symbol(POKEMON_FIVE_MANA),
+    "6": Symbol(POKEMON_SIX_MANA),
+    "7": Symbol(POKEMON_SEVEN_MANA),
+    "8": Symbol(POKEMON_EIGHT_MANA),
+    "9": Symbol(POKEMON_NINE_MANA),
+    "10": Symbol(POKEMON_TEN_MANA),
+    "11": Symbol(POKEMON_ELEVEN_MANA),
+    "12": Symbol(POKEMON_TWELVE_MANA),
+    "13": Symbol(POKEMON_THIRTEEN_MANA),
+    "14": Symbol(POKEMON_FOURTEEN_MANA),
+    "15": Symbol(POKEMON_FIFTEEN_MANA),
+    "16": Symbol(POKEMON_SIXTEEN_MANA),
+    "17": Symbol(POKEMON_SEVENTEEN_MANA),
+    "18": Symbol(POKEMON_EIGHTEEN_MANA),
+    "19": Symbol(POKEMON_NINETEEN_MANA),
+    "20": Symbol(POKEMON_TWENTY_MANA),
+    # Tapping
+    "t": Symbol(POKEMON_TAP),
+    "untap": Symbol(POKEMON_UNTAP),
+    # Variable Mana
+    "x": Symbol(POKEMON_X_MANA),
+    "y": Symbol(POKEMON_Y_MANA),
+    "z": Symbol(POKEMON_Z_MANA),
+    # Phyrexian Mana
+    "wp": Symbol(POKEMON_WHITE_PHYREXIAN_MANA),
+    "pw": Symbol(POKEMON_WHITE_PHYREXIAN_MANA),
+    "up": Symbol(POKEMON_BLUE_PHYREXIAN_MANA),
+    "pu": Symbol(POKEMON_BLUE_PHYREXIAN_MANA),
+    "bp": Symbol(POKEMON_BLACK_PHYREXIAN_MANA),
+    "pb": Symbol(POKEMON_BLACK_PHYREXIAN_MANA),
+    "rp": Symbol(POKEMON_RED_PHYREXIAN_MANA),
+    "pr": Symbol(POKEMON_RED_PHYREXIAN_MANA),
+    "gp": Symbol(POKEMON_GREEN_PHYREXIAN_MANA),
+    "pg": Symbol(POKEMON_GREEN_PHYREXIAN_MANA),
+    "cp": Symbol(POKEMON_COLORLESS_PHYREXIAN_MANA),
+    "pc": Symbol(POKEMON_COLORLESS_PHYREXIAN_MANA),
+    # Standard Hybrid Mana
+    "w/u": Symbol(POKEMON_WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/w": Symbol(POKEMON_WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/b": Symbol(POKEMON_WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/w": Symbol(POKEMON_WHITE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/b": Symbol(POKEMON_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/u": Symbol(POKEMON_BLUE_BLACK_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/r": Symbol(POKEMON_BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/u": Symbol(POKEMON_BLUE_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/r": Symbol(POKEMON_BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/b": Symbol(POKEMON_BLACK_RED_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "b/g": Symbol(POKEMON_BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/b": Symbol(POKEMON_BLACK_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/g": Symbol(POKEMON_RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/r": Symbol(POKEMON_RED_GREEN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "r/w": Symbol(POKEMON_RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/r": Symbol(POKEMON_RED_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/w": Symbol(POKEMON_GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "w/g": Symbol(POKEMON_GREEN_WHITE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "g/u": Symbol(POKEMON_GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "u/g": Symbol(POKEMON_GREEN_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    # Hybrid Phyrexian Mana
+    "wp/up": Symbol(POKEMON_WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pw/pu": Symbol(POKEMON_WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/wp": Symbol(POKEMON_WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pu/pw": Symbol(POKEMON_WHITE_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/bp": Symbol(POKEMON_WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pw/pb": Symbol(POKEMON_WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/wp": Symbol(POKEMON_WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pb/pw": Symbol(POKEMON_WHITE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/bp": Symbol(POKEMON_BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pu/pb": Symbol(POKEMON_BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/up": Symbol(POKEMON_BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pb/pu": Symbol(POKEMON_BLUE_BLACK_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/rp": Symbol(POKEMON_BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pu/pr": Symbol(POKEMON_BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/up": Symbol(POKEMON_BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pr/pu": Symbol(POKEMON_BLUE_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/rp": Symbol(POKEMON_BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pb/pr": Symbol(POKEMON_BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/bp": Symbol(POKEMON_BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pr/pb": Symbol(POKEMON_BLACK_RED_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "bp/gp": Symbol(POKEMON_BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pb/pg": Symbol(POKEMON_BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/bp": Symbol(POKEMON_BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pg/pb": Symbol(POKEMON_BLACK_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/gp": Symbol(POKEMON_RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pr/pg": Symbol(POKEMON_RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/rp": Symbol(POKEMON_RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pg/pr": Symbol(POKEMON_RED_GREEN_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "rp/wp": Symbol(POKEMON_RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pr/pw": Symbol(POKEMON_RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/rp": Symbol(POKEMON_RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pw/pr": Symbol(POKEMON_RED_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/wp": Symbol(POKEMON_GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pg/pw": Symbol(POKEMON_GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "wp/gp": Symbol(POKEMON_GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pw/pg": Symbol(POKEMON_GREEN_WHITE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "gp/up": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pg/pu": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "up/gp": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+    "pu/pg": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
 }
 
 PIXEL_SYMBOL_RESAMPLE = Image.NEAREST

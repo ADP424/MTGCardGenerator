@@ -70,6 +70,7 @@ from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.class_.Class import Class
 from model.conspiracy.Conspiracy import Conspiracy
+from model.custom.Pokemon import Pokemon
 from model.dungeon.Dungeon import Dungeon
 from model.dungeon.ExpandedDungeonGlobal import ExpandedDungeonGlobal
 from model.dungeon.ExpandedDungeonLocal import ExpandedDungeonLocal
@@ -559,6 +560,8 @@ def process_spreadsheets(
         # Old
         "4th edition": FourthEdition,
         "8th edition": EighthEdition,
+        # Custom
+        "pokemon": Pokemon,
         # Showcase
         "transparent": Transparent,
         "full text": FullText,
