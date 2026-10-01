@@ -199,6 +199,7 @@ class RegularCard:
         self.RULES_TEXT_LIMIT_VERTICAL_BUFFER = 11
         self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET = (0, 0)
         self.RULES_TEXT_DROP_SHADOW_COLOR = (0, 0, 0)
+        self.RULES_TEXT_VERTICAL_ALIGNMENT = "center"
 
         # Power & Toughness Text
         self.POWER_TOUGHNESS_X = 1562
@@ -1731,7 +1732,19 @@ class RegularCard:
         """
 
         bold_relative_size = self.RULES_TEXT_BOLD_RELATIVE_SIZE if bold else 0
-        return int(font.getlength(text) * (1 + max(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE, bold_relative_size)))
+        return int(font.getlength(text) * (1 + bold_relative_size))
+
+    def _get_rules_text_starting_y(self, margin: int, usable_height: int, content_height: int) -> int:
+        """
+        Get the y-offset (within the rules text box) that the text block should start being drawn at,
+        based on `self.RULES_TEXT_VERTICAL_ALIGNMENT`.
+        """
+
+        if self.RULES_TEXT_VERTICAL_ALIGNMENT == "top":
+            return margin
+        if self.RULES_TEXT_VERTICAL_ALIGNMENT == "bottom":
+            return margin + usable_height - content_height
+        return margin + (usable_height - content_height) // 2
 
     def _get_rules_text_layout(self, text: str) -> tuple[
         list[list[tuple[str, list[tuple[str, str | int, ImageFont.FreeTypeFont, int, bool]]]]],
@@ -2121,7 +2134,7 @@ class RegularCard:
             def get_final_line_width():
                 return get_line_width(rules_lines[-1][-1][1])
 
-            starting_y = margin + (usable_height - content_height) // 2
+            starting_y = self._get_rules_text_starting_y(margin, usable_height, content_height)
 
             # Check for power/toughness overlap
             if (
@@ -2280,9 +2293,11 @@ class RegularCard:
         background_image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
+        stroke_image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
+        stroke_draw = ImageDraw.Draw(stroke_image)
 
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
-        curr_y = margin + (usable_height - content_height) // 2
+        curr_y = self._get_rules_text_starting_y(margin, usable_height, content_height)
         _rules_font = load_font(self.RULES_TEXT_FONT, font_size)
         _cap_bbox = _rules_font.getbbox("H")
         font_cap_center = (_cap_bbox[1] + _cap_bbox[3]) / 2
@@ -2332,9 +2347,24 @@ class RegularCard:
                 technique for simulating a bold weight with no true bold font file (see Firefox's
                 `gfxFont::GetSyntheticBoldOffset`). Both strokes are centered on the same glyph
                 contour, so they combine visually instead of stacking.
+
+                The outline stroke is drawn onto a separate `stroke_image` that gets composited
+                underneath the fill at the very end, so that one fragment's outline can never paint
+                over an adjacent fragment's fill (which single-call `draw.text` stroke+fill can't
+                guarantee once fragments are drawn close together with realistic spacing).
                 """
 
-                draw.text(xy, value, font=font, **kwargs)
+                stroke_width = kwargs.get("stroke_width", 0)
+                if stroke_width:
+                    stroke_draw.text(
+                        xy,
+                        value,
+                        font=font,
+                        fill=kwargs.get("stroke_fill"),
+                        stroke_width=stroke_width,
+                        stroke_fill=kwargs.get("stroke_fill"),
+                    )
+                draw.text(xy, value, font=font, fill=kwargs["fill"])
                 if bold:
                     draw.text(
                         xy,
@@ -2504,6 +2534,9 @@ class RegularCard:
                     )
                     curr_y += dividing_line.height + line_height // 2
             draw_lines(lines)
+
+        stroke_image.alpha_composite(image)
+        image = stroke_image
 
         drop_shadow_offset = (
             int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),

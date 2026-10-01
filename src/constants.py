@@ -216,7 +216,7 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     "showcase/kaldheim": (1500, 2100),
     "showcase/lotr": (1500, 2100),
     "showcase/lotr/saga": (2010, 2814),
-    "showcase/magic_fest": (1500, 2100),
+    "showcase/textless": (1500, 2100),
     "showcase/modern_horizons_2/legendary_crown": (3000, 4200),
     # TODO: showcase/mystical_archive/red.png is a stray 2693x3770 file (1.34x too big)
     "showcase/neon": (1500, 2100),

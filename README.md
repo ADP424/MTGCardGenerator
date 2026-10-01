@@ -175,10 +175,23 @@ Always check `log.txt` first, every non-fatal problem is written there, and a br
 
 ## Credits
 
-Most frames & mana symbols sourced from CardConjurer
-- https://github.com/Investigamer/cardconjurer
-
-Standard Magic: the Gathering fonts from M15-Magic-Pack
-- https://github.com/MagicSetEditorPacks/M15-Magic-Pack/
-
 Magic: the Gathering is © Wizards of the Coast. This is an unofficial fan tool for personal proxies, not affiliated with or endorsed by Wizards of the Coast. Don't sell what you make with it.
+
+### Frame Credits
+All frames are sourced from CardConjurer (https://github.com/Investigamer/cardconjurer) unless stated otherwise.
+- All frames inside `the_one_set/poker/` and `the_one_set/showcase/` are all custom frames created by myself.
+- All frames inside `pycok/` are custom Purple, Pink, Yellow, Orange, and Pink frames created by myself.
+- All frames inside `dungeon/expanded/` are custom edits of the base `dungeon/` frames from CardConjurer by myself.
+- The base `battle/` frames are custom edits of the standard transform battles from CardConjurer by myself. They were constructed by applying colors, bevelling, and custom-created textures to mask images sourced from CardConjurer, and some frame elements (such as the land frame borders) were sourced from CardConjurer as well.
+- The frames inside `regular/transform/back/meld/` are custom edits of standard transform backsides from CardConjurer by myself.
+- All `transform/` frames inside the `token/` folder are custom splices of token and transform frames from CardConjurer by myself.
+
+### Mana Symbol Credits
+All mana symbols are sourced from CardConjurer (https://github.com/Investigamer/cardconjurer) unless stated otherwise.
+- All mana symbols inside `the_one_set/` are custom mana symbols created by myself.
+- All mana symbols inside `trybrid/` are custom edits of existing mana symbols from CardConjurer by myself.
+- The mana symbols inside `mono/pycok/` are custom Purple, Pink, Yellow, Orange, and Pink mana symbols created by myself.
+- Several `hybrid/` mana symbols are custom edits of hybrid and other mana symbols from CardConjurer by myself (ex. the `hybrid/phyrexian/` symbols).
+
+### Font Credits
+Standard Magic: the Gathering fonts from M15-Magic-Pack (https://github.com/MagicSetEditorPacks/M15-Magic-Pack/). Other Magic: the Gathering fonts sourced directly from CardConjurer. Supplementary fonts sourced from open source font directories.
