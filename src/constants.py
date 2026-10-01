@@ -157,8 +157,8 @@ FRAME_DIRECTORY_BASE_SIZES: dict[str, tuple[int, int]] = {
     "the_one_set": (1500, 2100),
     "the_one_set/poker": (2010, 2814),
     "the_one_set/showcase/breaking_news": (2100, 1500),
+    "the_one_set/showcase/chat": (2010, 2814),
     "the_one_set/showcase/transparent": (2010, 2814),
-    # TODO: the_one_set/showcase/transparent/mask/{bottom,left,right,top}.png are stray 1500x2100
     # Planeswalker
     "planeswalker/double_feature": (2010, 2814),
     "planeswalker/transform/double_feature": (2010, 2814),
@@ -491,11 +491,7 @@ FRAME_LAYOUT_EXTRAS_LIST = (
 COLOR_TAG_PATTERN = re.compile(r"\{color\((\d+),(\d+),(\d+)\)\}(.*?)\{\/color\}", flags=re.DOTALL)
 COLOR_TAG_PATTERN_NO_BRACES = re.compile(r"color\((\d+),(\d+),(\d+)\)", flags=re.DOTALL)
 
-# Recognized "{name : value}" directives that can follow frame paths or live inside text cells,
-# e.g. "chat/window{offset:(50, 70)}". Add new directive names to the alternation as they're
-# implemented. The colon is what distinguishes directives from ordinary tags like {flavor}.
-# "symbol" (on the Rarity cell) overrides the rarity/set symbol image path outright, e.g.
-# "rare{symbol:secret_lair/showcase}", resolved relative to SET_SYMBOLS_PATH with no extension.
+# Recognized "{name : value}" directives that can follow frame paths or be inside text cells
 DIRECTIVE_PATTERN = re.compile(r"\{\s*(offset|symbol)\s*:\s*([^{}]*?)\s*\}", re.IGNORECASE)
 
 # Accepts "(x, y)", "x, y", "( x , y )", negatives, etc.
@@ -899,6 +895,29 @@ POKEMON_GREEN_WHITE_PHYREXIAN_MANA = open_image(
     f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_white.png"
 )
 POKEMON_GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_blue.png")
+
+# Custom Neon Mana Symbols
+NEON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/white.png")
+NEON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/blue.png")
+NEON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/black.png")
+NEON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/red.png")
+NEON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/green.png")
+NEON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/colorless.png")
+
+NEON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/0.png")
+NEON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/1.png")
+NEON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/2.png")
+NEON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/3.png")
+NEON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/4.png")
+NEON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/5.png")
+NEON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/6.png")
+NEON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/7.png")
+NEON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/8.png")
+NEON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/9.png")
+
+NEON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/variable/x.png")
+
+NEON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/tap/tap.png")
 
 # Showcase Pixel Mana Symbols
 PIXEL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/white.png")
@@ -1592,6 +1611,31 @@ POKEMON_SYMBOL_PLACEHOLDER_KEY = {
     "pg/pu": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "up/gp": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "pu/pg": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+}
+
+NEON_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(NEON_WHITE_MANA),
+    "u": Symbol(NEON_BLUE_MANA),
+    "b": Symbol(NEON_BLACK_MANA),
+    "r": Symbol(NEON_RED_MANA),
+    "g": Symbol(NEON_GREEN_MANA),
+    "c": Symbol(NEON_COLORLESS_MANA),
+    # Numbered Mana
+    "0": Symbol(NEON_ZERO_MANA),
+    "1": Symbol(NEON_ONE_MANA),
+    "2": Symbol(NEON_TWO_MANA),
+    "3": Symbol(NEON_THREE_MANA),
+    "4": Symbol(NEON_FOUR_MANA),
+    "5": Symbol(NEON_FIVE_MANA),
+    "6": Symbol(NEON_SIX_MANA),
+    "7": Symbol(NEON_SEVEN_MANA),
+    "8": Symbol(NEON_EIGHT_MANA),
+    "9": Symbol(NEON_NINE_MANA),
+    # Tapping
+    "t": Symbol(NEON_TAP),
+    # Variable Mana
+    "x": Symbol(NEON_X_MANA),
 }
 
 PIXEL_SYMBOL_RESAMPLE = Image.NEAREST

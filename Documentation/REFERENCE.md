@@ -169,6 +169,8 @@ In the **Multi-line cells** column, `⏎` means the cell is read line by line an
 | `Stained Glass` | — | Regular geometry with all text white. |
 | `Extended` | — | Regular geometry; type line text is white. |
 | `Short Extended` | — | As `Extended`, but the rules text box is slightly shorter. |
+| `Neon Dynasty` | — | Regular geometry; title, type, rules, and P/T text are all white. |
+| `Short Neon Dynasty` | — | As `Neon Dynasty`, but the rules text box is shorter. |
 | `Frameless` | — | No frame art but a footer bar; all text white and outlined; rules text starts at the top of its box instead of being vertically centered. |
 | `Textless` | — | No rules text or watermark; white title/type/P-T text; type line and set symbol moved 711px lower. |
 | `Textless Magic Fest 2025` | — | As `Textless`, but with no type line or set symbol, and black P/T text. |

@@ -70,6 +70,7 @@ from model.battle.Battle import Battle
 from model.battle.TransformBattle import TransformBattle
 from model.class_.Class import Class
 from model.conspiracy.Conspiracy import Conspiracy
+from model.custom.Neon import Neon
 from model.custom.Pokemon import Pokemon
 from model.dungeon.Dungeon import Dungeon
 from model.dungeon.ExpandedDungeonGlobal import ExpandedDungeonGlobal
@@ -84,6 +85,7 @@ from model.old.FourthEdition import FourthEdition
 from model.omen.Omen import Omen
 from model.planeswalker.Planeswalker import Planeswalker
 from model.prepare.Prepare import Prepare
+from model.pycok.Edifice import Edifice
 from model.regular.RegularCard import RegularCard
 from model.regular.RegularSplitRulesText import RegularSplitRulesText
 from model.room.Room import Room
@@ -99,7 +101,7 @@ from model.showcase.full_art_basic.FullArtBasicTHB import FullArtBasicTHB
 from model.showcase.FullText import FullText
 from model.showcase.FutureShifted import FutureShifted
 from model.showcase.Japan import Japan
-from model.showcase.lotr.ring import RingLOTR
+from model.showcase.lotr.Ring import RingLOTR
 from model.showcase.lotr.Scroll import ScrollLOTR
 from model.showcase.mystical_archive.japan.JapaneseMysticalArchive import (
     JapaneseMysticalArchive,
@@ -107,6 +109,8 @@ from model.showcase.mystical_archive.japan.JapaneseMysticalArchive import (
 from model.showcase.mystical_archive.japan.JapaneseMysticalArchiveHorizontal import (
     JapaneseMysticalArchiveHorizontal,
 )
+from model.showcase.neon.NeonDynasty import NeonDynasty
+from model.showcase.neon.ShortNeonDynasty import ShortNeonDynasty
 from model.showcase.Pixel import Pixel
 from model.showcase.Playtest import Playtest
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
@@ -120,7 +124,6 @@ from model.showcase.textless.Textless import Textless
 from model.showcase.Zendikar import Zendikar
 from model.split.fuse.Fuse import Fuse
 from model.split.Split import Split
-from model.the_one_set.Edifice import Edifice
 from model.the_one_set.showcase.Chat import Chat
 from model.the_one_set.showcase.Coup import Coup
 from model.the_one_set.showcase.meme.DemotivationalPoster import DemotivationalPoster
@@ -564,6 +567,7 @@ def process_spreadsheets(
         "4th edition": FourthEdition,
         "8th edition": EighthEdition,
         # Custom
+        "neon": Neon,
         "pokemon": Pokemon,
         # Showcase
         "transparent": Transparent,
@@ -586,6 +590,8 @@ def process_spreadsheets(
         "stained glass": StainedGlass,
         "extended": Extended,
         "short extended": ShortExtended,
+        "neon dynasty": NeonDynasty,
+        "short neon dynasty": ShortNeonDynasty,
         "frameless": Frameless,
         "textless": Textless,
         "textless magic fest 2025": MagicFest2025,
