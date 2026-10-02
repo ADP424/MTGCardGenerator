@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.old.OldCard import OldCard
+from model.old.OriginalCard import OriginalCard
 
 
-class AlphaBetaUnlimited(OldCard):
+class AlphaBetaUnlimited(OriginalCard):
     """
     A layered image representing an Alpha/Beta/Unlimited-bordered card and all the collection info on it,
     with all relevant card metadata.
@@ -74,7 +74,7 @@ class AlphaBetaUnlimited(OldCard):
 
         # Type Text
         self.TYPE_X = 201
-        self.TYPE_BOTTOM_Y = 1666
+        self.TYPE_BOTTOM_Y = 1680
         self.TYPE_MAX_FONT_SIZE = 94
         self.TYPE_FONT_COLOR = (171, 171, 171)
 
@@ -98,7 +98,7 @@ class AlphaBetaUnlimited(OldCard):
 
         # Set / Rarity Symbol
         self.SET_SYMBOL_X = 1692
-        self.SET_SYMBOL_Y = 1570
+        self.SET_SYMBOL_Y = 1584
         self.SET_SYMBOL_WIDTH = 100
 
         # Footer

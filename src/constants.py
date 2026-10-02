@@ -550,8 +550,6 @@ TRIANGLE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/the_one_set/triangle.png")
 # Tapping
 TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/tap.png")
 UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/untap.png")
-OLD_TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/old_tap.png")
-ORIGINAL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/tap/original_tap.png")
 
 # Standard Hybrid Mana
 WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/hybrid/white_blue.png")
@@ -890,12 +888,17 @@ POKEMON_RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokem
 POKEMON_GREEN_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/green_white.png")
 POKEMON_GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/green_blue.png")
 
-# Old (4th Edition / Alpha-Beta-Unlimited) Mana Symbols
-OLD_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/white.png")
-OLD_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/blue.png")
-OLD_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/black.png")
-OLD_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/red.png")
-OLD_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/green.png")
+# Original (4th Edition / Alpha-Beta-Unlimited) Mana Symbols
+ORIGINAL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/white.png")
+ORIGINAL_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/blue.png")
+ORIGINAL_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/black.png")
+ORIGINAL_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/red.png")
+ORIGINAL_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/green.png")
+
+ORIGINAL_TAP = open_image(f"{MANA_SYMBOLS_PATH}/old/tap/original_tap.png")
+
+# Old (5th Edition / 6th Edition / 7th Edition) Mana Symbols
+OLD_TAP = open_image(f"{MANA_SYMBOLS_PATH}/old/tap/old_tap.png")
 
 # Custom Neon Mana Symbols
 NEON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/white.png")
@@ -1057,8 +1060,6 @@ SYMBOL_PLACEHOLDER_KEY = {
     # Tapping
     "t": Symbol(TAP),
     "untap": Symbol(UNTAP),
-    "old_tap": Symbol(OLD_TAP),
-    "original_tap": Symbol(ORIGINAL_TAP),
     # Standard Hybrid Mana
     "w/u": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "u/w": Symbol(WHITE_BLUE_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
@@ -1614,13 +1615,15 @@ POKEMON_SYMBOL_PLACEHOLDER_KEY = {
     "pu/pg": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
 }
 
-OLD_SYMBOL_PLACEHOLDER_KEY = {
+ORIGINAL_SYMBOL_PLACEHOLDER_KEY = {
     # Mono-Colored Mana
-    "w": Symbol(OLD_WHITE_MANA),
-    "u": Symbol(OLD_BLUE_MANA),
-    "b": Symbol(OLD_BLACK_MANA),
-    "r": Symbol(OLD_RED_MANA),
-    "g": Symbol(OLD_GREEN_MANA),
+    "w": Symbol(ORIGINAL_WHITE_MANA),
+    "u": Symbol(ORIGINAL_BLUE_MANA),
+    "b": Symbol(ORIGINAL_BLACK_MANA),
+    "r": Symbol(ORIGINAL_RED_MANA),
+    "g": Symbol(ORIGINAL_GREEN_MANA),
+    # Tapping
+    "t": Symbol(ORIGINAL_TAP),
 }
 
 NEON_SYMBOL_PLACEHOLDER_KEY = {

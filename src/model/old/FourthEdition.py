@@ -1,8 +1,8 @@
 from model.Layer import Layer
-from model.old.OldCard import OldCard
+from model.old.OriginalCard import OriginalCard
 
 
-class FourthEdition(OldCard):
+class FourthEdition(OriginalCard):
     """
     A layered image representing a 4th Edition-bordered card and all the collection info on it,
     with all relevant card metadata.

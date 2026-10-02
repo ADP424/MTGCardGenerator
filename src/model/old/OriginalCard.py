@@ -7,18 +7,16 @@ from constants import (
     GOUDY_MEDIEVAL,
     MPLANTIN,
     MPLANTIN_ITALICS,
-    OLD_SYMBOL_PLACEHOLDER_KEY,
+    ORIGINAL_SYMBOL_PLACEHOLDER_KEY,
 )
 from model.Layer import Layer
 from model.regular.RegularCard import RegularCard
 from utils import add_drop_shadow, load_font
 
 
-class OldCard(RegularCard):
+class OriginalCard(RegularCard):
     """
-    A shared base class for old-bordered card layouts (e.g. 4th Edition, Alpha/Beta/Unlimited) that don't
-    have a separate colored title/type box, instead sharing the same marbled frame texture behind the
-    title, type line, and rules text box, with a "Illus. <artist>" + creation date footer.
+    A shared base class for the original card layouts (e.g. 4th Edition & Alpha/Beta/Unlimited).
 
     Attributes
     ----------
@@ -66,7 +64,7 @@ class OldCard(RegularCard):
         )
 
         # Symbols
-        self.MANA_SYMBOL_KEY = OLD_SYMBOL_PLACEHOLDER_KEY
+        self.MANA_SYMBOL_KEY = ORIGINAL_SYMBOL_PLACEHOLDER_KEY
 
         # Title Text
         self.TITLE_FONT = GOUDY_MEDIEVAL
