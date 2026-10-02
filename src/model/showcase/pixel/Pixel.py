@@ -146,7 +146,7 @@ class Pixel(RegularCard):
         """
         Uppercase `text`, leaving any `{directive}`/`{directive:value}` blocks untouched.
         """
-        
+
         _DIRECTIVE_BLOCK_PATTERN = re.compile(r"\{[^{}]*\}")
 
         parts = _DIRECTIVE_BLOCK_PATTERN.split(text)

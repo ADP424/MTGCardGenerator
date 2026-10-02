@@ -141,6 +141,7 @@ In the **Multi-line cells** column, `⏎` means the cell is read line by line an
 |---|---|---|
 | `Regular` | — | The standard M15-style card. `Draconic` is an alias. |
 | `Regular Split Rules Text` | Rules Text: left `{end}` right | Regular, with two side-by-side text columns. |
+| `Mutate` | Rules Text: mutate ability `{end}` rest of rules text | Regular, with the rules text box split into a top mutate box and a bottom box. |
 | `Transform Frontside` / `Transform Backside` | — | Backside row sets **Transform Frontside** to the front's title. Front's **Transform Hint** is the grey reverse P/T. |
 | `Meld Backside Top` / `Middle` / `Bottom` | — | Three landscape cards forming one meld back. |
 | `Modal Frontside` / `Modal Backside`, `Short Modal …` | — | **Additional Title(s)** = bottom-left type hint, **Transform Hint** = mana hint. |

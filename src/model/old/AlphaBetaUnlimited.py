@@ -2,9 +2,9 @@ from model.Layer import Layer
 from model.old.OldCard import OldCard
 
 
-class FourthEdition(OldCard):
+class AlphaBetaUnlimited(OldCard):
     """
-    A layered image representing a 4th Edition-bordered card and all the collection info on it,
+    A layered image representing an Alpha/Beta/Unlimited-bordered card and all the collection info on it,
     with all relevant card metadata.
 
     Attributes
@@ -36,7 +36,7 @@ class FourthEdition(OldCard):
 
     def __init__(
         self,
-        metadata: dict[str, str | list["FourthEdition"]] = None,
+        metadata: dict[str, str | list["AlphaBetaUnlimited"]] = None,
         art_layer: Layer = None,
         frame_layers: list[Layer] = None,
         collector_layers: list[Layer] = None,
@@ -54,51 +54,57 @@ class FourthEdition(OldCard):
 
         # Mana Cost
         self.MANA_COST_SYMBOL_SIZE = 98
-        self.MANA_COST_SYMBOL_SPACING = 10
+        self.MANA_COST_SYMBOL_SPACING = 16
         self.MANA_COST_SYMBOL_SHADOW_OFFSET = (0, 0)
 
         # Title Box
-        self.TITLE_BOX_X = 86
-        self.TITLE_BOX_Y = 61
-        self.TITLE_BOX_WIDTH = 1781
-        self.TITLE_BOX_HEIGHT = 158
+        self.TITLE_BOX_X = 104
+        self.TITLE_BOX_Y = 118
+        self.TITLE_BOX_WIDTH = 1761
+        self.TITLE_BOX_HEIGHT = 164
 
         # Title Text
-        self.TITLE_X = 165
-        self.TITLE_BOTTOM_Y = 206
-        self.TITLE_MAX_FONT_SIZE = 116
+        self.TITLE_X = 141
+        self.TITLE_BOTTOM_Y = 262
+        self.TITLE_MAX_FONT_SIZE = 122
+        self.TITLE_FONT_COLOR = (171, 171, 171)
 
         # Type Box
-        self.TYPE_BOX_Y = 1547
+        self.TYPE_BOX_Y = 1552
 
         # Type Text
-        self.TYPE_X = 166
-        self.TYPE_BOTTOM_Y = 1676
+        self.TYPE_X = 201
+        self.TYPE_BOTTOM_Y = 1666
+        self.TYPE_MAX_FONT_SIZE = 94
+        self.TYPE_FONT_COLOR = (171, 171, 171)
 
         # Rules Text Box
-        self.RULES_BOX_X = 221
-        self.RULES_BOX_Y = 1694
-        self.RULES_BOX_WIDTH = 1564
-        self.RULES_BOX_HEIGHT = 829
+        self.RULES_BOX_X = 276
+        self.RULES_BOX_Y = 1710
+        self.RULES_BOX_WIDTH = 1463
+        self.RULES_BOX_HEIGHT = 777
 
         # Rules Text
         self.RULES_TEXT_X = 276
-        self.RULES_TEXT_Y = 1694
-        self.RULES_TEXT_WIDTH = 1509
-        self.RULES_TEXT_HEIGHT = 829
+        self.RULES_TEXT_Y = 1707
+        self.RULES_TEXT_WIDTH = 1463
+        self.RULES_TEXT_HEIGHT = 777
 
         # Power & Toughness Text
-        self.POWER_TOUGHNESS_X = 1616
-        self.POWER_TOUGHNESS_Y = 2520
-        self.POWER_TOUGHNESS_FONT_SIZE = 122
+        self.POWER_TOUGHNESS_X = 1601
+        self.POWER_TOUGHNESS_Y = 2493
+        self.POWER_TOUGHNESS_FONT_SIZE = 117
+        self.POWER_TOUGHNESS_FONT_COLOR = (171, 171, 171)
 
         # Set / Rarity Symbol
-        self.SET_SYMBOL_X = 1707
-        self.SET_SYMBOL_Y = 1569
-        self.SET_SYMBOL_WIDTH = 102
+        self.SET_SYMBOL_X = 1692
+        self.SET_SYMBOL_Y = 1570
+        self.SET_SYMBOL_WIDTH = 100
 
         # Footer
         self.FOOTER_X = 201
-        self.FOOTER_Y = 2538
-        self.FOOTER_FONT_SIZE = 76
-        self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 8
+        self.FOOTER_Y = 2532
+        self.FOOTER_FONT_SIZE = 93
+        self.FOOTER_FONT_COLOR = (171, 171, 171)
+        self.FOOTER_LINE_HEIGHT_TO_GAP_RATIO = 16
+        self.FOOTER_DROP_SHADOW_OFFSET = (6, 6)

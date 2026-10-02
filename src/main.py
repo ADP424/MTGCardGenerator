@@ -82,7 +82,9 @@ from model.modal.ModalBackside import ModalBackside
 from model.modal.ModalFrontside import ModalFrontside
 from model.modal.short.ShortModalBackside import ShortModalBackside
 from model.modal.short.ShortModalFrontside import ShortModalFrontside
-from model.old.EighthEdition import EighthEdition
+from model.mutate.Mutate import Mutate
+from model.old.AlphaBetaUnlimited import AlphaBetaUnlimited
+from model.old.eighth.EighthEdition import EighthEdition
 from model.old.FourthEdition import FourthEdition
 from model.omen.Omen import Omen
 from model.planeswalker.Planeswalker import Planeswalker
@@ -511,6 +513,7 @@ def process_spreadsheets(
         "draconic": RegularCard,
         "regular split rules text": RegularSplitRulesText,
         "regular split rules text old": RegularSplitRulesText,
+        "mutate": Mutate,
         # Transform
         "transform frontside": TransformFrontside,
         "transform backside": TransformBackside,
@@ -568,6 +571,7 @@ def process_spreadsheets(
         # Old
         "4th edition": FourthEdition,
         "8th edition": EighthEdition,
+        "alpha beta unlimited": AlphaBetaUnlimited,
         # Custom
         "neon": Neon,
         "pokemon": Pokemon,

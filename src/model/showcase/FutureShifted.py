@@ -16,7 +16,7 @@ from constants import (
 )
 from log import log
 from model.Layer import Layer
-from model.old.EighthEdition import EighthEdition
+from model.old.eighth.EighthEdition import EighthEdition
 from model.regular.RegularCard import RegularCard
 from utils import add_drop_shadow, load_font
 

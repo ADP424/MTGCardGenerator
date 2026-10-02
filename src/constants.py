@@ -824,100 +824,101 @@ MYSTICAL_ARCHIVE_TWO_COLORLESS_MANA = open_image(
 )
 
 # Showcase Pokemon Mana Symbols
-POKEMON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/white.png")
-POKEMON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/blue.png")
-POKEMON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/black.png")
-POKEMON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/red.png")
-POKEMON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/green.png")
-POKEMON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/colorless.png")
-POKEMON_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/snow.png")
+POKEMON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/white.png")
+POKEMON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/blue.png")
+POKEMON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/black.png")
+POKEMON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/red.png")
+POKEMON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/green.png")
+POKEMON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/colorless.png")
+POKEMON_SNOW_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/snow.png")
 
-POKEMON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/0.png")
-POKEMON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/1.png")
-POKEMON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/2.png")
-POKEMON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/3.png")
-POKEMON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/4.png")
-POKEMON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/5.png")
-POKEMON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/6.png")
-POKEMON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/7.png")
-POKEMON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/8.png")
-POKEMON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/9.png")
-POKEMON_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/10.png")
-POKEMON_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/11.png")
-POKEMON_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/12.png")
-POKEMON_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/13.png")
-POKEMON_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/14.png")
-POKEMON_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/15.png")
-POKEMON_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/16.png")
-POKEMON_SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/17.png")
-POKEMON_EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/18.png")
-POKEMON_NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/19.png")
-POKEMON_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/20.png")
+POKEMON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/0.png")
+POKEMON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/1.png")
+POKEMON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/2.png")
+POKEMON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/3.png")
+POKEMON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/4.png")
+POKEMON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/5.png")
+POKEMON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/6.png")
+POKEMON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/7.png")
+POKEMON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/8.png")
+POKEMON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/9.png")
+POKEMON_TEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/10.png")
+POKEMON_ELEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/11.png")
+POKEMON_TWELVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/12.png")
+POKEMON_THIRTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/13.png")
+POKEMON_FOURTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/14.png")
+POKEMON_FIFTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/15.png")
+POKEMON_SIXTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/16.png")
+POKEMON_SEVENTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/17.png")
+POKEMON_EIGHTEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/18.png")
+POKEMON_NINETEEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/19.png")
+POKEMON_TWENTY_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/20.png")
 
-POKEMON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/tap/tap.png")
-POKEMON_UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/tap/untap.png")
+POKEMON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/tap/tap.png")
+POKEMON_UNTAP = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/tap/untap.png")
 
-POKEMON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/x.png")
-POKEMON_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/y.png")
-POKEMON_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/variable/z.png")
+POKEMON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/variable/x.png")
+POKEMON_Y_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/variable/y.png")
+POKEMON_Z_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/variable/z.png")
 
-POKEMON_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/white.png")
-POKEMON_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/blue.png")
-POKEMON_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/black.png")
-POKEMON_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/red.png")
-POKEMON_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/green.png")
-POKEMON_COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/mono/phyrexian/colorless.png")
+POKEMON_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/white.png")
+POKEMON_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/blue.png")
+POKEMON_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/black.png")
+POKEMON_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/red.png")
+POKEMON_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/green.png")
+POKEMON_COLORLESS_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/mono/phyrexian/colorless.png")
 
-POKEMON_WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/white_blue.png")
-POKEMON_WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/white_black.png")
-POKEMON_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/blue_black.png")
-POKEMON_BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/blue_red.png")
-POKEMON_BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/black_red.png")
-POKEMON_BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/black_green.png")
-POKEMON_RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/red_green.png")
-POKEMON_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/red_white.png")
-POKEMON_GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/green_white.png")
-POKEMON_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/green_blue.png")
+POKEMON_WHITE_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/white_blue.png")
+POKEMON_WHITE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/white_black.png")
+POKEMON_BLUE_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/blue_black.png")
+POKEMON_BLUE_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/blue_red.png")
+POKEMON_BLACK_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/black_red.png")
+POKEMON_BLACK_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/black_green.png")
+POKEMON_RED_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/red_green.png")
+POKEMON_RED_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/red_white.png")
+POKEMON_GREEN_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/green_white.png")
+POKEMON_GREEN_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/green_blue.png")
 
-POKEMON_WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/white_blue.png")
-POKEMON_WHITE_BLACK_PHYREXIAN_MANA = open_image(
-    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/white_black.png"
-)
-POKEMON_BLUE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/blue_black.png")
-POKEMON_BLUE_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/blue_red.png")
-POKEMON_BLACK_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/black_red.png")
-POKEMON_BLACK_GREEN_PHYREXIAN_MANA = open_image(
-    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/black_green.png"
-)
-POKEMON_RED_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/red_green.png")
-POKEMON_RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/red_white.png")
-POKEMON_GREEN_WHITE_PHYREXIAN_MANA = open_image(
-    f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_white.png"
-)
-POKEMON_GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pokemon/hybrid/phyrexian/green_blue.png")
+POKEMON_WHITE_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/white_blue.png")
+POKEMON_WHITE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/white_black.png")
+POKEMON_BLUE_BLACK_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/blue_black.png")
+POKEMON_BLUE_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/blue_red.png")
+POKEMON_BLACK_RED_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/black_red.png")
+POKEMON_BLACK_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/black_green.png")
+POKEMON_RED_GREEN_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/red_green.png")
+POKEMON_RED_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/red_white.png")
+POKEMON_GREEN_WHITE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/green_white.png")
+POKEMON_GREEN_BLUE_PHYREXIAN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/pokemon/hybrid/phyrexian/green_blue.png")
+
+# Old (4th Edition / Alpha-Beta-Unlimited) Mana Symbols
+OLD_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/white.png")
+OLD_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/blue.png")
+OLD_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/black.png")
+OLD_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/red.png")
+OLD_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/old/mono/green.png")
 
 # Custom Neon Mana Symbols
-NEON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/white.png")
-NEON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/blue.png")
-NEON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/black.png")
-NEON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/red.png")
-NEON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/green.png")
-NEON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/colorless.png")
+NEON_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/white.png")
+NEON_BLUE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/blue.png")
+NEON_BLACK_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/black.png")
+NEON_RED_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/red.png")
+NEON_GREEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/green.png")
+NEON_COLORLESS_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/colorless.png")
 
-NEON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/0.png")
-NEON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/1.png")
-NEON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/2.png")
-NEON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/3.png")
-NEON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/4.png")
-NEON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/5.png")
-NEON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/6.png")
-NEON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/7.png")
-NEON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/8.png")
-NEON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/mono/9.png")
+NEON_ZERO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/0.png")
+NEON_ONE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/1.png")
+NEON_TWO_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/2.png")
+NEON_THREE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/3.png")
+NEON_FOUR_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/4.png")
+NEON_FIVE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/5.png")
+NEON_SIX_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/6.png")
+NEON_SEVEN_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/7.png")
+NEON_EIGHT_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/8.png")
+NEON_NINE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/mono/9.png")
 
-NEON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/variable/x.png")
+NEON_X_MANA = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/variable/x.png")
 
-NEON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/showcase/neon/tap/tap.png")
+NEON_TAP = open_image(f"{MANA_SYMBOLS_PATH}/custom/neon/tap/tap.png")
 
 # Showcase Pixel Mana Symbols
 PIXEL_WHITE_MANA = open_image(f"{MANA_SYMBOLS_PATH}/showcase/pixel/mono/white.png")
@@ -1611,6 +1612,15 @@ POKEMON_SYMBOL_PLACEHOLDER_KEY = {
     "pg/pu": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "up/gp": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
     "pu/pg": Symbol(POKEMON_GREEN_BLUE_PHYREXIAN_MANA, HYBRID_MANA_SYMBOL_SIZE_MULT),
+}
+
+OLD_SYMBOL_PLACEHOLDER_KEY = {
+    # Mono-Colored Mana
+    "w": Symbol(OLD_WHITE_MANA),
+    "u": Symbol(OLD_BLUE_MANA),
+    "b": Symbol(OLD_BLACK_MANA),
+    "r": Symbol(OLD_RED_MANA),
+    "g": Symbol(OLD_GREEN_MANA),
 }
 
 NEON_SYMBOL_PLACEHOLDER_KEY = {
