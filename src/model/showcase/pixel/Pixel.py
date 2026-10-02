@@ -1,3 +1,5 @@
+import re
+
 from constants import (
     CARD_SUBTYPES,
     CARD_SUPERTYPES,
@@ -59,10 +61,6 @@ class Pixel(RegularCard):
             text_layers,
             overlay_layers,
         )
-
-        # Overall Card
-        self.CARD_WIDTH = 2010
-        self.CARD_HEIGHT = 2814
 
         # Symbols
         self.MANA_SYMBOL_KEY = PIXEL_SYMBOL_PLACEHOLDER_KEY
@@ -144,6 +142,21 @@ class Pixel(RegularCard):
         self.HOLO_STAMP_X = float("inf")
         self.HOLO_STAMP_Y = float("inf")
 
+    def _upper_outside_directives(self, text: str) -> str:
+        """
+        Uppercase `text`, leaving any `{directive}`/`{directive:value}` blocks untouched.
+        """
+        
+        _DIRECTIVE_BLOCK_PATTERN = re.compile(r"\{[^{}]*\}")
+
+        parts = _DIRECTIVE_BLOCK_PATTERN.split(text)
+        directives = _DIRECTIVE_BLOCK_PATTERN.findall(text)
+        upper_parts = [part.upper() for part in parts]
+        result = upper_parts[0]
+        for directive, part in zip(directives, upper_parts[1:]):
+            result += directive + part
+        return result
+
     def _create_title_layer(self):
         """
         Uppercase the title, matching the all-caps look of the pixel showcase frame, then defer to
@@ -151,7 +164,7 @@ class Pixel(RegularCard):
         """
 
         full_title = self.get_metadata(CARD_TITLE)
-        self.set_metadata(CARD_TITLE, full_title.upper())
+        self.set_metadata(CARD_TITLE, self._upper_outside_directives(full_title))
         super()._create_title_layer()
         self.set_metadata(CARD_TITLE, full_title)
 
@@ -164,9 +177,9 @@ class Pixel(RegularCard):
         full_supertypes = self.get_metadata(CARD_SUPERTYPES)
         full_types = self.get_metadata(CARD_TYPES)
         full_subtypes = self.get_metadata(CARD_SUBTYPES)
-        self.set_metadata(CARD_SUPERTYPES, full_supertypes.upper())
-        self.set_metadata(CARD_TYPES, full_types.upper())
-        self.set_metadata(CARD_SUBTYPES, full_subtypes.upper())
+        self.set_metadata(CARD_SUPERTYPES, self._upper_outside_directives(full_supertypes))
+        self.set_metadata(CARD_TYPES, self._upper_outside_directives(full_types))
+        self.set_metadata(CARD_SUBTYPES, self._upper_outside_directives(full_subtypes))
         super()._create_type_layer()
         self.set_metadata(CARD_SUPERTYPES, full_supertypes)
         self.set_metadata(CARD_TYPES, full_types)

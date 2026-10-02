@@ -1732,7 +1732,7 @@ class RegularCard:
         """
 
         bold_relative_size = self.RULES_TEXT_BOLD_RELATIVE_SIZE if bold else 0
-        return int(font.getlength(text) * (1 + bold_relative_size))
+        return int(font.getlength(text) * (1 + max(self.RULES_TEXT_OUTLINE_RELATIVE_SIZE, bold_relative_size)))
 
     def _get_rules_text_starting_y(self, margin: int, usable_height: int, content_height: int) -> int:
         """
@@ -2293,8 +2293,6 @@ class RegularCard:
         background_image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
-        stroke_image = Image.new("RGBA", (self.RULES_TEXT_WIDTH, self.RULES_TEXT_HEIGHT), (0, 0, 0, 0))
-        stroke_draw = ImageDraw.Draw(stroke_image)
 
         line_height = int(font_size * (1 + self.RULES_TEXT_OUTLINE_RELATIVE_SIZE))
         curr_y = self._get_rules_text_starting_y(margin, usable_height, content_height)
@@ -2347,24 +2345,9 @@ class RegularCard:
                 technique for simulating a bold weight with no true bold font file (see Firefox's
                 `gfxFont::GetSyntheticBoldOffset`). Both strokes are centered on the same glyph
                 contour, so they combine visually instead of stacking.
-
-                The outline stroke is drawn onto a separate `stroke_image` that gets composited
-                underneath the fill at the very end, so that one fragment's outline can never paint
-                over an adjacent fragment's fill (which single-call `draw.text` stroke+fill can't
-                guarantee once fragments are drawn close together with realistic spacing).
                 """
 
-                stroke_width = kwargs.get("stroke_width", 0)
-                if stroke_width:
-                    stroke_draw.text(
-                        xy,
-                        value,
-                        font=font,
-                        fill=kwargs.get("stroke_fill"),
-                        stroke_width=stroke_width,
-                        stroke_fill=kwargs.get("stroke_fill"),
-                    )
-                draw.text(xy, value, font=font, fill=kwargs["fill"])
+                draw.text(xy, value, font=font, **kwargs)
                 if bold:
                     draw.text(
                         xy,
@@ -2534,9 +2517,6 @@ class RegularCard:
                     )
                     curr_y += dividing_line.height + line_height // 2
             draw_lines(lines)
-
-        stroke_image.alpha_composite(image)
-        image = stroke_image
 
         drop_shadow_offset = (
             int(self.RULES_TEXT_DROP_SHADOW_RELATIVE_OFFSET[0] * font_size),

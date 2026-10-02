@@ -13,6 +13,8 @@ from typing import Callable, NamedTuple
 import openpyxl
 from PIL import Image
 
+from model.showcase.pixel.ShortPixel import ShortPixel
+
 try:
     import gspread
     from google.oauth2.service_account import Credentials as ServiceAccountCredentials
@@ -111,7 +113,7 @@ from model.showcase.mystical_archive.japan.JapaneseMysticalArchiveHorizontal imp
 )
 from model.showcase.neon.NeonDynasty import NeonDynasty
 from model.showcase.neon.ShortNeonDynasty import ShortNeonDynasty
-from model.showcase.Pixel import Pixel
+from model.showcase.pixel.Pixel import Pixel
 from model.showcase.Playtest import Playtest
 from model.showcase.promo.ExtendedPromo import ExtendedPromo
 from model.showcase.promo.OpenHousePromo import OpenHousePromo
@@ -580,6 +582,7 @@ def process_spreadsheets(
         "sketch": Sketch,
         "playtest": Playtest,
         "pixel": Pixel,
+        "short pixel": ShortPixel,
         "monopoly": Monopoly,
         "coup": Coup,
         "chat": Chat,
